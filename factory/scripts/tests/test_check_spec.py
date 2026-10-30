@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 import check_spec
+import factory_lib as lib
 import pytest
 import scaffold
 from conftest import BREW_RATIO_TEMPLATES, REAL_ROOT, needs_templates, run
@@ -229,3 +230,90 @@ def test_every_real_idea_pack_has_no_blockers(idea, tmp_path):
 def test_placeholders_inside_code_are_not_reported(pack):
     edit(pack / "spec/01-overview.md", "Next: Gate 2.", "Files go to `published/<dataset_id>/<version>/`. Next: Gate 2.")
     assert not warned(findings(pack), "placeholder text left")
+
+
+# ---------------------------------------------------------------- the overview (Gate 1)
+def test_the_overview_is_checked_at_gate_1(pack):
+    assert findings(pack, definition_only=True).blockers == []
+    edit(pack / "overview.md", "One home brewer.", "<Who benefits>")
+    assert blocked(findings(pack, definition_only=True), "overview.md  placeholder text left")
+    (pack / "overview.md").unlink()
+    assert blocked(findings(pack, definition_only=True), "overview.md  missing")
+    assert not blocked(findings(pack), "overview.md")  # the Gate 2 check leaves it to Gate 1
+
+
+def test_the_overview_warns_about_requirement_ids_and_missing_sections(pack):
+    edit(pack / "overview.md", "both sums, saved favourites", "FR-001 and FR-002, saved favourites")
+    edit(pack / "overview.md", "## What happens next", "## Later")
+    f = findings(pack, definition_only=True)
+    assert f.blockers == [], f.blockers
+    assert warned(f, "uses requirement IDs (FR-001, FR-002)") and warned(f, "no 'What happens next' section")
+
+
+def test_a_fresh_overview_is_filled_from_triage_or_left_to_fill(repo):
+    scaffold.new_idea("fresh", "Fresh", root=repo)
+    scaffold.new_definition("fresh", root=repo)
+    text = (repo / "ideas/fresh/overview.md").read_text(encoding="utf-8")
+    assert "# Fresh: overview" in text and "<people or processes touched per month>" in text
+    assert blocked(findings(repo / "ideas/fresh", definition_only=True), "overview.md  placeholder text left")
+    with pytest.raises(lib.FactoryError, match="already exists"):
+        scaffold.new_overview("fresh", root=repo)
+    scaffold.new_idea("picked", "Picked", root=repo)
+    state = lib.load_state("picked", repo)
+    state["triage"] = {"id": "TRI-004", "score": 16, "period": "per month", "reach": 40, "impact": 2, "confidence": 80, "effort": 4}
+    lib.save_state("picked", state, repo)
+    text = (scaffold.new_overview("picked", root=repo)).read_text(encoding="utf-8")
+    assert "| 40 per month | 2 (high) | 80% | 4 person-weeks | 16 |" in text and "From triage (TRI-004" in text
+
+
+# ---------------------------------------------------------------- doc 13, the business process
+def test_the_business_process_doc_is_required(pack):
+    (pack / "spec/13-business-process.md").unlink()
+    assert blocked(findings(pack), "spec/13-business-process.md  missing")
+
+
+def test_an_idea_started_before_doc_13_is_only_warned(pack):
+    (pack / "spec/13-business-process.md").unlink()
+    edit(pack / "spec/README.md", "| [13-business-process.md](13-business-process.md) | Brewing today and with the app |\n", "")
+    edit(pack / "state.json", '"factory_version": "0.2.0"', '"factory_version": "0.1.0"')
+    f = findings(pack)
+    assert not blocked(f, "13-business-process") and warned(f, "required from factory 0.2.0; this idea started on 0.1.0")
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "fragment"),
+    [
+        ("## As-is\n", "## Today\n", "no '## As-is' section"),
+        ("## To-be\n", "## Tomorrow\n", "no '## To-be' section"),
+        ("## As-is\nThe brewer weighs the coffee, works out the water on a phone calculator, and writes favourite ratios on a sticky note.\n\n```mermaid",
+         "## As-is\nThe brewer weighs the coffee, works out the water on a phone calculator, and writes favourite ratios on a sticky note.\n\n```text", "the as-is section needs a ```mermaid flowchart"),
+        ("the app shows the water and keeps favourites.\n\n```mermaid", "the app shows the water and keeps favourites.\n\n```", "the to-be section needs a ```mermaid flowchart"),
+        ("| Saves a favourite recipe, still there tomorrow | FR-003 |", "| Saves a favourite recipe, still there tomorrow | FR-099 |", "mentions FR-099, which is not defined"),
+    ],
+)
+def test_each_business_process_blocker(pack, old, new, fragment):
+    edit(pack / "spec/13-business-process.md", old, new)
+    assert blocked(findings(pack), fragment)
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "fragment"),
+    [
+        ("| Saves a favourite recipe, still there tomorrow | FR-003 |", "| Saves a favourite recipe, still there tomorrow | manual |", "to-be step 3 names no FR"),
+        ("| Step | Who | What happens | Relies on |\n|---|---|---|---|\n| 1 |", "| Who | What happens | Relies on |\n|---|---|---|\n| 1 |", "no steps table"),
+        ("## What changes\n", "## Afterwards\n", "no '## What changes' section"),
+    ],
+)
+def test_each_business_process_warning(pack, old, new, fragment):
+    edit(pack / "spec/13-business-process.md", old, new)
+    f = findings(pack)
+    assert warned(f, fragment), f.warnings
+    assert f.blockers == [], f.blockers
+
+
+def test_fresh_stubs_include_the_business_process(repo):
+    scaffold.new_idea("fresh", "Fresh", root=repo)
+    scaffold.new_definition("fresh", root=repo)
+    scaffold.new_spec("fresh", root=repo)
+    assert (repo / "ideas/fresh/spec/13-business-process.md").exists()
+    assert not blocked(findings(repo / "ideas/fresh"), "13-business-process")

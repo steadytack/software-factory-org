@@ -83,8 +83,10 @@ def test_the_command_line(repo, py):
     script = str(repo / "factory/scripts/scaffold.py")
     assert run([py, script, "new", "my-idea", "--name", "My idea"], repo).returncode == 0
     assert run([py, script, "new", "my-idea", "--name", "Again"], repo).returncode == 1
-    assert run([py, script, "app", "my-idea", "single-page-html"], repo).returncode == 0
-    assert (repo / "ideas/my-idea/app/index.html").exists()
+    ready = lib.ready_templates(repo)  # an instance has only the templates it chose
+    template = "single-page-html" if "single-page-html" in ready else sorted(ready)[0]
+    assert run([py, script, "app", "my-idea", template], repo).returncode == 0
+    assert (repo / "ideas/my-idea/app/README.md").exists()
     assert run([py, script], repo).returncode == 2
 
 

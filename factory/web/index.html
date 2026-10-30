@@ -121,9 +121,10 @@ function renderOverview() {
   const waiting = state.ideas.filter((i) => i.status === 'awaiting-approval').length;
   root.append(el('div', { class: 'card' },
     el('h2', {}, 'How it works'),
-    el('p', {}, 'Each idea moves through four stages. Every stage ends at a gate: nothing moves on until the owner approves it.'),
+    el('p', {}, 'Ideas are triaged first: knock-outs, then a RICE score, and the owner picks which go ahead (Gate 0). Each picked idea moves through four stages. Every stage ends at a gate: nothing moves on until the owner approves it.'),
     el('div', { class: 'flow' }, STAGES.map((s, n) => el('div', {}, el('b', {}, n < 4 ? GATE_NAMES[n] : 'Done'), el('div', { class: 'n' }, String(count(s))), el('div', { class: 'mute' }, STAGE_TEXT[s])))),
-    el('div', { class: 'mute' }, state.ideas.length + ' ideas · ' + waiting + ' waiting for approval · ' + state.apps.length + ' published')));
+    el('div', { class: 'mute' }, state.ideas.length + ' ideas · ' + waiting + ' waiting for approval · ' + state.apps.length + ' published'),
+    state.triage ? el('div', { class: 'mute' }, state.triage) : null));
   if (state.overview) {
     const slot = el('div', {}, el('p', { class: 'mute' }, 'Loading...'));
     root.append(slot);
@@ -143,7 +144,7 @@ function ideaCard(i) {
     g.file ? el('a', { href: '#doc=' + g.file }, 'gate summary') : null));
   return el('div', { class: 'card' },
     el('div', { class: 'row' }, el('h2', {}, i.name), el('span', { class: 'badge ' + i.status }, i.status),
-      el('span', { class: 'mute' }, 'tier ' + (i.tier || '?') + (i.template ? ' · ' + i.template : '') + ' · updated ' + (i.updated || '?')),
+      el('span', { class: 'mute' }, 'tier ' + (i.tier || '?') + (i.template ? ' · ' + i.template : '') + (i.triage ? ' · RICE ' + i.triage.score : '') + ' · updated ' + (i.updated || '?')),
       el('span', { class: 'grow' }), i.app ? el('a', { class: 'btn', href: i.app.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open app') : null),
     el('div', { class: 'steps' }, steps),
     i.current.epic || i.current.milestone ? el('div', { class: 'mute' }, 'Now: ' + [i.current.epic, i.current.story, i.current.milestone].filter(Boolean).join(' / ')) : null,

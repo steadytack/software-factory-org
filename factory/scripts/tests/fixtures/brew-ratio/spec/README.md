@@ -20,6 +20,7 @@
 | [10-architecture-and-deployment.md](10-architecture-and-deployment.md) | Components and deployment |
 | [11-delivery-plan.md](11-delivery-plan.md) | Epics, tests, Definition of Done |
 | [12-component-selection-and-gaps.md](12-component-selection-and-gaps.md) | Reused assets and gaps |
+| [13-business-process.md](13-business-process.md) | Brewing today and with the app |
 | [traceability.md](traceability.md) | Generated |
 
 ## Source material

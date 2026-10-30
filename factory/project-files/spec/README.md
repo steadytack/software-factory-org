@@ -20,6 +20,7 @@
 | [10-architecture-and-deployment.md](10-architecture-and-deployment.md) | Components, integrations, deployment |
 | [11-delivery-plan.md](11-delivery-plan.md) | Epics, tests, Definition of Done |
 | [12-component-selection-and-gaps.md](12-component-selection-and-gaps.md) | Reused assets, gaps and decisions |
+| [13-business-process.md](13-business-process.md) | The business process as it is and as it will be, and what changes |
 | [traceability.md](traceability.md) | Generated: requirements to stories, design, epics and tests |
 
 **IDs:** OBJ objective, JRN journey, FR functional requirement, RULE business rule, SCR screen, NFR non-functional requirement, DATA entity, REL relationship, ROLE, PERM permission, SEC security requirement, US story, AC acceptance criterion, ASM assumption, Q question, RISK, DEP dependency, DEC decision, CR change request, CMP component, INT integration, EPIC, TEST, CAP required capability, CAT catalogue asset.

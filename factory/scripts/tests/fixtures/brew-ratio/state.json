@@ -5,7 +5,7 @@
   "kind": "demo",
   "stage": "spec",
   "status": "in-progress",
-  "factory_version": "0.1.0",
+  "factory_version": "0.2.0",
   "updated": "2026-10-19",
   "template": "single-page-html",
   "tier": 2,

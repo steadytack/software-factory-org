@@ -3,7 +3,8 @@
 
 Usage:
   python factory/scripts/scaffold.py new <slug> --name "Readable name" [--kind app|factory-asset|demo]
-  python factory/scripts/scaffold.py definition <slug>     the Application Definition to fill in (Analyse)
+  python factory/scripts/scaffold.py definition <slug>     the Application Definition and the overview to fill in (Analyse)
+  python factory/scripts/scaffold.py overview <slug>       only the overview (an idea whose definition already exists)
   python factory/scripts/scaffold.py spec <slug>           the spec pack stubs (Spec)
   python factory/scripts/scaffold.py app <slug> <template>
 
@@ -139,6 +140,43 @@ def new_definition(slug: str, root: Path | None = None) -> Path:
     path.write_text(fill(template, {"slug": slug, "name": state["name"]}), encoding="utf-8", newline="\n")
     state["versions"]["application_definition"] = "0.1"
     lib.save_state(slug, state, root)
+    if not (path.parent / "overview.md").exists():
+        new_overview(slug, root)
+    return path
+
+
+IMPACT_WORDS = {0.25: "minimal", 0.5: "low", 1: "medium", 2: "high", 3: "massive"}
+
+
+def new_overview(slug: str, root: Path | None = None) -> Path:
+    """The overview for sponsors and the team, with the triage numbers filled in when the idea was triaged."""
+    base = root or lib.ROOT
+    state = lib.load_state(slug, root)
+    path = lib.idea_dir(slug, root) / "overview.md"
+    if path.exists():
+        raise lib.FactoryError(f"ideas/{slug}/overview.md already exists")
+    t = state.get("triage")
+
+    def num(x: float) -> str:
+        return f"{x:.2f}".rstrip("0").rstrip(".")
+
+    if t:
+        period = t.get("period", "per period")
+        values = {
+            "reach": f"{num(t['reach'])} {period}", "impact": f"{num(t['impact'])} ({IMPACT_WORDS.get(t['impact'], 'see triage')})",
+            "confidence": f"{num(t['confidence'])}%", "effort": f"{num(t['effort'])} person-weeks", "score": num(t["score"]),
+            "rice_note": f"From triage ({t['id']}, `ideas/triage.md`): Reach is the people or processes touched {period}; Impact runs from "
+                         "0.25 (minimal) to 3 (massive) for each; Confidence is how sure the estimate is; Effort is rough person-weeks "
+                         "to a first release. Priority score = Reach x Impact x Confidence / Effort. Update the numbers if Analyse changed them.",
+        }
+    else:
+        values = {
+            "reach": "<people or processes touched per month>", "impact": "<0.25 minimal to 3 massive>",
+            "confidence": "<percentage>", "effort": "<rough person-weeks>", "score": "<Reach x Impact x Confidence / Effort>",
+            "rice_note": "<Not triaged: estimate the four factors as in factory/stages/triage.md and say what each means in a line.>",
+        }
+    template = (base / "factory" / "project-files" / "overview.md").read_text(encoding="utf-8")
+    path.write_text(fill(template, {"name": state["name"], **values}), encoding="utf-8", newline="\n")
     return path
 
 
@@ -201,9 +239,9 @@ def main(argv: list[str]) -> int:
             idea = new_idea(args[1], name, kind)
             print(f"Created {idea.relative_to(lib.ROOT).as_posix()}/ (stage analyse)")
             return 0
-        if len(args) == 2 and args[0] in ("definition", "spec"):
-            made = new_definition(args[1]) if args[0] == "definition" else new_spec(args[1])
-            print(f"Wrote {made.relative_to(lib.ROOT).as_posix()}")
+        if len(args) == 2 and args[0] in ("definition", "overview", "spec"):
+            made = {"definition": new_definition, "overview": new_overview, "spec": new_spec}[args[0]](args[1])
+            print(f"Wrote {made.relative_to(lib.ROOT).as_posix()}" + (" and overview.md" if args[0] == "definition" else ""))
             return 0
         if len(args) == 3 and args[0] == "app":
             app = new_app(args[1], args[2])

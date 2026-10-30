@@ -10,6 +10,7 @@
   ],
   "idea": [
     "idea.md",
+    "overview.md",
     "application-definition.md",
     "decisions.md",
     "changes.md",

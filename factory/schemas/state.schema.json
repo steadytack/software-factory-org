@@ -44,7 +44,7 @@
       "type": "object",
       "additionalProperties": false,
       "patternProperties": {
-        "^[1-4]$": {
+        "^[0-4]$": {
           "type": "object",
           "required": ["status"],
           "additionalProperties": false,
@@ -81,6 +81,21 @@
       "properties": { "repo": { "type": "string" }, "url": { "type": "string", "pattern": "^https?://" } }
     },
     "changes": { "type": "array", "items": { "type": "string", "pattern": "^CR-\\d{3}$" } },
+    "triage": {
+      "type": "object",
+      "description": "The triage record carried over at Gate 0 (ideas/triage.json): the entry and its RICE factors",
+      "required": ["id", "score", "reach", "impact", "confidence", "effort"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^TRI-\\d{3}$" },
+        "score": { "type": "number" },
+        "period": { "type": "string" },
+        "reach": { "type": "number" },
+        "impact": { "type": "number" },
+        "confidence": { "type": "number" },
+        "effort": { "type": "number" }
+      }
+    },
     "next": { "type": "string" }
   }
 }

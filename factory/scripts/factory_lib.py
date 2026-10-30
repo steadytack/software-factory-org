@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SLUG_PATTERN = r"^[a-z][a-z0-9-]*$"
-SCHEMAS = ("application-definition", "state", "composition", "catalogue-entry", "source-record", "scopes")
+SCHEMAS = ("application-definition", "state", "composition", "catalogue-entry", "source-record", "scopes", "triage")
 
 
 class FactoryError(Exception):

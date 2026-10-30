@@ -180,15 +180,18 @@ def test_reject_records_the_reason(repo, hostile):
 
 def test_the_command_line(repo, hostile, py):
     script = str(repo / "factory/scripts/catalogue.py")
-    assert run([py, script, "search", "dashboard"], repo).stdout.count("streamlit-app") == 1
+    if "streamlit-app" in lib.ready_templates(repo):  # an instance has only the templates it chose
+        assert run([py, script, "search", "dashboard"], repo).stdout.count("streamlit-app") == 1
     out = run([py, script, "import", str(hostile)], repo)
     sid = re.search(r"Recorded (SRC-\d{3})", out.stdout).group(1)
     assert out.returncode == 0 and f"What can I reuse from {sid}?" in out.stdout
     some = json.loads((repo / "catalogue/sources" / sid / "source.json").read_text(encoding="utf-8"))["candidates"][0]
     assert run([py, script, "validate", some], repo).returncode == 2  # needs --yes
     assert run([py, script, "approve", some], repo).returncode == 2  # needs --by
-    assert run([py, script, "show", "CAT-001"], repo).returncode == 0
-    assert run([py, script, "list", "--status", "approved"], repo).stdout.count("approved") >= 6
+    assets = sorted((repo / "catalogue/assets").glob("CAT-*.json"))
+    assert run([py, script, "show", assets[0].stem], repo).returncode == 0
+    approved = sum(json.loads(p.read_text(encoding="utf-8"))["status"] == "approved" for p in assets)
+    assert run([py, script, "list", "--status", "approved"], repo).stdout.count("approved") >= approved
     assert run([py, script], repo).returncode == 2
 
 

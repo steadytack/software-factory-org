@@ -3,7 +3,7 @@
 
 Usage:
   python factory/scripts/check_spec.py <slug | ideas/<slug> | path/to/spec>
-  python factory/scripts/check_spec.py <slug> --definition          only the Application Definition (Gate 1)
+  python factory/scripts/check_spec.py <slug> --definition          the Application Definition and overview (Gate 1)
   python factory/scripts/check_spec.py <slug> --impact FR-007[,US-003]   what a change touches
 
 Deterministic, no AI. Prints `BLOCKER file:line message` and `warning file:line message`; exits 1
@@ -39,7 +39,7 @@ DOCS = [
     "README", "01-overview", "02-product-definition", "03-functional-requirements", "04-user-experience",
     "05-non-functional-requirements", "06-data-model", "07-security-and-permissions", "08-user-stories",
     "09-assumptions-risks-decisions", "10-architecture-and-deployment", "11-delivery-plan",
-    "12-component-selection-and-gaps",
+    "12-component-selection-and-gaps", "13-business-process",
 ]
 GENERATED = {"traceability.md"}
 PRIORITIES = {"must", "should", "could"}
@@ -48,6 +48,11 @@ STATUSES = {"open", "closed", "accepted", "withdrawn"}
 BLOCKS = {"none", "spec", "build", "release"}
 DECISIONS = {"reuse", "adapt", "build", "import", "redesign", "defer"}
 NEEDS_FR = {"RULE": "FR", "SCR": "FR", "DATA": "FR", "PERM": "FR", "INT": "FR"}
+OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
+PROCESS_SECTIONS = ("as-is", "to-be", "what changes")
+# Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
+DOC_SINCE = {"13-business-process": "0.2.0"}
+MERMAID = re.compile(r"^```mermaid\s*$", re.M)
 
 
 @dataclass
@@ -201,6 +206,95 @@ def check_definition(idea: Path, f: Findings) -> dict | None:
     return data if not problems else None
 
 
+def version_key(version: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in re.findall(r"\d+", version)[:3])
+
+
+def started_on(idea: Path) -> str | None:
+    """The factory version an idea in the factory records (state.json), or None for a pack outside it."""
+    path = idea / "state.json"
+    if not path.exists():
+        return None
+    try:
+        return lib.read_json(path).get("factory_version")
+    except ValueError:
+        return None
+
+
+def check_overview(idea: Path, f: Findings) -> None:
+    """The overview for sponsors and the team (Gate 1): present, filled in, and free of requirement IDs."""
+    path = idea / "overview.md"
+    if not path.exists():
+        f.block("overview.md", "missing (scaffold.py overview <slug>; see factory/stages/analyse.md)")
+        return
+    text = path.read_text(encoding="utf-8")
+    if has_placeholder(text):
+        f.block("overview.md", "placeholder text left (<...>): it goes to sponsors as written")
+    for heading in OVERVIEW_HEADINGS:
+        if not re.search(rf"(?im)^##\s+{re.escape(heading)}", text):
+            f.warn("overview.md", f"no '{heading}' section")
+    ids = sorted({m.group(0) for m in ID.finditer(text) if kind_of(m.group(0)) != "CAT"})
+    if ids:
+        f.warn("overview.md", f"uses requirement IDs ({', '.join(ids[:5])}); say it in plain words")
+
+
+def process_sections(text: str) -> dict[str, tuple[int, str]]:
+    """{as-is | to-be | what changes: (line of the heading, the section's text)} from doc 13."""
+    out: dict[str, tuple[int, str]] = {}
+    current, start, body = None, 0, []
+    for n, line in enumerate(text.splitlines() + ["## end"], start=1):
+        h = re.match(r"^##\s+(.*)$", line)
+        if h:
+            if current:
+                out.setdefault(current, (start, "\n".join(body)))
+            title = h.group(1).strip().lower().replace("as is", "as-is").replace("to be", "to-be")
+            current = next((k for k in PROCESS_SECTIONS if title.startswith(k)), None)
+            start, body = n, []
+        elif current:
+            body.append(line)
+    return out
+
+
+def check_process(spec: Path, by_id: dict[str, Item], f: Findings) -> None:
+    """Doc 13: as-is and to-be as Mermaid, to-be steps naming the FRs they rely on, and what changes."""
+    path = spec / "13-business-process.md"
+    if not path.exists():
+        return  # reported as a missing document
+    sections = process_sections(path.read_text(encoding="utf-8"))
+    for key in ("as-is", "to-be"):
+        if key not in sections:
+            f.block(path.name, f"no '## {key.capitalize()}' section")
+        elif not MERMAID.search(sections[key][1]):
+            f.block(f"{path.name}:{sections[key][0]}", f"the {key} section needs a ```mermaid flowchart")
+    if "what changes" not in sections:
+        f.warn(path.name, "no '## What changes' section (steps removed, automated or changed; who does what; savings)")
+    elif not any(ln.strip().startswith("|") for ln in sections["what changes"][1].splitlines()):
+        f.warn(f"{path.name}:{sections['what changes'][0]}", "'What changes' has no table")
+    if "to-be" not in sections:
+        return
+    start, body = sections["to-be"]
+    header: list[str] = []
+    steps = 0
+    for n, line in enumerate(body.splitlines(), start=start + 1):
+        if not line.strip().startswith("|"):
+            header = []
+            continue
+        cells = split_row(line)
+        if is_rule(cells):
+            continue
+        if not header:
+            header = [c.lower() for c in cells]
+            continue
+        if header[0] != "step":
+            continue
+        steps += 1
+        frs = [m.group(0) for m in ID.finditer(line) if kind_of(m.group(0)) == "FR"]
+        if not frs:
+            f.warn(f"{path.name}:{n}", f"to-be step {cells[0]} names no FR it relies on (a manual step may say so and be accepted)")
+    if not steps:
+        f.warn(f"{path.name}:{start}", "the to-be section has no steps table (Step | Who | What happens | Relies on)")
+
+
 def load_catalogue() -> dict[str, dict] | None:
     assets = lib.ROOT / "catalogue" / "assets"
     if not assets.is_dir():
@@ -268,9 +362,14 @@ def check_source_map(idea: Path, spec: Path, by_id: dict[str, Item], f: Findings
 
 # ---------------------------------------------------------------- the pack
 def check_pack(idea: Path, spec: Path, f: Findings, tier: int, deployment: str | None) -> tuple[dict[str, Item], dict]:
+    started = started_on(idea)
     for name in DOCS:
         if not (spec / f"{name}.md").exists():
-            f.block(f"spec/{name}.md", "missing")
+            since = DOC_SINCE.get(name)
+            if since and started is not None and version_key(started) < version_key(since):
+                f.warn(f"spec/{name}.md", f"missing (required from factory {since}; this idea started on {started}: add it with a change request)")
+            else:
+                f.block(f"spec/{name}.md", "missing")
     items, def_lines = parse(spec)
 
     by_id: dict[str, Item] = {}
@@ -439,6 +538,7 @@ def check_pack(idea: Path, spec: Path, f: Findings, tier: int, deployment: str |
         if stated and stated.group(1).lower() != deployment:
             f.warn("10-architecture-and-deployment.md", f"deployment category {stated.group(1)} differs from the Application Definition ({deployment})")
 
+    check_process(spec, by_id, f)
     check_source_map(idea, spec, by_id, f)
     context = {"live": live, "kinds": kinds, "acs": acs, "stories_for": stories_for, "epics_for": epics_for, "tests_for": tests_for, "caps_for": caps_for}
     return by_id, context
@@ -542,6 +642,8 @@ def run(arg: str, definition_only: bool = False) -> tuple[Findings, str | None, 
     in_factory = (idea / "state.json").exists()
     data = check_definition(idea, f) if in_factory or (idea / "application-definition.md").exists() else None
     if definition_only:
+        if in_factory or (idea / "application-definition.md").exists():
+            check_overview(idea, f)
         f.done()
         return f, None, spec
     if not spec.is_dir():
