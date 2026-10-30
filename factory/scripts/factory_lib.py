@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SLUG_PATTERN = r"^[a-z][a-z0-9-]*$"
-SCHEMAS = ("application-definition", "state", "composition", "catalogue-entry", "source-record", "scopes", "triage")
+SCHEMAS = ("application-definition", "assessment", "state", "composition", "catalogue-entry", "source-record", "scopes", "pipeline")
+# Template text like <Who has the problem> left in a document (a link like <https://...> is not one).
+PLACEHOLDER = re.compile(r"<(?!https?:)[A-Za-z][^<>\n]{2,}>")
 
 
 class FactoryError(Exception):

@@ -1,0 +1,75 @@
+# Stage 1: Develop and Assess
+
+A one-line idea cannot be assessed, and an idea that has not been assessed should not be specified. So each idea is first developed into a short brief, then assessed against it, and only an idea the owner decides to invest in goes on to Spec. Output per idea: `idea-brief.md`, `assessment.md` and `overview.md` in `ideas/<slug>/`; across all ideas, the ranked pipeline in `ideas/pipeline.md`. Ends at **Gate 1**, the investment decision: **Go**, **Get Ready** or **Stop**.
+
+It stays light: a brief of one to two pages and an assessment of a page, not a specification. The solution (tier, deployment, interfaces, template, catalogue assets) is not chosen here; that opens Spec.
+
+## Before you start
+1. Read `factory/context/README.md`, then the files `python factory/scripts/scopes.py context --scope <scope>` lists, in order (policies first, the data classes in POL-11 among them), and `factory/standards/PRINCIPLES.md`. Without `factory/context/scopes.json` the scope is `group`; with it, establish which business and brands the idea is for (ask in the question round if unclear) and record `scope` in `state.json`.
+2. `python factory/scripts/status.py`; never reuse another idea's slug.
+3. Existing idea: read `state.json`, `idea.md`, the brief, the assessment and `decisions.md`, and continue.
+
+## 1. Capture
+Ideas arrive three ways. Capture takes everything in and filters nothing; the register is `ideas/pipeline.json` (schema `factory/schemas/pipeline.schema.json`).
+- **Many ideas** (`/factory` with the inbox): the owner puts ideas in `ideas/inbox.md`, one per line or bullet. `python factory/scripts/pipeline.py capture` adds every line not yet in the register (`IDEA-nnn`); lines already there are skipped, so re-running is safe.
+- **One idea** (`/factory <idea>`): `python factory/scripts/pipeline.py add "<idea>"`.
+- **A supplied document** (source mode): `python factory/scripts/pipeline.py add "<one-line summary>" --source document`, develop it (below), then `python factory/scripts/import_source.py <file> <slug>`, which writes `source/<version>/` (markdown, images, the original, `ids.json`). Check the printed counts against the document, read any warning, and record it in `state.json` `imports`. Summarise what the source **already decides** and what it **leaves open**; never rewrite the source. A project or repository to reuse from is the catalogue importer's job (`catalogue/README.md`), not an idea.
+
+## 2. Develop
+For each captured idea: `python factory/scripts/pipeline.py develop IDEA-nnn [<slug>]`. It creates `ideas/<slug>/` (stage `develop`) with the idea in `idea.md`, and the stubs `idea-brief.md` and `assessment.md`. Then:
+1. **Draft the brief** (`idea-brief.md`, one to two pages, plain language) from the idea, the source if any, and the scope's context (business context, system landscape, team, catalogue reference cards: `python factory/scripts/catalogue.py search <terms> --scope <scope>`). Sections: Problem (what is wrong today, who it affects, how often, what it costs); Outcome and success measures; How it's done today (the as-is process, in brief); Data (what exists, where it is kept, its quality, its POL-11 data classes); Risk (the impact if it is wrong, where human judgement is needed); People and process (owner and users); Strategic fit; Assumptions and unknowns. The `business-value` and `users-and-workflows` lenses (`context/lenses/`) help with the first sections.
+2. **Mark every assumption** *(assumed)*, so the assessment can tell evidence from a guess.
+3. **One question round at most** in this stage (DEF-17): only questions whose answer would change a foundation's rating or the decision, numbered, each with a recommendation (rules in `context/lenses/README.md`). Several ideas developed together share one round. Then finish the brief with the answers, or with the assumption stated.
+
+## 3. Assess
+Fill in `assessment.md`. The JSON block is the record; `pipeline.py` and `check_spec.py` read it.
+
+**Knock-outs first.** Record `data_classes` (the classes from the data-classes table, POL-11, that the idea would need; `[]` for none). Knock the idea out, with a `knockout` of `rule`, `ref` and a one-line `reason`, when it:
+
+| Rule | When | Ref |
+|---|---|---|
+| `data-class` | It needs a data class the scope's `policies.md` answers "no" for (POL-11). The scripts enforce this. A class allowed only on conditions (approval per idea, synthetic data only) is not a knock-out: the condition is shown beside the score. | `POL-11` |
+| `policy` | It cannot be done without breaking a policy | the `POL-nn` |
+| `paid-service` | It needs a paid service, an account or a key that is not approved (DEF-11) | `DEF-11` |
+| `duplicate` | It duplicates another idea, an approved catalogue asset or another captured idea | `ideas/<slug>`, `CAT-nnn` or `IDEA-nnn` (checked to exist) |
+
+A knocked-out idea needs no ratings or RICE; its recommendation is `stop`. When in doubt, do not knock out: rate it and say why.
+
+**The five foundations.** Each is `green`, `amber` or `red`, with a one-line reason from the brief:
+
+| Key | Foundation | The question |
+|---|---|---|
+| `problem` | Problem | Are we clear exactly what we're trying to improve? |
+| `value` | Value | Do we know what success looks like and what it's worth? |
+| `data` | Data Foundations | Do we have the right quality data? Lots of data is not the same as ready data. |
+| `risk` | Risk | What happens if it gets something wrong or misses something? |
+| `people` | People & Process | Who owns it and how would it fit the process? |
+
+Green: answered with evidence in the brief. Amber: answered, but resting on assumptions worth checking. Red: not answered, or the answer stops it working as things stand.
+
+**RICE**, now from the brief's evidence, each factor a `value` and a one-line `reason`: **Reach**, people or processes touched per `period` (`per month` by default); **Impact** per person or process reached, 0.25 minimal, 0.5 low, 1 medium, 2 high, 3 massive; **Confidence**, a percentage (100 backed by data, 80 a good argument, 50 a hunch; lower for a guess), which should follow the foundations: many ambers or a red mean a low confidence; **Effort**, rough person-weeks to a first release, informed by the likely `template` (the table in `spec.md`) and the approved catalogue `assets` that could be reused (`CAT-nnn`, checked to exist). Score = Reach x Impact x Confidence% / Effort; the script computes it, never type a score in.
+
+**The ONE thing** (`one_thing`, required): the single thing to know or fix before investing. Even a clear Go has one.
+
+**The recommendation** (`decision`): `recommended` is `go`, `get-ready` or `stop`, with a one-line `reason`:
+- **Go** when every foundation is green or amber (ambers become risks in Spec). A Go with a red foundation is refused.
+- **Get Ready** when a foundation is red, or ambers together make the investment premature; `fix` lists the foundations to fix (each amber or red).
+- **Stop** when it is knocked out, or the value is not worth the effort at any rating.
+
+## 4. Check and rank
+`python factory/scripts/pipeline.py render` validates the register and every assessment and writes `ideas/pipeline.md`: the ranked table (rank, score, factors, foundations, the recommendation or decision, conditions), then the ideas that went ahead, those getting ready, stopped and knocked-out ideas, and the ideas captured but not yet developed. Ties are broken by higher Confidence, then lower Effort, then slug. `check_factory.py` checks the register too.
+
+## 5. Overview
+`python factory/scripts/scaffold.py overview <slug>` writes `overview.md` with the RICE numbers, the five foundations, the one thing and the recommendation filled in from the assessment; write the rest from the brief, last. Top: a one-page executive summary (the problem, the impact and success measures, the foundations, the one thing, who benefits, rough effort and cost, key risks, the decision asked). Below, in plain language: what it is, how it changes people's work, in and out of scope, what happens next. No requirement IDs, codes or factory jargon; someone who has never seen the factory should follow it.
+
+## Gate 1: the investment decision
+`python factory/scripts/check_spec.py <slug> --assessment` must pass: the brief has every section and no placeholder; the assessment is valid, with no placeholder, every foundation rated with a reason, valid RICE, the one thing and a recommendation consistent with the ratings (data classes and knock-outs checked against POL-11); a Get Ready re-assessment re-rated each foundation it fixed; the overview exists with no placeholder (requirement IDs in it are a warning). A knocked-out idea needs no overview. Then write `gates/gate-1.md`, set `state.json` (`status: awaiting-approval`, gate 1 `awaiting-approval`) and stop (gate protocol in the skill). Several ideas at Gate 1 together may share one gate page, each with its own decision.
+
+Gate 1 shows: **Done** (the brief, the assessment and the overview, linked: the overview is what sponsors read; the check exactly as run; the idea's place in `ideas/pipeline.md`). **Recommended:** Go, Get Ready or Stop, with the foundations, the RICE score and the one thing. **Decisions for you:** numbered: the decision; for Get Ready, who fixes which foundation; any knock-out the owner may want to overrule. **Answered from your defaults**, **Risks** (ambers, low confidence, conditional data classes), **Next:** Spec on Go.
+
+**Stop.** Accept `go`, `get ready`, `stop` (with a reason), `approve` (the recommendation), `change 2 to B`, or `back to <stage>`; ask again otherwise. On the reply, record it with `python factory/scripts/pipeline.py decide <slug> go|get-ready|stop --reply "<the reply>" [--reason "..."] [--fix problem,data]`. It runs the Gate 1 check, records the decision in the assessment and `state.json` (gate 1 with its date and reply), and:
+- **Go:** gate 1 `approved`; the idea moves to Spec (`factory/stages/spec.md`), in its own session (DEF-18): `/factory resume <slug>`.
+- **Get Ready:** gate 1 `get-ready`, status `paused`, `next` names the foundations to fix (from `--fix`, else the assessment's `fix`). When they are fixed: `python factory/scripts/pipeline.py reassess <slug>` opens a **light re-assessment**, not a restart. It keeps the brief and the assessment, records the ratings and reasons being fixed, and returns the idea to `in-progress`. Update the brief where the fix changed it, re-rate only the listed foundations (each with a new reason), adjust RICE and the one thing if the evidence moved, refresh the overview, and come back to Gate 1. The check refuses a fixed foundation whose reason has not changed.
+- **Stop:** gate 1 `stopped`, status `stopped`, the reason recorded. A stopped idea stays in the pipeline as a record.
+
+An overruled knock-out: the owner says why; record it in `decisions.md`, remove the `knockout` and rate the idea. A data-class knock-out cannot be overruled here: the policy changes first. Record every answer in `decisions.md`; an answer that differs from the recommendation also goes into `factory/context/learned.md` (`observed`, with its scope).

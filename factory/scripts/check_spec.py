@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Check an idea's Application Definition and spec pack, and generate spec/traceability.md.
+"""Check an idea at Gate 1 (brief, assessment, overview) or Gate 2 (definition and spec pack; writes spec/traceability.md).
 
 Usage:
-  python factory/scripts/check_spec.py <slug | ideas/<slug> | path/to/spec>
-  python factory/scripts/check_spec.py <slug> --definition          the Application Definition and overview (Gate 1)
+  python factory/scripts/check_spec.py <slug | ideas/<slug> | path/to/spec>   the definition and the spec pack (Gate 2)
+  python factory/scripts/check_spec.py <slug> --assessment          the idea brief, the assessment and the overview (Gate 1)
   python factory/scripts/check_spec.py <slug> --impact FR-007[,US-003]   what a change touches
 
 Deterministic, no AI. Prints `BLOCKER file:line message` and `warning file:line message`; exits 1
-when there is any blocker. Rules: factory/standards/requirement-ids.md and factory/stages/spec.md.
+when there is any blocker. Rules: factory/stages/develop-assess.md (Gate 1), factory/standards/requirement-ids.md
+and factory/stages/spec.md (Gate 2).
 A pack copied outside the factory can be checked by its path; catalogue references are then checked
 against this factory's catalogue.
 """
@@ -23,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import factory_lib as lib  # noqa: E402
+import pipeline  # noqa: E402
 import scopes  # noqa: E402
 
 PREFIXES = [
@@ -33,7 +35,7 @@ ID = re.compile(r"\b(" + "|".join(PREFIXES + ["CAT"]) + r")-(\d{3})(-AC\d+)?\b")
 ID_ONLY = re.compile(r"^(" + "|".join(PREFIXES) + r")-\d{3}(-AC\d+)?$")
 HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 LINK = re.compile(r"\]\(([^)#\s]+)(#[^)]*)?\)")
-PLACEHOLDER = re.compile(r"<(?!https?:)[A-Za-z][^<>\n]{2,}>")
+PLACEHOLDER = lib.PLACEHOLDER
 DEFINITION_BLOCK = re.compile(r"\A\s*```json definition\s*\n(.*?)\n```", re.S)
 DOCS = [
     "README", "01-overview", "02-product-definition", "03-functional-requirements", "04-user-experience",
@@ -48,6 +50,8 @@ STATUSES = {"open", "closed", "accepted", "withdrawn"}
 BLOCKS = {"none", "spec", "build", "release"}
 DECISIONS = {"reuse", "adapt", "build", "import", "redesign", "defer"}
 NEEDS_FR = {"RULE": "FR", "SCR": "FR", "DATA": "FR", "PERM": "FR", "INT": "FR"}
+BRIEF_HEADINGS = ["Problem", "Outcome and success measures", "How it's done today", "Data", "Risk", "People and process",
+                  "Strategic fit", "Assumptions and unknowns"]
 OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
@@ -192,7 +196,7 @@ def check_definition(idea: Path, f: Findings) -> dict | None:
     for p in problems:
         f.block(*p.split("  ", 1))
     if data is None and not problems:
-        f.block("application-definition.md", "missing (Analyse writes it; see factory/stages/analyse.md)")
+        f.block("application-definition.md", "missing (Spec writes it first; see factory/stages/spec.md)")
         return None
     if data is not None and not problems:
         text = (idea / "application-definition.md").read_text(encoding="utf-8")
@@ -225,7 +229,7 @@ def check_overview(idea: Path, f: Findings) -> None:
     """The overview for sponsors and the team (Gate 1): present, filled in, and free of requirement IDs."""
     path = idea / "overview.md"
     if not path.exists():
-        f.block("overview.md", "missing (scaffold.py overview <slug>; see factory/stages/analyse.md)")
+        f.block("overview.md", "missing (scaffold.py overview <slug>; see factory/stages/develop-assess.md)")
         return
     text = path.read_text(encoding="utf-8")
     if has_placeholder(text):
@@ -236,6 +240,51 @@ def check_overview(idea: Path, f: Findings) -> None:
     ids = sorted({m.group(0) for m in ID.finditer(text) if kind_of(m.group(0)) != "CAT"})
     if ids:
         f.warn("overview.md", f"uses requirement IDs ({', '.join(ids[:5])}); say it in plain words")
+
+
+def check_brief(idea: Path, f: Findings) -> None:
+    """The idea brief (Gate 1): present, every section there, nothing left to fill in."""
+    path = idea / pipeline.BRIEF
+    if not path.exists():
+        f.block(pipeline.BRIEF, "missing (pipeline.py develop; see factory/stages/develop-assess.md)")
+        return
+    text = path.read_text(encoding="utf-8")
+    if has_placeholder(text):
+        f.block(pipeline.BRIEF, "placeholder text left (<...>): draft every section, marking assumptions")
+    for heading in BRIEF_HEADINGS:
+        if not re.search(rf"(?im)^##\s+{re.escape(heading)}\s*$", text):
+            f.block(pipeline.BRIEF, f"no '## {heading}' section")
+
+
+def factory_root(idea: Path) -> Path | None:
+    """The factory an idea folder sits in (ideas/<slug>), or None for this one."""
+    return idea.parents[1] if idea.parent.name == "ideas" and (idea.parents[1] / "factory").is_dir() else None
+
+
+def check_gate_one(idea: Path, f: Findings, root: Path | None = None) -> dict | None:
+    """Gate 1, the investment decision: the brief, the assessment (in full) and, unless knocked out, the overview."""
+    root = root or factory_root(idea)
+    check_brief(idea, f)
+    a, problems = pipeline.read_assessment(idea, root)
+    for p in problems:
+        f.block(pipeline.ASSESSMENT, p)
+    if a is None and not problems:
+        f.block(pipeline.ASSESSMENT, "missing (pipeline.py develop; see factory/stages/develop-assess.md)")
+    if a is None or problems:
+        check_overview(idea, f)
+        return None
+    state, reg = {}, pipeline.load(root)
+    if (idea / "state.json").exists():
+        state = lib.read_json(idea / "state.json")
+    blockers, warnings = pipeline.assessment_problems(a, idea.name, root, complete=True, reg=reg,
+                                                     scope=pipeline.idea_scope(state, reg, idea.name))
+    for b in blockers:
+        f.block(pipeline.ASSESSMENT, b)
+    for w in warnings:
+        f.warn(pipeline.ASSESSMENT, w)
+    if not a.get("knockout"):
+        check_overview(idea, f)
+    return a
 
 
 def process_sections(text: str) -> dict[str, tuple[int, str]]:
@@ -636,16 +685,15 @@ def impact(idea: Path, spec: Path, targets: list[str]) -> tuple[int, str]:
     return 0, "\n".join(lines)
 
 
-def run(arg: str, definition_only: bool = False) -> tuple[Findings, str | None, Path]:
+def run(arg: str, assessment_only: bool = False) -> tuple[Findings, str | None, Path]:
     idea, spec = locate(arg)
     f = Findings()
-    in_factory = (idea / "state.json").exists()
-    data = check_definition(idea, f) if in_factory or (idea / "application-definition.md").exists() else None
-    if definition_only:
-        if in_factory or (idea / "application-definition.md").exists():
-            check_overview(idea, f)
+    if assessment_only:
+        check_gate_one(idea, f)
         f.done()
         return f, None, spec
+    in_factory = (idea / "state.json").exists()
+    data = check_definition(idea, f) if in_factory or (idea / "application-definition.md").exists() else None
     if not spec.is_dir():
         f.block(str(spec), "no spec folder")
         f.done()
@@ -667,8 +715,8 @@ def main(argv: list[str]) -> int:
             return 2
         targets = [t.strip() for t in rest[at + 1].split(",") if t.strip()]
         del rest[at : at + 2]
-    definition_only = "--definition" in rest
-    rest = [a for a in rest if a != "--definition"]
+    assessment_only = "--assessment" in rest
+    rest = [a for a in rest if a != "--assessment"]
     if len(rest) != 1:
         print(__doc__)
         return 2
@@ -677,16 +725,16 @@ def main(argv: list[str]) -> int:
         code, text = impact(idea, spec, targets)
         print(text)
         return code
-    f, matrix, spec = run(rest[0], definition_only)
+    f, matrix, spec = run(rest[0], assessment_only)
     if matrix is not None:
         (spec / "traceability.md").write_text(matrix, encoding="utf-8", newline="\n")
     for b in f.blockers:
         print("BLOCKER " + b)
     for w in f.warnings:
         print("warning " + w)
-    what = "Application Definition" if definition_only else "spec"
+    what = "Gate 1: brief, assessment and overview" if assessment_only else "spec"
     verdict = "FAILED" if f.blockers else "OK"
-    tail = "" if definition_only or matrix is None else "; wrote spec/traceability.md"
+    tail = "" if assessment_only or matrix is None else "; wrote spec/traceability.md"
     print(f"check_spec: {verdict} ({what}: {len(f.blockers)} blocker(s), {len(f.warnings)} warning(s)){tail}")
     return 1 if f.blockers else 0
 

@@ -27,13 +27,14 @@ h2 { font-size:16px; margin:0; }
 .badge { font-size:12px; padding:1px 8px; border-radius:99px; border:1px solid var(--line); }
 .badge.awaiting-approval { color:var(--wait); border-color:var(--wait); font-weight:600; }
 .badge.done { color:var(--ok); border-color:var(--ok); }
-.badge.stopped, .badge.interrupted { color:var(--bad); border-color:var(--bad); }
+.badge.stopped, .badge.interrupted, .badge.paused { color:var(--bad); border-color:var(--bad); }
 .steps { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:12px 0; }
 .step { border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:13px; }
 .step b { display:block; }
 .step.approved { border-color:var(--ok); } .step.approved b { color:var(--ok); }
 .step.awaiting-approval { border-color:var(--wait); background:color-mix(in srgb, var(--wait) 10%, transparent); }
-.step.changes-requested { border-color:var(--bad); }
+.step.changes-requested, .step.stopped { border-color:var(--bad); }
+.step.get-ready { border-color:var(--wait); }
 .step.here { box-shadow:0 0 0 2px var(--accent) inset; }
 .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:4px 0 6px; }
 .flow div { border:1px solid var(--line); border-radius:8px; padding:8px; font-size:13px; }
@@ -86,11 +87,11 @@ function el(tag, props, ...kids) {
   for (const kid of kids.flat()) e.append(kid === null || kid === undefined ? '' : kid);
   return e;
 }
-const STAGES = ['analyse', 'spec', 'build', 'publish', 'done'];
-const GATE_NAMES = ['Analyse', 'Spec', 'Build and Audit', 'Publish'];
+const STAGES = ['develop', 'spec', 'build', 'publish', 'done'];
+const GATE_NAMES = ['Develop and Assess', 'Spec', 'Build and Audit', 'Publish'];
 const STAGE_TEXT = {
-  analyse: 'What the idea is, who it is for, and the decisions it needs.',
-  spec: 'A full specification pack: requirements, stories, tests, delivery plan.',
+  develop: 'A short brief, then the five foundations and RICE: Go, Get Ready or Stop.',
+  spec: 'The solution choices and a full specification pack: requirements, stories, tests, delivery plan.',
   build: 'Built epic by epic from tested templates, then audited.',
   publish: 'Checked for secrets and hygiene, then released on approval.',
   done: 'Released.',
@@ -121,10 +122,10 @@ function renderOverview() {
   const waiting = state.ideas.filter((i) => i.status === 'awaiting-approval').length;
   root.append(el('div', { class: 'card' },
     el('h2', {}, 'How it works'),
-    el('p', {}, 'Ideas are triaged first: knock-outs, then a RICE score, and the owner picks which go ahead (Gate 0). Each picked idea moves through four stages. Every stage ends at a gate: nothing moves on until the owner approves it.'),
+    el('p', {}, 'Each idea is first developed into a short brief and assessed: knock-outs, the five foundations (Problem, Value, Data, Risk, People and Process) and a RICE score. The owner then decides Go, Get Ready or Stop (Gate 1), and only a Go moves on. Every stage ends at a gate: nothing moves on until the owner approves it.'),
     el('div', { class: 'flow' }, STAGES.map((s, n) => el('div', {}, el('b', {}, n < 4 ? GATE_NAMES[n] : 'Done'), el('div', { class: 'n' }, String(count(s))), el('div', { class: 'mute' }, STAGE_TEXT[s])))),
     el('div', { class: 'mute' }, state.ideas.length + ' ideas · ' + waiting + ' waiting for approval · ' + state.apps.length + ' published'),
-    state.triage ? el('div', { class: 'mute' }, state.triage) : null));
+    state.pipeline ? el('div', { class: 'mute' }, state.pipeline) : null));
   if (state.overview) {
     const slot = el('div', {}, el('p', { class: 'mute' }, 'Loading...'));
     root.append(slot);
@@ -144,7 +145,7 @@ function ideaCard(i) {
     g.file ? el('a', { href: '#doc=' + g.file }, 'gate summary') : null));
   return el('div', { class: 'card' },
     el('div', { class: 'row' }, el('h2', {}, i.name), el('span', { class: 'badge ' + i.status }, i.status),
-      el('span', { class: 'mute' }, 'tier ' + (i.tier || '?') + (i.template ? ' · ' + i.template : '') + (i.triage ? ' · RICE ' + i.triage.score : '') + ' · updated ' + (i.updated || '?')),
+      el('span', { class: 'mute' }, 'tier ' + (i.tier || '?') + (i.template ? ' · ' + i.template : '') + (i.assessment ? ' · ' + i.assessment.decision.replace('-', ' ') + (i.assessment.score !== null && i.assessment.score !== undefined ? ' · RICE ' + i.assessment.score : '') : '') + ' · updated ' + (i.updated || '?')),
       el('span', { class: 'grow' }), i.app ? el('a', { class: 'btn', href: i.app.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open app') : null),
     el('div', { class: 'steps' }, steps),
     i.current.epic || i.current.milestone ? el('div', { class: 'mute' }, 'Now: ' + [i.current.epic, i.current.story, i.current.milestone].filter(Boolean).join(' / ')) : null,

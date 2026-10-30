@@ -14,7 +14,7 @@ Mandatory for every idea in every business and brand. A project, a default or an
 | POL-08 | Stop and report after the same failure three times without a new approach. |
 | POL-09 | Personal or sensitive data is collected only when a requirement needs it, and the spec says why and how it is removed. |
 | POL-10 | A catalogue asset is reused only when its lifecycle status is `approved`. |
-| POL-11 | Only the data classes marked "yes" in the table below may be used in the factory: in an idea's files, its spec pack, its test data or a conversation with the assistant. Analyse records the classes an idea needs; if one is not allowed here, Analyse stops and asks. |
+| POL-11 | Only the data classes marked "yes" in the table below may be used in the factory: in an idea's files, its spec pack, its test data or a conversation with the assistant. Develop and Assess records the classes an idea needs in its assessment; if one is not allowed here, the idea is knocked out and the factory stops and asks. |
 
 ## Data classes (POL-11)
 Answer every double-braced placeholder in the table: `check_factory.py` reports each one as a problem until it is gone. Use the organisation's own classification names; add or remove rows as needed.

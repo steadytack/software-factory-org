@@ -3,7 +3,7 @@
 Turns an idea, an existing specification or an imported project into a built, tested and audited application, assembled from the organisation's approved catalogue assets where possible. Ideas are developed with `/factory` in Claude Code. How the factory works: [factory/README.md](factory/README.md). First time here: [SETUP.md](SETUP.md).
 
 ```
-Analyse ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
+Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
 ```
 
 ## Layout

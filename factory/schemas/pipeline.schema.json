@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pipeline",
+  "version": 1,
+  "title": "Idea register (ideas/pipeline.json): every idea captured, and the idea folder it was developed into",
+  "type": "object",
+  "required": ["schema_version", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "scope": { "type": "string", "description": "Default scope for entries: group, business:<b> or brand:<x>. Absent: group" },
+    "updated": { "type": "string", "format": "date" },
+    "entries": { "type": "array", "items": { "$ref": "#/$defs/entry" } }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["id", "title", "idea", "source", "added"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^IDEA-\\d{3}$" },
+        "title": { "type": "string", "minLength": 1 },
+        "idea": { "type": "string", "minLength": 1, "description": "The idea as given (the inbox line, the single idea, or a summary of the supplied document)" },
+        "source": { "enum": ["inbox", "single", "document"] },
+        "added": { "type": "string", "format": "date" },
+        "scope": { "type": "string" },
+        "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "The idea folder it was developed into (pipeline.py develop); absent while only captured" }
+      }
+    }
+  }
+}

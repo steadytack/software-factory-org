@@ -4,7 +4,8 @@
 Usage: python factory/scripts/status.py [--write]
 
 Reads ideas/*/state.json. An idea whose state is missing or invalid is listed with the problem.
-Ideas still in triage (ideas/triage.json, ideas/inbox.md) have no folder: one summary line counts them.
+Ideas captured but not yet developed (ideas/pipeline.json, ideas/inbox.md) have no folder: one summary line
+counts them with the rest of the pipeline.
 With --write, refreshes the table in ideas/README.md between the status markers.
 """
 
@@ -15,11 +16,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import factory_lib as lib  # noqa: E402
-import triage  # noqa: E402
+import pipeline  # noqa: E402
 
 START, END = "<!-- status:start -->", "<!-- status:end -->"
-STAGES = ["analyse", "spec", "build", "publish", "done"]
-GATE_MARK = {"not-reached": "-", "awaiting-approval": "W", "approved": "A", "changes-requested": "C"}
+STAGES = ["develop", "spec", "build", "publish", "done"]
+GATE_MARK = {"not-reached": "-", "awaiting-approval": "W", "approved": "A", "changes-requested": "C", "get-ready": "R", "stopped": "S"}
 
 
 def collect(root: Path | None = None) -> list[dict]:
@@ -40,7 +41,7 @@ def collect(root: Path | None = None) -> list[dict]:
             state = {**state, "status": f"invalid state.json: {problems[0]}"}
         state.setdefault("slug", folder.name)
         gates = state.get("gates", {})
-        state["gates_line"] = ("0:A " if "0" in gates else "") + " ".join(f"{n}:{GATE_MARK.get(gates.get(str(n), {}).get('status'), '-')}" for n in range(1, 5))
+        state["gates_line"] = " ".join(f"{n}:{GATE_MARK.get(gates.get(str(n), {}).get('status'), '-')}" for n in range(1, 5))
         rows.append(state)
     return rows
 
@@ -70,8 +71,8 @@ def main(argv: list[str]) -> int:
     out = table(rows) if rows else "(no ideas yet)"
     print(out)
     if rows:
-        print("Gates: - not reached, W waiting for approval, A approved, C changes requested; 0:A picked at triage")
-    line = triage.summary()
+        print("Gates: - not reached, W waiting for approval, A approved (at gate 1: Go), C changes requested, R Get Ready, S stopped")
+    line = pipeline.summary()
     if line:
         print(line)
     if "--write" in argv:

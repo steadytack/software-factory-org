@@ -25,24 +25,14 @@
     {"id": "CAT-001", "fit": "a single offline page with safe local storage and file export", "limitations": "no shared data"},
     {"id": "CAT-002", "fit": "would work as a one-page site", "limitations": "needs a build step and Node for a single page"}
   ],
-  "sources": [{"kind": "idea", "ref": "idea.md"}],
-  "approvals": [{"gate": 1, "date": "2026-10-19", "reply": "test fixture, not a real approval", "version": "1.0"}]
+  "sources": [{"kind": "idea", "ref": "idea-brief.md"}],
+  "approvals": [{"gate": 2, "date": "2026-10-19", "reply": "test fixture, not a real approval", "version": "1.0"}]
 }
 ```
 
 # Brew ratio: Application Definition
 
-## Problem and outcome
-Working out coffee and water for each brew on a phone calculator is slow and error-prone. Outcome: the right amounts in one step, and favourite recipes kept.
-
-## Users and main workflows
-One person, at the kitchen counter, on a phone. Work out a brew; keep favourite recipes.
-
-## Scope
-**In:** both directions of the calculation, saved recipes, export and import. **Out:** timers, sharing, accounts.
-
-## Success measures
-OBJ-001 in the spec: two weeks of brews without reaching for a calculator.
+The solution choices. The problem, outcome, users and success measures are in `idea-brief.md`.
 
 ## Maturity tier
 Tier 2: used repeatedly by one person; tests for the main behaviour.
@@ -64,9 +54,6 @@ Not applicable: nothing runs; the export is the backup.
 
 ## Lenses
 See the definition block.
-
-## Assumptions, risks and open questions
-ASM-001 and RISK-001 in the spec.
 
 ## Decisions and overrides
 None.

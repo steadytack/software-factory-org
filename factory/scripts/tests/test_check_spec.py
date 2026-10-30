@@ -1,4 +1,4 @@
-"""check_spec.py: the Application Definition and the spec pack, blockers and warnings, traceability."""
+"""check_spec.py: Gate 1 (brief, assessment, overview) and Gate 2 (the definition and the spec pack), traceability."""
 
 import json
 import shutil
@@ -19,6 +19,14 @@ def pack(tmp_path) -> Path:
     needs = needs_templates(*BREW_RATIO_TEMPLATES)
     if needs.args[0]:
         pytest.skip(needs.kwargs["reason"])
+    dest = tmp_path / "brew-ratio"
+    shutil.copytree(FIXTURE, dest, ignore=shutil.ignore_patterns("traceability.md"))
+    return dest
+
+
+@pytest.fixture
+def idea(tmp_path) -> Path:
+    """The same idea for the Gate 1 checks, which need no template or catalogue entry."""
     dest = tmp_path / "brew-ratio"
     shutil.copytree(FIXTURE, dest, ignore=shutil.ignore_patterns("traceability.md"))
     return dest
@@ -60,15 +68,19 @@ def test_a_pack_copied_outside_the_factory_still_passes(pack, tmp_path):
     assert f.blockers == [], f.blockers
 
 
-def test_the_definition_alone_is_checked_for_gate_1(pack):
-    assert findings(pack, definition_only=True).blockers == []
+def test_the_definition_is_checked_with_the_pack_at_gate_2(pack):
     edit(pack / "application-definition.md", '"value": 2, "state": "accepted"', '"value": 7, "state": "accepted"')
-    assert blocked(findings(pack, definition_only=True), "maturity_tier/value")
+    assert blocked(findings(pack), "maturity_tier/value")
+
+
+def test_the_definition_is_not_a_gate_1_document(idea):
+    (idea / "application-definition.md").unlink()
+    assert findings(idea, assessment_only=True).blockers == []
 
 
 def test_a_definition_without_its_json_block_is_a_blocker(pack):
     (pack / "application-definition.md").write_text("# Just prose\n", encoding="utf-8")
-    assert blocked(findings(pack, definition_only=True), "must start with a ```json definition block")
+    assert blocked(findings(pack), "must start with a ```json definition block")
 
 
 def test_an_idea_without_a_definition_is_a_blocker(pack):
@@ -233,37 +245,31 @@ def test_placeholders_inside_code_are_not_reported(pack):
 
 
 # ---------------------------------------------------------------- the overview (Gate 1)
-def test_the_overview_is_checked_at_gate_1(pack):
-    assert findings(pack, definition_only=True).blockers == []
-    edit(pack / "overview.md", "One home brewer.", "<Who benefits>")
-    assert blocked(findings(pack, definition_only=True), "overview.md  placeholder text left")
+def test_the_fixture_passes_gate_1(idea, py):
+    out = run([py, str(REAL_ROOT / "factory/scripts/check_spec.py"), str(idea), "--assessment"], idea)
+    assert out.returncode == 0, out.stdout
+    assert "Gate 1: brief, assessment and overview: 0 blocker(s), 0 warning(s)" in out.stdout
+
+
+def test_the_overview_is_checked_at_gate_1(idea):
+    assert findings(idea, assessment_only=True).blockers == []
+    edit(idea / "overview.md", "One home brewer.", "<Who benefits>")
+    assert blocked(findings(idea, assessment_only=True), "overview.md  placeholder text left")
+    (idea / "overview.md").unlink()
+    assert blocked(findings(idea, assessment_only=True), "overview.md  missing")
+
+
+def test_the_overview_is_left_to_gate_1(pack):
     (pack / "overview.md").unlink()
-    assert blocked(findings(pack, definition_only=True), "overview.md  missing")
     assert not blocked(findings(pack), "overview.md")  # the Gate 2 check leaves it to Gate 1
 
 
-def test_the_overview_warns_about_requirement_ids_and_missing_sections(pack):
-    edit(pack / "overview.md", "both sums, saved favourites", "FR-001 and FR-002, saved favourites")
-    edit(pack / "overview.md", "## What happens next", "## Later")
-    f = findings(pack, definition_only=True)
+def test_the_overview_warns_about_requirement_ids_and_missing_sections(idea):
+    edit(idea / "overview.md", "both sums, saved favourites", "FR-001 and FR-002, saved favourites")
+    edit(idea / "overview.md", "## What happens next", "## Later")
+    f = findings(idea, assessment_only=True)
     assert f.blockers == [], f.blockers
     assert warned(f, "uses requirement IDs (FR-001, FR-002)") and warned(f, "no 'What happens next' section")
-
-
-def test_a_fresh_overview_is_filled_from_triage_or_left_to_fill(repo):
-    scaffold.new_idea("fresh", "Fresh", root=repo)
-    scaffold.new_definition("fresh", root=repo)
-    text = (repo / "ideas/fresh/overview.md").read_text(encoding="utf-8")
-    assert "# Fresh: overview" in text and "<people or processes touched per month>" in text
-    assert blocked(findings(repo / "ideas/fresh", definition_only=True), "overview.md  placeholder text left")
-    with pytest.raises(lib.FactoryError, match="already exists"):
-        scaffold.new_overview("fresh", root=repo)
-    scaffold.new_idea("picked", "Picked", root=repo)
-    state = lib.load_state("picked", repo)
-    state["triage"] = {"id": "TRI-004", "score": 16, "period": "per month", "reach": 40, "impact": 2, "confidence": 80, "effort": 4}
-    lib.save_state("picked", state, repo)
-    text = (scaffold.new_overview("picked", root=repo)).read_text(encoding="utf-8")
-    assert "| 40 per month | 2 (high) | 80% | 4 person-weeks | 16 |" in text and "From triage (TRI-004" in text
 
 
 # ---------------------------------------------------------------- doc 13, the business process

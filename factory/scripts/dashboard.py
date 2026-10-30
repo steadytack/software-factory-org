@@ -29,13 +29,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import factory_lib as lib  # noqa: E402
 import scan  # noqa: E402
 import status  # noqa: E402
-import triage  # noqa: E402
+import pipeline  # noqa: E402
 
 PAGE = "factory/web/index.html"
 SHARE = "factory/web/share.json"
 SLUG = re.compile(r"^[a-z][a-z0-9-]*$")
 SKIP_DIRS = {"node_modules", ".git", ".venv", "__pycache__", "dist", ".pytest_cache", "backups"}
-IDEA_DOCS = ["idea.md", "overview.md", "decisions.md", "changes.md", "application-definition.md", "verification.md", "publish-report.md"]
+IDEA_DOCS = ["idea.md", "overview.md", "idea-brief.md", "assessment.md", "decisions.md", "changes.md", "application-definition.md", "verification.md", "publish-report.md"]
 PERSONAL = {
     "a personal email address": re.compile(r"[A-Za-z0-9._-]+@(gmail|googlemail|outlook|hotmail|yahoo|icloud)\.com"),
     "a machine path": re.compile(r"C:\\Users\\|/c/Users/|/home/[a-z]+/|/Users/[A-Za-z]+/"),
@@ -106,16 +106,16 @@ def view(root: Path | None = None) -> dict:
             "status": row.get("status"), "tier": row.get("tier"), "template": row.get("template"),
             "updated": row.get("updated"), "next": row.get("next"), "blockers": row.get("blockers", []),
             "current": row.get("current") or {}, "last_verification": row.get("last_verification"),
-            "gates": gates, "app": row.get("app"), "triage": row.get("triage"),
+            "gates": gates, "app": row.get("app"), "assessment": row.get("assessment"),
             "changes": parse_changes(base / "ideas" / slug / "changes.md"),
             "docs": idea_docs(base, slug) if SLUG.match(slug) else [],
         })
     factory_docs = [p for p in ["README.md", "factory/README.md", "docs/personal-software-factory-spec-v0.1.md", "CHANGELOG.md", "CLAUDE.md"]
                     if (base / p).exists()]
     factory_docs += sorted(p.relative_to(base).as_posix() for p in (base / "factory" / "stages").glob("*.md")) if (base / "factory" / "stages").is_dir() else []
-    factory_docs += [triage.REPORT] if (base / triage.REPORT).exists() else []
+    factory_docs += [pipeline.REPORT] if (base / pipeline.REPORT).exists() else []
     return {
-        "triage": triage.summary(base),
+        "pipeline": pipeline.summary(base),
         "overview": "README.md",
         "ideas": ideas,
         "apps": [{"slug": i["slug"], "name": i["name"], **i["app"]} for i in ideas if i["app"]],
@@ -245,7 +245,7 @@ def shared_view(root: Path) -> tuple[dict, dict[str, str]]:
     order = {p: n for n, p in enumerate(p for p in rules.get("factory", []) if "*" not in p)}  # the order share.json lists them
     data["docs"] = {"factory": sorted(factory, key=lambda p: order.get(p, 99)), "all": []}
     data["overview"] = rules.get("overview") if rules.get("overview") in factory else None
-    data["triage"] = data["triage"] if triage.REPORT in factory else None  # internal unless share.json lists ideas/triage.md
+    data["pipeline"] = data["pipeline"] if pipeline.REPORT in factory else None  # internal unless share.json lists ideas/pipeline.md
     paths = factory + [d for i in data["ideas"] for d in i["docs"]]
     docs = {p: read_doc(root, p) for p in paths}
     return data, {p: h for p, h in docs.items() if h is not None}

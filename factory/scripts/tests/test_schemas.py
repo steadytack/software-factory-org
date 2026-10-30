@@ -78,7 +78,7 @@ def test_a_good_composition_passes_and_a_secret_shaped_field_is_not_allowed():
 
 def test_state_gates_are_numbered_one_to_four():
     state = {
-        "schema_version": 1, "slug": "x", "name": "X", "kind": "app", "stage": "analyse", "status": "in-progress",
+        "schema_version": 1, "slug": "x", "name": "X", "kind": "app", "stage": "develop", "status": "in-progress",
         "factory_version": "0.1.0", "updated": "2026-10-19", "gates": {"1": {"status": "approved"}}, "next": "",
     }
     assert lib.validate("state", state, REAL_ROOT) == []

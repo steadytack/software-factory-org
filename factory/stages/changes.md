@@ -9,8 +9,8 @@ A change to something already approved is a controlled edit, not a restart (fact
 5. **Delta gate** when the change materially affects scope, risk, cost or release commitments: show only what changed (the CR, the impact list, the edits, the check result, decisions needed). Earlier gates stay approved unless the owner says `back to <stage>`. Small changes inside the approved scope are logged and shown at the next gate.
 
 ## Which gate a change returns to
-- Problem, tier, deployment, template: Gate 1, as a delta (the definition's version is bumped).
-- Requirements, composition, plan: Gate 2, as a delta; with code, the impact names the code and tests to revisit.
+- Problem, outcome, value, data, risk or ownership (the brief, a foundation rating, RICE or the decision): Gate 1, as a delta: a light re-assessment of what changed (the assessment's version is bumped), never a restart.
+- Solution choices (tier, deployment, interfaces, design, template), requirements, composition, plan: Gate 2, as a delta (the definition's or the pack's version is bumped); with code, the impact names the code and tests to revisit.
 - Build-only: covered by the next milestone gate.
 - Factory changes (a template, a policy, a stage): recorded in `CHANGELOG.md`; each affected idea gets a CR.
 

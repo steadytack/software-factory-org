@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "note": "The one list of templates. The template tables in README.md and factory/stages/analyse.md are generated from it (python factory/scripts/check_factory.py --fix). Each ready template is also an approved catalogue entry (catalogue/assets/). 'verify' is a list of parts that factory/scripts/verify.py runs in clean containers (cwd is relative to the template folder; services are sidecar containers on a private network, reachable by their name). 'deployment' and 'interfaces' use the categories of the Application Definition.",
+  "note": "The one list of templates. The template tables in README.md and factory/stages/spec.md are generated from it (python factory/scripts/check_factory.py --fix). Each ready template is also an approved catalogue entry (catalogue/assets/). 'verify' is a list of parts that factory/scripts/verify.py runs in clean containers (cwd is relative to the template folder; services are sidecar containers on a private network, reachable by their name). 'deployment' and 'interfaces' use the categories of the Application Definition.",
   "templates": [
     {
       "name": "web-app",

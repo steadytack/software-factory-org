@@ -3,13 +3,14 @@
 
 Usage:
   python factory/scripts/scaffold.py new <slug> --name "Readable name" [--kind app|factory-asset|demo]
-  python factory/scripts/scaffold.py definition <slug>     the Application Definition and the overview to fill in (Analyse)
-  python factory/scripts/scaffold.py overview <slug>       only the overview (an idea whose definition already exists)
+  python factory/scripts/scaffold.py overview <slug>       the overview, filled from the assessment (end of Develop and Assess)
+  python factory/scripts/scaffold.py definition <slug>     the Application Definition: the solution choices (start of Spec)
   python factory/scripts/scaffold.py spec <slug>           the spec pack stubs (Spec)
   python factory/scripts/scaffold.py app <slug> <template>
 
-`new` makes ideas/<slug>/ with state.json, idea.md, decisions.md, changes.md and empty gates/, source/
-and spec/ folders, at the start of Analyse. `app` copies templates/<template> into ideas/<slug>/app
+`new` makes ideas/<slug>/ with state.json, idea.md, the idea brief and assessment stubs, decisions.md,
+changes.md and empty gates/, source/ and spec/ folders, at the start of Develop and Assess (an idea
+captured in ideas/pipeline.json is made by `pipeline.py develop`, which calls it). `app` copies templates/<template> into ideas/<slug>/app
 (without build output or the factory's own files), adds NOTES.md and the standards it is built to,
 and starts the app's own git repository. Ports, secrets and removing a template's example domain are
 done afterwards, during Build.
@@ -41,7 +42,7 @@ IDEA_MD = """# {name}
 <Links to anything supplied (imported documents live in source/), or "none".>
 
 ## Notes
-<Anything said while shaping it that does not belong in the Application Definition yet.>
+<Anything said while shaping it that does not belong in the brief yet.>
 """
 
 DECISIONS_MD = """# Decisions
@@ -89,38 +90,48 @@ def copy_template(source: Path, dest: Path) -> int:
     return count
 
 
-def new_idea(slug: str, name: str, kind: str = "app", root: Path | None = None) -> Path:
+IDEA_TEXT = "<In the owner's words: what it is, who it is for, what problem it solves.>"
+
+
+def new_idea(slug: str, name: str, kind: str = "app", root: Path | None = None, idea: str | None = None) -> Path:
+    """The idea's folder, with the brief and assessment stubs to develop and assess (factory/stages/develop-assess.md)."""
+    base = root or lib.ROOT
     if not re.match(lib.SLUG_PATTERN, slug):
         raise lib.FactoryError(f"slug '{slug}' must be lower-case letters, digits and hyphens, starting with a letter")
-    idea = lib.idea_dir(slug, root)
-    if idea.exists():
+    folder = lib.idea_dir(slug, root)
+    if folder.exists():
         raise lib.FactoryError(f"ideas/{slug} already exists")
     for sub in ("gates", "source", "spec"):
-        (idea / sub).mkdir(parents=True)
-    (idea / "idea.md").write_text(IDEA_MD.format(name=name), encoding="utf-8", newline="\n")
-    (idea / "decisions.md").write_text(DECISIONS_MD, encoding="utf-8", newline="\n")
-    (idea / "changes.md").write_text(CHANGES_MD, encoding="utf-8", newline="\n")
+        (folder / sub).mkdir(parents=True)
+    text = IDEA_MD.format(name=name)
+    (folder / "idea.md").write_text(text.replace(IDEA_TEXT, idea.strip()) if idea else text, encoding="utf-8", newline="\n")
+    (folder / "decisions.md").write_text(DECISIONS_MD, encoding="utf-8", newline="\n")
+    (folder / "changes.md").write_text(CHANGES_MD, encoding="utf-8", newline="\n")
+    values = {"slug": slug, "name": name, "idea": idea.strip() if idea else IDEA_TEXT}
+    for stub in ("idea-brief.md", "assessment.md"):
+        template = (base / "factory" / "project-files" / stub).read_text(encoding="utf-8")
+        (folder / stub).write_text(fill(template, values), encoding="utf-8", newline="\n")
     state = {
         "schema_version": 1,
         "slug": slug,
         "name": name,
         "kind": kind,
-        "stage": "analyse",
+        "stage": "develop",
         "status": "in-progress",
         "factory_version": lib.factory_version(root),
         "updated": lib.today(),
         "template": None,
         "tier": None,
-        "versions": {"application_definition": None, "spec": None, "composition": None},
+        "versions": {"assessment": "0.1", "application_definition": None, "spec": None, "composition": None},
         "gates": {str(n): {"status": "not-reached"} for n in range(1, 5)},
         "blockers": [],
         "last_verification": None,
         "imports": [],
         "changes": [],
-        "next": "Analyse: write application-definition.md (factory/stages/analyse.md)",
+        "next": "Develop and Assess: draft idea-brief.md, then assessment.md (factory/stages/develop-assess.md)",
     }
     lib.save_state(slug, state, root)
-    return idea
+    return folder
 
 
 def fill(text: str, values: dict[str, str]) -> str:
@@ -140,8 +151,6 @@ def new_definition(slug: str, root: Path | None = None) -> Path:
     path.write_text(fill(template, {"slug": slug, "name": state["name"]}), encoding="utf-8", newline="\n")
     state["versions"]["application_definition"] = "0.1"
     lib.save_state(slug, state, root)
-    if not (path.parent / "overview.md").exists():
-        new_overview(slug, root)
     return path
 
 
@@ -149,32 +158,55 @@ IMPACT_WORDS = {0.25: "minimal", 0.5: "low", 1: "medium", 2: "high", 3: "massive
 
 
 def new_overview(slug: str, root: Path | None = None) -> Path:
-    """The overview for sponsors and the team, with the triage numbers filled in when the idea was triaged."""
+    """The overview for sponsors and the team, with the RICE numbers, the five foundations, the one thing and the
+    recommendation filled in from the assessment where it has them."""
+    import pipeline
+
     base = root or lib.ROOT
     state = lib.load_state(slug, root)
-    path = lib.idea_dir(slug, root) / "overview.md"
+    idea = lib.idea_dir(slug, root)
+    path = idea / "overview.md"
     if path.exists():
         raise lib.FactoryError(f"ideas/{slug}/overview.md already exists")
-    t = state.get("triage")
+    a, bad = pipeline.read_assessment(idea, root)
+    a = a if a and not bad else None
 
     def num(x: float) -> str:
         return f"{x:.2f}".rstrip("0").rstrip(".")
 
-    if t:
-        period = t.get("period", "per period")
+    def filled(text: str) -> bool:
+        return not lib.PLACEHOLDER.search(text)
+
+    if a and pipeline.scored(a):
+        r, period = a["rice"], a["period"]
         values = {
-            "reach": f"{num(t['reach'])} {period}", "impact": f"{num(t['impact'])} ({IMPACT_WORDS.get(t['impact'], 'see triage')})",
-            "confidence": f"{num(t['confidence'])}%", "effort": f"{num(t['effort'])} person-weeks", "score": num(t["score"]),
-            "rice_note": f"From triage ({t['id']}, `ideas/triage.md`): Reach is the people or processes touched {period}; Impact runs from "
-                         "0.25 (minimal) to 3 (massive) for each; Confidence is how sure the estimate is; Effort is rough person-weeks "
-                         "to a first release. Priority score = Reach x Impact x Confidence / Effort. Update the numbers if Analyse changed them.",
+            "reach": f"{num(r['reach']['value'])} {period}", "impact": f"{num(r['impact']['value'])} ({IMPACT_WORDS.get(r['impact']['value'], '')})",
+            "confidence": f"{num(r['confidence']['value'])}%", "effort": f"{num(r['effort']['value'])} person-weeks", "score": num(pipeline.score(r)),
+            "rice_note": f"From the assessment, where it is ranked with every other idea (`ideas/pipeline.md`): Reach is the people or processes "
+                         f"touched {period}; Impact runs from 0.25 (minimal) to 3 (massive) for each; Confidence is how sure the estimate is; "
+                         "Effort is rough person-weeks to a first release. Priority score = Reach x Impact x Confidence / Effort.",
         }
     else:
         values = {
             "reach": "<people or processes touched per month>", "impact": "<0.25 minimal to 3 massive>",
             "confidence": "<percentage>", "effort": "<rough person-weeks>", "score": "<Reach x Impact x Confidence / Effort>",
-            "rice_note": "<Not triaged: estimate the four factors as in factory/stages/triage.md and say what each means in a line.>",
+            "rice_note": "<Assess first (factory/stages/develop-assess.md), then say what each factor means in a line.>",
         }
+    rows = []
+    for key, label in pipeline.FOUNDATIONS.items():
+        f = (a or {}).get("foundations", {}).get(key)
+        if f and f["rating"] != "unrated" and filled(f["reason"]):
+            rows.append(f"| {label} | {f['rating'].capitalize()} | {f['reason']} |")
+        else:
+            rows.append(f"| {label} | <green, amber or red> | <why, in a line> |")
+    values["foundations"] = "\n".join(rows)
+    values["one_thing"] = a["one_thing"] if a and filled(a["one_thing"]) else "<The one thing to know or fix before investing.>"
+    d = (a or {}).get("decision", {})
+    if d.get("recommended") in pipeline.DECISIONS and filled(d.get("reason", "")):
+        fix = f", fixing {', '.join(pipeline.FOUNDATIONS[k] for k in d['fix'])} first" if d["recommended"] == "get-ready" and d["fix"] else ""
+        values["recommendation"] = f"Recommended: **{pipeline.DECISIONS[d['recommended']]}**{fix}. {d['reason']}"
+    else:
+        values["recommendation"] = "<Go, Get Ready or Stop, and why.>"
     template = (base / "factory" / "project-files" / "overview.md").read_text(encoding="utf-8")
     path.write_text(fill(template, {"name": state["name"], **values}), encoding="utf-8", newline="\n")
     return path
@@ -191,7 +223,7 @@ def new_spec(slug: str, root: Path | None = None) -> Path:
     if any(spec.glob("*.md")):
         raise lib.FactoryError(f"ideas/{slug}/spec already has documents")
     definition, _problems = check_spec.read_definition(idea)
-    sources = definition["sources"] if definition else [{"kind": "idea", "ref": "idea.md"}]
+    sources = definition["sources"] if definition else [{"kind": "idea", "ref": "idea-brief.md"}]
     values = {
         "name": state["name"],
         "date": lib.today(),
@@ -237,11 +269,11 @@ def main(argv: list[str]) -> int:
             name = args[args.index("--name") + 1] if "--name" in args else args[1]
             kind = args[args.index("--kind") + 1] if "--kind" in args else "app"
             idea = new_idea(args[1], name, kind)
-            print(f"Created {idea.relative_to(lib.ROOT).as_posix()}/ (stage analyse)")
+            print(f"Created {idea.relative_to(lib.ROOT).as_posix()}/ (stage develop)")
             return 0
         if len(args) == 2 and args[0] in ("definition", "overview", "spec"):
             made = {"definition": new_definition, "overview": new_overview, "spec": new_spec}[args[0]](args[1])
-            print(f"Wrote {made.relative_to(lib.ROOT).as_posix()}" + (" and overview.md" if args[0] == "definition" else ""))
+            print(f"Wrote {made.relative_to(lib.ROOT).as_posix()}")
             return 0
         if len(args) == 3 and args[0] == "app":
             app = new_app(args[1], args[2])

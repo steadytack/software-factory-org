@@ -11,6 +11,8 @@
   "idea": [
     "idea.md",
     "overview.md",
+    "idea-brief.md",
+    "assessment.md",
     "application-definition.md",
     "decisions.md",
     "changes.md",

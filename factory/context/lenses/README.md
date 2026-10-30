@@ -1,6 +1,6 @@
 # Lenses
 
-Discovery frameworks for Analyse and Spec. They are **activated per project**, not a questionnaire every idea must complete: Analyse records which lenses apply and why (in the Application Definition), and the ones not used are listed with a one-line reason.
+Discovery frameworks for Develop and Assess and for Spec. They are **activated per project**, not a questionnaire every idea must complete. Develop and Assess draws on the two that are always on to write the idea brief; Spec records which lenses apply and why (in the Application Definition), and the ones not used are listed with a one-line reason.
 
 | Lens | Always on? | Feeds spec docs |
 |---|---|---|
@@ -15,7 +15,7 @@ Discovery frameworks for Analyse and Spec. They are **activated per project**, n
 
 ## Rules for questions
 - Ask only questions whose answer changes a meaningful decision (architecture, cost, risk, usability, delivery). Questions answered by `defaults.md`, `policies.md` or the source material are listed as answered, not asked.
-- At most two rounds across Analyse and Spec (DEF-17); then recommend with explicit assumptions.
+- At most one round in Develop and Assess and one in Spec (DEF-17); then recommend with explicit assumptions.
 - Number questions across the round, one thing per question, 2-3 options, the recommendation marked with a reason in one clause:
 ```
 7. [Data] How long should saved plans be kept?

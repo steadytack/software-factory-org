@@ -13,13 +13,13 @@ from conftest import REAL_ROOT, needs_templates, run
 
 def test_a_new_idea_has_its_files_and_a_valid_state(repo):
     idea = scaffold.new_idea("tide-times", "Tide times", root=repo)
-    for rel in ("idea.md", "decisions.md", "changes.md", "state.json"):
+    for rel in ("idea.md", "idea-brief.md", "assessment.md", "decisions.md", "changes.md", "state.json"):
         assert (idea / rel).exists(), rel
     for sub in ("gates", "source", "spec"):
         assert (idea / sub).is_dir()
     state = lib.read_json(idea / "state.json")
     assert lib.validate("state", state, repo) == []
-    assert (state["stage"], state["status"], state["kind"]) == ("analyse", "in-progress", "app")
+    assert (state["stage"], state["status"], state["kind"]) == ("develop", "in-progress", "app")
     assert state["factory_version"] == (repo / "VERSION").read_text(encoding="utf-8").strip()
     assert all(g["status"] == "not-reached" for g in state["gates"].values())
     assert "# Tide times" in (idea / "idea.md").read_text(encoding="utf-8")
@@ -96,11 +96,11 @@ def test_status_lists_ideas_and_flags_broken_state(repo, py):
     (repo / "ideas/broken/state.json").write_text(json.dumps({"slug": "broken", "stage": "spec"}), encoding="utf-8")
     (repo / "ideas/empty").mkdir()
     rows = {r["slug"]: r for r in status.collect(repo)}
-    assert rows["alpha"]["stage"] == "analyse" and rows["alpha"]["gates_line"] == "1:- 2:- 3:- 4:-"
+    assert rows["alpha"]["stage"] == "develop" and rows["alpha"]["gates_line"] == "1:- 2:- 3:- 4:-"
     assert rows["broken"]["status"].startswith("invalid state.json")
     assert rows["empty"]["status"] == "no state.json"
     out = run([py, str(repo / "factory/scripts/status.py"), "--write"], repo)
-    assert out.returncode == 0 and "| alpha | app | analyse |" in out.stdout
+    assert out.returncode == 0 and "| alpha | app | develop |" in out.stdout
     assert re.search(r"\| alpha \|", (repo / "ideas/README.md").read_text(encoding="utf-8"))
 
 

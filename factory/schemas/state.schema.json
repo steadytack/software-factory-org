@@ -20,7 +20,7 @@
         "brands": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }, "uniqueItems": true }
       }
     },
-    "stage": { "enum": ["analyse", "spec", "build", "publish", "done"] },
+    "stage": { "enum": ["develop", "spec", "build", "publish", "done"] },
     "status": { "enum": ["in-progress", "awaiting-approval", "paused", "interrupted", "done", "stopped"] },
     "factory_version": { "type": "string" },
     "updated": { "type": "string", "format": "date" },
@@ -30,6 +30,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "assessment": { "type": ["string", "null"] },
         "application_definition": { "type": ["string", "null"] },
         "spec": { "type": ["string", "null"] },
         "composition": { "type": ["string", "null"] }
@@ -44,12 +45,12 @@
       "type": "object",
       "additionalProperties": false,
       "patternProperties": {
-        "^[0-4]$": {
+        "^[1-4]$": {
           "type": "object",
           "required": ["status"],
           "additionalProperties": false,
           "properties": {
-            "status": { "enum": ["not-reached", "awaiting-approval", "approved", "changes-requested"] },
+            "status": { "enum": ["not-reached", "awaiting-approval", "approved", "changes-requested", "get-ready", "stopped"], "description": "Gate 1 is the investment decision: approved is Go, get-ready and stopped the other two" },
             "date": { "type": "string", "format": "date" },
             "reply": { "type": "string" },
             "file": { "type": "string" },
@@ -81,19 +82,21 @@
       "properties": { "repo": { "type": "string" }, "url": { "type": "string", "pattern": "^https?://" } }
     },
     "changes": { "type": "array", "items": { "type": "string", "pattern": "^CR-\\d{3}$" } },
-    "triage": {
+    "assessment": {
       "type": "object",
-      "description": "The triage record carried over at Gate 0 (ideas/triage.json): the entry and its RICE factors",
-      "required": ["id", "score", "reach", "impact", "confidence", "effort"],
+      "description": "The Gate 1 investment decision, carried from assessment.md by pipeline.py decide",
+      "required": ["decision", "foundations"],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string", "pattern": "^TRI-\\d{3}$" },
-        "score": { "type": "number" },
+        "decision": { "enum": ["go", "get-ready", "stop"] },
+        "score": { "type": ["number", "null"], "description": "The RICE score; null when knocked out" },
         "period": { "type": "string" },
-        "reach": { "type": "number" },
-        "impact": { "type": "number" },
-        "confidence": { "type": "number" },
-        "effort": { "type": "number" }
+        "foundations": {
+          "type": "object",
+          "propertyNames": { "enum": ["problem", "value", "data", "risk", "people"] },
+          "additionalProperties": { "enum": ["green", "amber", "red"] }
+        },
+        "fix": { "type": "array", "items": { "enum": ["problem", "value", "data", "risk", "people"] }, "uniqueItems": true }
       }
     },
     "next": { "type": "string" }

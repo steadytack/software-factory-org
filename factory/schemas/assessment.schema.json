@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "assessment",
+  "version": 1,
+  "title": "Assessment (front matter of ideas/<slug>/assessment.md): knock-outs, the five foundations, RICE, the one thing and the Gate 1 decision",
+  "type": "object",
+  "required": ["schema_version", "slug", "version", "period", "data_classes", "one_thing", "decision"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+    "period": { "type": "string", "minLength": 1, "description": "The period Reach is counted over (per month, per quarter...)" },
+    "data_classes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "knockout": {
+      "type": "object",
+      "required": ["rule", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "rule": { "enum": ["data-class", "policy", "paid-service", "duplicate"] },
+        "ref": { "type": "string", "description": "POL-nn, DEF-11, ideas/<slug>, CAT-nnn or IDEA-nnn" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "foundations": {
+      "type": "object",
+      "required": ["problem", "value", "data", "risk", "people"],
+      "additionalProperties": false,
+      "properties": {
+        "problem": { "$ref": "#/$defs/rating" },
+        "value": { "$ref": "#/$defs/rating" },
+        "data": { "$ref": "#/$defs/rating" },
+        "risk": { "$ref": "#/$defs/rating" },
+        "people": { "$ref": "#/$defs/rating" }
+      }
+    },
+    "rice": {
+      "type": "object",
+      "required": ["reach", "impact", "confidence", "effort"],
+      "additionalProperties": false,
+      "properties": {
+        "reach": { "$ref": "#/$defs/reasoned_number" },
+        "impact": { "$ref": "#/$defs/reasoned_number" },
+        "confidence": { "$ref": "#/$defs/reasoned_number" },
+        "effort": { "$ref": "#/$defs/reasoned_number" }
+      }
+    },
+    "template": { "type": "string", "description": "The likely template (or none), which informs Effort" },
+    "assets": { "type": "array", "items": { "type": "string", "pattern": "^CAT-\\d{3}$" }, "uniqueItems": true },
+    "one_thing": { "type": "string", "minLength": 1, "description": "The one thing to know or fix before investing" },
+    "decision": {
+      "type": "object",
+      "required": ["recommended", "reason", "fix"],
+      "additionalProperties": false,
+      "properties": {
+        "recommended": { "enum": ["undecided", "go", "get-ready", "stop"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "fix": { "type": "array", "items": { "$ref": "#/$defs/foundation" }, "uniqueItems": true, "description": "Get Ready: the foundations to fix" },
+        "decided": { "enum": ["go", "get-ready", "stop"], "description": "The owner's decision at Gate 1" },
+        "date": { "type": "string", "format": "date" },
+        "reply": { "type": "string" }
+      }
+    },
+    "reassessments": {
+      "type": "array",
+      "description": "Light re-assessments after Get Ready, oldest first: what was being fixed, and the ratings before",
+      "items": {
+        "type": "object",
+        "required": ["date", "fix", "before", "previous"],
+        "additionalProperties": false,
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "fix": { "type": "array", "items": { "$ref": "#/$defs/foundation" }, "minItems": 1, "uniqueItems": true },
+          "before": { "type": "object", "propertyNames": { "$ref": "#/$defs/foundation" }, "additionalProperties": { "$ref": "#/$defs/rating" } },
+          "previous": {
+            "type": "object",
+            "required": ["date", "reply"],
+            "additionalProperties": false,
+            "properties": { "date": { "type": "string", "format": "date" }, "reply": { "type": "string" } }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "foundation": { "enum": ["problem", "value", "data", "risk", "people"] },
+    "rating": {
+      "type": "object",
+      "required": ["rating", "reason"],
+      "additionalProperties": false,
+      "properties": { "rating": { "enum": ["unrated", "green", "amber", "red"] }, "reason": { "type": "string", "minLength": 1 } }
+    },
+    "reasoned_number": {
+      "type": "object",
+      "required": ["value", "reason"],
+      "additionalProperties": false,
+      "properties": { "value": { "type": "number" }, "reason": { "type": "string", "minLength": 1 } }
+    }
+  }
+}

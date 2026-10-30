@@ -4,7 +4,7 @@
 Usage: python factory/scripts/check_factory.py [--fix] [--root PATH]
 
 Checks the template registry (factory/templates.json) against the template folders, stack standards,
-workflows and module manifests; the schemas; the context files and scopes; every idea's state.json and the triage register; and
+workflows and module manifests; the schemas; the context files and scopes; every idea's state.json, the idea register and each assessment; and
 every catalogue entry and source record. Reference cards past their review date are warnings, not
 problems. Read-only unless --fix, which only regenerates the template tables
 between <!-- templates:start --> and <!-- templates:end --> markers. Exit 0 = consistent, 1 = problems.
@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import factory_lib as lib  # noqa: E402
 import scopes  # noqa: E402
-import triage  # noqa: E402
+import pipeline  # noqa: E402
 
 START, END = "<!-- templates:start -->", "<!-- templates:end -->"
 READY_KEYS = [
@@ -50,7 +50,7 @@ CURRENT_DOCS = [
     "factory/context/*.md", "factory/standards/*.md", "factory/standards/stacks/*.md", "templates/*/README.md", "templates/*/CLAUDE.md",
 ]
 # Generated tables: (file, renderer). A file is only checked once it exists.
-TABLES = [("README.md", "readme"), ("factory/stages/analyse.md", "picker")]
+TABLES = [("README.md", "readme"), ("factory/stages/spec.md", "picker")]
 
 
 def ready(registry: dict) -> list[dict]:
@@ -260,11 +260,10 @@ def check_ideas(root: Path, errors: list[str]) -> None:
         if state.get("slug") != folder.name:
             errors.append(f"{rel}: slug {state.get('slug')!r} does not match the folder")
         errors += [f"{rel}: scope names {u}, not in factory/context/scopes.json" for u in scopes.unknown(scopes.idea_scope(state), reg)]
-    if triage.register_path(root).exists():
-        try:
-            errors += [f"{triage.REGISTER}: {p}" for p in triage.problems(triage.load(root), root)]
-        except ValueError as exc:
-            errors.append(f"{triage.REGISTER}: not valid JSON ({exc})")
+    try:
+        errors += pipeline.problems(pipeline.load(root), root)
+    except ValueError as exc:
+        errors.append(f"{pipeline.REGISTER}: not valid JSON ({exc})")
 
 
 def check_catalogue(root: Path, errors: list[str], warnings: list[str]) -> None:
