@@ -1,0 +1,85 @@
+{
+  "version": 3,
+  "note": "The one list of templates. The template tables in README.md and factory/stages/analyse.md are generated from it (python factory/scripts/check_factory.py --fix). Each ready template is also an approved catalogue entry (catalogue/assets/). 'verify' is a list of parts that factory/scripts/verify.py runs in clean containers (cwd is relative to the template folder; services are sidecar containers on a private network, reachable by their name). 'deployment' and 'interfaces' use the categories of the Application Definition.",
+  "templates": [
+    {
+      "name": "web-app",
+      "status": "ready",
+      "order": 6,
+      "version": "1.0.0",
+      "runtime": "python+node",
+      "readme_status": "ready, verified (see its README)",
+      "readme_for": "a web application with a frontend and backend, geospatial-capable",
+      "fits": "Login, stored records, files, several screens, roles, offline or a map",
+      "weak_at": "small ideas (heavy: database, backups, auth); sample sites/surveys code must be removed",
+      "stack": "web-app",
+      "workflow": "web-app",
+      "verify": [
+        {
+          "name": "backend",
+          "runtime": "python",
+          "image": "python:3.12-slim",
+          "cwd": "backend",
+          "env": {
+            "DATABASE_URL": "postgresql+asyncpg://app:verify@db:5432/app_test",
+            "TEST_DATABASE_URL": "postgresql+asyncpg://app:verify@db:5432/app_test",
+            "MULTI_USER_ENABLED": "true",
+            "ADMIN_EMAIL": "admin@example.com",
+            "ADMIN_PASSWORD": "Verify-Admin-Pass-2026!!",
+            "JWT_SECRET": "verify-secret-verify-secret-verify-secret-123"
+          },
+          "services": [
+            {
+              "name": "db",
+              "image": "postgis/postgis:17-3.5",
+              "env": {
+                "POSTGRES_USER": "app",
+                "POSTGRES_PASSWORD": "verify",
+                "POSTGRES_DB": "app_test"
+              },
+              "ready": "pg_isready -U app -d app_test"
+            }
+          ],
+          "setup": [
+            "pip install -q -r requirements-dev.txt"
+          ],
+          "steps": [
+            "ruff check app tests migrations",
+            "python -m pytest -q"
+          ]
+        },
+        {
+          "name": "frontend",
+          "runtime": "node",
+          "image": "node:24",
+          "cwd": "frontend",
+          "setup": [
+            "npm ci"
+          ],
+          "steps": [
+            "npx tsc --noEmit -p .",
+            "npx eslint src tests --quiet",
+            "npx vitest run"
+          ]
+        }
+      ],
+      "ports": [
+        "DB_PORT",
+        "BACKEND_PORT",
+        "FRONTEND_PORT"
+      ],
+      "compose_project": "web-app-template",
+      "modules": [],
+      "deployment": [
+        "local",
+        "hosted"
+      ],
+      "interfaces": [
+        "web",
+        "mobile",
+        "specialist-visual"
+      ]
+    }
+  ],
+  "gaps": []
+}

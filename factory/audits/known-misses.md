@@ -1,0 +1,10 @@
+# Known misses
+
+Defects an earlier audit marked fine and a later one found. Each is a known-bad case: when tuning an audit prompt or the verification step in `LOG_PROTOCOL.md`, check that the new wording would have caught it. Newest last. Add an entry when a defect escapes an audit (after Gate 3, in use, or in a later audit).
+
+| Date found | Project | Item | What the audit said | What was true | Why it slipped through | What would have caught it | Found by |
+|---|---|---|---|---|---|---|---|
+| 2026-10-22 | dno-outage-matcher | FR-007, FR-011, FR-014 (matching by postcode sector) | Verified (run `2026-10-22-1-spec-conformance`) | On UKPN NEO the postcode field was a mangled array and never parsed, so no UKPN incident (119) matched by postcode; they matched by point only (DI-1) | Verified on test fixtures; field mappings had been written from field lists (D-064), never checked against a real payload | Verification step: re-trace against live data, or mark "verified on fixtures; live data unconfirmed" (partially verified) | `2026-10-22-3-data-integrity` |
+| 2026-10-25 | dno-outage-matcher | FR-009, FR-010 (restoration) | Verified (delta run `2026-10-22-2-spec-conformance-delta`, and the 2026-10-23 addendum) | UKPN NEO gives a restoration time to incidents still In Progress, so 347 incidents stayed "restored, confirmed" on a partial time; `restored_at` was set only when status flipped, so 288 disagreed with the duration (DI-13, DI-14) | Correct for the feeds polled then; the second UKPN source (CR-008) exposed it, and a delta run carries forward items whose code had not changed | Verification step on every item marked Verified, plus a data check that compares stored restoration with each incident's last record | `2026-10-25-6-data-integrity` |
+
+Pattern in both: a **Verified on fixtures or on the sources polled so far** was reported as Verified. The rule that follows: an item is Verified only on evidence from the real input it will receive, otherwise Partially verified with the gap named.

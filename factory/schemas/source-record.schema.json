@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "source-record",
+  "version": 1,
+  "title": "Where imported material came from (catalogue/sources/SRC-nnn/source.json). The source itself is kept unchanged beside it.",
+  "type": "object",
+  "required": ["schema_version", "id", "kind", "origin", "received", "candidates", "inspected", "unverified"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^SRC-\\d{3}$" },
+    "kind": { "enum": ["file", "folder", "zip", "git", "document"] },
+    "origin": { "type": "string", "description": "The path or URL as supplied" },
+    "received": { "type": "string", "format": "date" },
+    "supplied_by": { "type": "string" },
+    "revision": { "type": "string" },
+    "checksum": { "type": "string" },
+    "licence": { "type": "string" },
+    "inspected": { "type": "array", "items": { "type": "string" }, "description": "What was looked at" },
+    "unverified": { "type": "array", "items": { "type": "string" }, "description": "What could not be checked" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "kind", "where", "what"],
+        "additionalProperties": false,
+        "properties": {
+          "severity": { "enum": ["info", "warning", "blocker"] },
+          "kind": { "enum": ["secret", "script", "licence", "dependency", "instruction", "other"] },
+          "where": { "type": "string" },
+          "what": { "type": "string" }
+        }
+      }
+    },
+    "candidates": { "type": "array", "items": { "type": "string", "pattern": "^CAT-\\d{3}$" } }
+  }
+}

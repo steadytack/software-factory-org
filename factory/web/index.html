@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal Software Factory</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root { --bg:#f6f7f9; --card:#fff; --ink:#1b1d22; --mute:#646a75; --line:#dfe2e8; --accent:#2457d6; --ok:#1f7a45; --wait:#b4620a; --bad:#b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#15171b; --card:#1d2026; --ink:#e9ebef; --mute:#99a0ab; --line:#30343c; --accent:#7aa2ff; --ok:#5fcf8f; --wait:#f0a64a; --bad:#ff7b72; color-scheme:dark; } }
+:root[data-theme="dark"] { --bg:#15171b; --card:#1d2026; --ink:#e9ebef; --mute:#99a0ab; --line:#30343c; --accent:#7aa2ff; --ok:#5fcf8f; --wait:#f0a64a; --bad:#ff7b72; color-scheme:dark; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 system-ui, sans-serif; }
+body::before { content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top, 0px); z-index:10; background:var(--card); }
+header { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; padding-block:10px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); border-bottom:1px solid var(--line); background:var(--card); position:sticky; top:env(safe-area-inset-top, 0px); z-index:1; }
+header h1 { font-size:17px; margin:0 8px 0 0; }
+nav { display:flex; flex-wrap:wrap; }
+nav button { background:none; border:0; color:var(--mute); font:inherit; padding:6px 10px; cursor:pointer; border-radius:6px; }
+nav button[aria-current="true"] { color:var(--ink); background:var(--bg); font-weight:600; }
+main { max-width:1000px; margin:0 auto; padding-block:16px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:14px; }
+.row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.grow { flex:1; }
+h2 { font-size:16px; margin:0; }
+.mute { color:var(--mute); font-size:13px; }
+.badge { font-size:12px; padding:1px 8px; border-radius:99px; border:1px solid var(--line); }
+.badge.awaiting-approval { color:var(--wait); border-color:var(--wait); font-weight:600; }
+.badge.done { color:var(--ok); border-color:var(--ok); }
+.badge.stopped, .badge.interrupted { color:var(--bad); border-color:var(--bad); }
+.steps { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:12px 0; }
+.step { border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:13px; }
+.step b { display:block; }
+.step.approved { border-color:var(--ok); } .step.approved b { color:var(--ok); }
+.step.awaiting-approval { border-color:var(--wait); background:color-mix(in srgb, var(--wait) 10%, transparent); }
+.step.changes-requested { border-color:var(--bad); }
+.step.here { box-shadow:0 0 0 2px var(--accent) inset; }
+.flow { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:4px 0 6px; }
+.flow div { border:1px solid var(--line); border-radius:8px; padding:8px; font-size:13px; }
+.flow b { display:block; font-size:14px; }
+.flow .n { font-size:22px; font-weight:600; }
+.blockers { color:var(--bad); margin:6px 0; }
+a.btn { font-size:13px; padding:4px 10px; border-radius:6px; border:1px solid var(--accent); color:var(--accent); text-decoration:none; }
+a { color:var(--accent); }
+details summary { cursor:pointer; color:var(--mute); font-size:13px; margin-top:8px; }
+table { border-collapse:collapse; width:100%; font-size:13px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:4px 8px; text-align:left; vertical-align:top; }
+pre { background:var(--bg); padding:10px; border-radius:6px; overflow-x:auto; }
+code { font-family:ui-monospace, Consolas, monospace; font-size:.9em; }
+.doc { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:4px 20px 16px; overflow-wrap:anywhere; }
+.docs-layout { display:grid; grid-template-columns:minmax(180px,260px) minmax(0,1fr); gap:16px; }
+.tree a { display:block; font-size:13px; padding:2px 0; word-break:break-all; }
+.tree h3 { font-size:12px; text-transform:uppercase; color:var(--mute); margin:14px 0 4px; }
+.hidden { display:none; }
+@media (max-width:700px) { .steps { grid-template-columns:1fr 1fr; } .flow { grid-template-columns:1fr 1fr; } .docs-layout { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Personal Software Factory</h1>
+  <nav>
+    <button data-tab="overview">Overview</button>
+    <button data-tab="ideas">Ideas</button>
+    <button data-tab="apps">Apps</button>
+    <button data-tab="docs">Documents</button>
+  </nav>
+  <span class="grow"></span>
+  <span class="mute" id="mode"></span>
+</header>
+<main>
+  <section id="overview"></section>
+  <section id="ideas" class="hidden"></section>
+  <section id="apps" class="hidden"></section>
+  <section id="docs" class="hidden"></section>
+</main>
+<script>
+const BOOT = /*BOOT*/null;
+const STATIC = !!(BOOT && BOOT.static);
+let state = STATIC ? BOOT.data : null;
+const $ = (id) => document.getElementById(id);
+function el(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === 'class') e.className = v; else if (v !== null && v !== undefined) e.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) e.append(kid === null || kid === undefined ? '' : kid);
+  return e;
+}
+const STAGES = ['analyse', 'spec', 'build', 'publish', 'done'];
+const GATE_NAMES = ['Analyse', 'Spec', 'Build and Audit', 'Publish'];
+const STAGE_TEXT = {
+  analyse: 'What the idea is, who it is for, and the decisions it needs.',
+  spec: 'A full specification pack: requirements, stories, tests, delivery plan.',
+  build: 'Built epic by epic from tested templates, then audited.',
+  publish: 'Checked for secrets and hygiene, then released on approval.',
+  done: 'Released.',
+};
+
+async function api(path) {
+  const r = await fetch(path);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+async function docHtml(path) {
+  if (STATIC) { if (path in BOOT.docs) return BOOT.docs[path]; throw new Error('This document is not part of this snapshot.'); }
+  return (await api('/api/doc?path=' + encodeURIComponent(path))).html;
+}
+function docBox(html) { const box = el('div', { class: 'doc' }); box.innerHTML = html; return box; }   // server-rendered, text escaped
+
+async function load(first) {
+  if (!STATIC) state = await api('/api/state');
+  $('mode').textContent = STATIC ? 'snapshot' : 'local, live';
+  if (first) { renderOverview(); renderDocsList(); }   // left alone on refresh, so an open document stays put
+  renderIdeas(); renderApps();
+}
+
+function renderOverview() {
+  const root = $('overview'); root.replaceChildren();
+  const count = (s) => state.ideas.filter((i) => i.stage === s).length;
+  const waiting = state.ideas.filter((i) => i.status === 'awaiting-approval').length;
+  root.append(el('div', { class: 'card' },
+    el('h2', {}, 'How it works'),
+    el('p', {}, 'Each idea moves through four stages. Every stage ends at a gate: nothing moves on until the owner approves it.'),
+    el('div', { class: 'flow' }, STAGES.map((s, n) => el('div', {}, el('b', {}, n < 4 ? GATE_NAMES[n] : 'Done'), el('div', { class: 'n' }, String(count(s))), el('div', { class: 'mute' }, STAGE_TEXT[s])))),
+    el('div', { class: 'mute' }, state.ideas.length + ' ideas · ' + waiting + ' waiting for approval · ' + state.apps.length + ' published')));
+  if (state.overview) {
+    const slot = el('div', {}, el('p', { class: 'mute' }, 'Loading...'));
+    root.append(slot);
+    docHtml(state.overview).then((h) => slot.replaceChildren(docBox(h))).catch(() => slot.replaceChildren());
+  }
+}
+
+function renderIdeas() {
+  const root = $('ideas'); root.replaceChildren();
+  if (!state.ideas.length) root.append(el('p', { class: 'mute' }, 'No ideas yet.'));
+  for (const i of state.ideas) root.append(ideaCard(i));
+}
+function ideaCard(i) {
+  const here = STAGES.indexOf(i.stage);
+  const steps = i.gates.map((g, n) => el('div', { class: 'step ' + g.status + (n === here ? ' here' : '') },
+    el('b', {}, GATE_NAMES[n]), g.status.replace('-', ' '), g.date ? el('div', { class: 'mute' }, g.date) : null,
+    g.file ? el('a', { href: '#doc=' + g.file }, 'gate summary') : null));
+  return el('div', { class: 'card' },
+    el('div', { class: 'row' }, el('h2', {}, i.name), el('span', { class: 'badge ' + i.status }, i.status),
+      el('span', { class: 'mute' }, 'tier ' + (i.tier || '?') + (i.template ? ' · ' + i.template : '') + ' · updated ' + (i.updated || '?')),
+      el('span', { class: 'grow' }), i.app ? el('a', { class: 'btn', href: i.app.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open app') : null),
+    el('div', { class: 'steps' }, steps),
+    i.current.epic || i.current.milestone ? el('div', { class: 'mute' }, 'Now: ' + [i.current.epic, i.current.story, i.current.milestone].filter(Boolean).join(' / ')) : null,
+    i.blockers.length ? el('div', { class: 'blockers' }, 'Blocked: ' + i.blockers.join('; ')) : null,
+    i.next ? el('div', {}, el('b', {}, 'Next: '), i.next) : null,
+    i.last_verification ? el('div', { class: 'mute' }, 'Last check ' + i.last_verification.date + ': ' + i.last_verification.summary) : null,
+    i.changes.length ? el('details', {}, el('summary', {}, i.changes.length + ' change request(s)'), changesTable(i.changes)) : null,
+    i.docs.length ? el('details', {}, el('summary', {}, 'Documents (' + i.docs.length + ')'), el('div', { class: 'tree' }, i.docs.map((d) => el('a', { href: '#doc=' + d }, d.replace('ideas/' + i.slug + '/', ''))))) : null);
+}
+function changesTable(rows) {
+  const cols = Object.keys(rows[0]);
+  return el('table', {}, el('thead', {}, el('tr', {}, cols.map((c) => el('th', {}, c)))),
+    el('tbody', {}, rows.map((r) => el('tr', {}, cols.map((c) => el('td', {}, r[c]))))));
+}
+
+function renderApps() {
+  const root = $('apps'); root.replaceChildren();
+  if (!state.apps.length) { root.append(el('p', { class: 'mute' }, 'No apps published yet.')); return; }
+  for (const a of state.apps) root.append(el('div', { class: 'card row' }, el('h2', {}, a.name), el('span', { class: 'mute' }, a.repo), el('span', { class: 'grow' }),
+    el('a', { class: 'btn', href: a.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open')));
+}
+
+function renderDocsList() {
+  const root = $('docs'); root.replaceChildren();
+  const group = (title, list) => list.length ? [el('h3', {}, title), ...list.map((p) => el('a', { href: '#doc=' + p }, p))] : [];
+  const ideaGroups = state.ideas.flatMap((i) => group(i.name, i.docs));
+  const listed = new Set([...state.docs.factory, ...state.ideas.flatMap((i) => i.docs)]);
+  root.append(el('div', { class: 'docs-layout' },
+    el('div', { class: 'tree' }, group('How it works', state.docs.factory), ideaGroups, group('Everything else', state.docs.all.filter((p) => !listed.has(p)))),
+    el('div', { id: 'docView' }, el('p', { class: 'mute' }, 'Pick a document.'))));
+}
+async function showDoc(path) {
+  show('docs');
+  const view = $('docView');
+  view.replaceChildren(el('p', { class: 'mute' }, 'Loading...'));
+  try { view.replaceChildren(el('div', { class: 'mute', style: 'margin-bottom:6px' }, path), docBox(await docHtml(path))); window.scrollTo(0, 0); }
+  catch (e) { view.replaceChildren(el('p', { class: 'blockers' }, e.message)); }
+}
+
+function show(tab) {
+  for (const t of ['overview', 'ideas', 'apps', 'docs']) $(t).classList.toggle('hidden', t !== tab);
+  document.querySelectorAll('nav button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.tab === tab)));
+}
+document.querySelectorAll('nav button').forEach((b) => b.addEventListener('click', () => { history.replaceState(null, '', ' '); show(b.dataset.tab); }));
+window.addEventListener('hashchange', route);
+function route() { const m = location.hash.match(/^#doc=(.+)$/); if (m) showDoc(decodeURIComponent(m[1])); }
+show('overview');
+load(true).then(route).catch((e) => document.body.prepend(el('p', { class: 'blockers' }, e.message)));
+if (!STATIC) setInterval(() => { if (!document.hidden) load().catch(() => {}); }, 30000);
+</script>
+</body>
+</html>

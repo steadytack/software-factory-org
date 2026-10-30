@@ -1,0 +1,30 @@
+# Environment / secrets
+.env
+
+# Database / upload backups (docker compose `backup` service)
+backups/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+pytest_out.txt
+*.log
+
+# Node
+node_modules/
+dist/
+playwright-report/
+test-results/
+
+# Editor / OS
+.vscode/
+.DS_Store
+
+# TypeScript incremental build cache (rewritten by every `tsc -b`)
+*.tsbuildinfo
+# Audit run logs are records, not noise.
+!audits/runs/**/harness.log

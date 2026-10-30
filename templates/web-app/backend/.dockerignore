@@ -1,0 +1,9 @@
+# The image builds its own virtualenv from poetry.lock; a local venv (Windows
+# or otherwise) must never be copied over it.
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+tests/

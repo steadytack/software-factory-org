@@ -1,0 +1,11 @@
+{
+  "name": "UK Sites (blue points)",
+  "style": {
+    "fillColor": "#3b82f6",
+    "fillOpacity": 0.75,
+    "strokeColor": "#1d4ed8",
+    "strokeWidth": 1.5,
+    "pointRadius": 7,
+    "labelField": "name"
+  }
+}

@@ -1,0 +1,26 @@
+# Build output and caches (each template also has its own .gitignore)
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.venv/
+*.tsbuildinfo
+test-results/
+
+# Local-only
+.env
+backups/
+.claude/settings.local.json
+# Each person's machine (copy factory/context/environment.example.md)
+factory/context/environment.md
+
+# The shareable dashboard snapshot (python factory/scripts/dashboard.py --write)
+ideas/dashboard.html
+
+# Generated apps live inside ideas/<slug>/app and are their own git repos
+ideas/*/app/
+
+# Imported material is kept locally, not in the repository (source.json records its origin and checksum)
+catalogue/sources/*/original/
+catalogue/sources/*/clone/

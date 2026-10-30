@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "application-definition",
+  "version": 1,
+  "title": "Application Definition (front matter of ideas/<slug>/application-definition.md)",
+  "type": "object",
+  "required": ["schema_version", "slug", "name", "version", "status", "maturity_tier", "deployment", "interfaces", "brand", "design_system", "interaction_style", "lenses", "sources"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+    "status": { "enum": ["draft", "in-review", "approved", "superseded"] },
+    "maturity_tier": { "$ref": "#/$defs/choice", "properties": { "value": { "enum": [1, 2, 3, 4] } } },
+    "deployment": {
+      "$ref": "#/$defs/choice",
+      "properties": {
+        "value": { "enum": ["simple", "local", "hosted", "automated"] },
+        "development": { "type": "string" }
+      }
+    },
+    "interfaces": {
+      "$ref": "#/$defs/choice",
+      "properties": {
+        "value": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["web", "mobile", "specialist-visual", "conversational", "non-visual"] }
+        }
+      }
+    },
+    "brand": { "$ref": "#/$defs/choice", "properties": { "value": { "enum": ["personal", "organisation", "existing-product", "unbranded", "none"] } } },
+    "design_system": { "$ref": "#/$defs/choice" },
+    "interaction_style": { "$ref": "#/$defs/choice" },
+    "template": { "$ref": "#/$defs/choice" },
+    "lenses": {
+      "type": "object",
+      "required": ["active", "skipped"],
+      "additionalProperties": false,
+      "properties": {
+        "active": { "type": "array", "items": { "$ref": "#/$defs/lens" }, "uniqueItems": true },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["lens", "reason"],
+            "additionalProperties": false,
+            "properties": { "lens": { "$ref": "#/$defs/lens" }, "reason": { "type": "string", "minLength": 1 } }
+          }
+        }
+      }
+    },
+    "candidate_assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "fit"],
+        "additionalProperties": false,
+        "properties": { "id": { "type": "string" }, "fit": { "type": "string" }, "limitations": { "type": "string" } }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "ref"],
+        "additionalProperties": false,
+        "properties": { "kind": { "enum": ["idea", "document", "project", "catalogue-source"] }, "ref": { "type": "string" }, "version": { "type": "string" } }
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["gate", "date", "reply"],
+        "additionalProperties": false,
+        "properties": { "gate": { "type": "integer" }, "date": { "type": "string", "format": "date" }, "reply": { "type": "string" }, "version": { "type": "string" } }
+      }
+    }
+  },
+  "$defs": {
+    "lens": { "enum": ["business-value", "users-and-workflows", "data-and-integrations", "architecture", "security", "ux-and-accessibility", "operations", "cost-and-maintainability"] },
+    "choice": {
+      "type": "object",
+      "required": ["value", "state"],
+      "properties": {
+        "value": {},
+        "state": { "enum": ["recommended", "accepted", "rejected", "deferred", "unresolved"] },
+        "reason": { "type": "string" },
+        "default": { "type": "string", "description": "The DEF-nn it came from, when it was answered from defaults" }
+      }
+    }
+  }
+}

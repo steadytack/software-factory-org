@@ -1,0 +1,70 @@
+/* Map overrides — bring MapLibre's default (light-only) marker and popup
+ * chrome in line with the app's theme tokens, in both light and dark mode. */
+
+.map-site-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--marker-color, var(--primary));
+  border: 2px solid var(--popover);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.map-site-marker:hover {
+  transform: scale(1.25);
+}
+
+.maplibregl-popup-content {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-sans);
+}
+
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: var(--popover);
+}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: var(--popover);
+}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--popover);
+}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--popover);
+}
+
+.maplibregl-popup-close-button {
+  right: 4px;
+  top: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1;
+}
+.maplibregl-popup-close-button:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.maplibregl-ctrl-attrib {
+  background: transparent;
+}
+
+/* MapLibre's own attribution chip (the small maps): the app's popover surface, in both themes. */
+.maplibregl-ctrl-attrib {
+  background: color-mix(in srgb, var(--popover) 85%, transparent) !important;
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  border-radius: var(--radius-md);
+}
+
+.maplibregl-ctrl-attrib a {
+  color: inherit;
+}

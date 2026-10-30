@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "state",
+  "version": 1,
+  "title": "Project state (ideas/<slug>/state.json)",
+  "type": "object",
+  "required": ["schema_version", "slug", "name", "kind", "stage", "status", "factory_version", "updated", "gates", "next"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "kind": { "enum": ["app", "factory-asset", "demo"] },
+    "scope": {
+      "type": "object",
+      "description": "The business and brands the idea belongs to (factory/context/scopes.json). Absent, or business null: group-wide",
+      "additionalProperties": false,
+      "properties": {
+        "business": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "brands": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }, "uniqueItems": true }
+      }
+    },
+    "stage": { "enum": ["analyse", "spec", "build", "publish", "done"] },
+    "status": { "enum": ["in-progress", "awaiting-approval", "paused", "interrupted", "done", "stopped"] },
+    "factory_version": { "type": "string" },
+    "updated": { "type": "string", "format": "date" },
+    "template": { "type": ["string", "null"] },
+    "tier": { "enum": [1, 2, 3, 4, null] },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "application_definition": { "type": ["string", "null"] },
+        "spec": { "type": ["string", "null"] },
+        "composition": { "type": ["string", "null"] }
+      }
+    },
+    "current": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "epic": { "type": ["string", "null"] }, "story": { "type": ["string", "null"] }, "milestone": { "type": ["string", "null"] } }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[1-4]$": {
+          "type": "object",
+          "required": ["status"],
+          "additionalProperties": false,
+          "properties": {
+            "status": { "enum": ["not-reached", "awaiting-approval", "approved", "changes-requested"] },
+            "date": { "type": "string", "format": "date" },
+            "reply": { "type": "string" },
+            "file": { "type": "string" },
+            "version": { "type": "string" }
+          }
+        }
+      }
+    },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "last_verification": {
+      "type": ["object", "null"],
+      "required": ["date", "summary"],
+      "additionalProperties": false,
+      "properties": { "date": { "type": "string", "format": "date" }, "summary": { "type": "string" }, "report": { "type": "string" } }
+    },
+    "imports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "version", "date"],
+        "additionalProperties": false,
+        "properties": { "file": { "type": "string" }, "version": { "type": "string" }, "date": { "type": "string", "format": "date" } }
+      }
+    },
+    "app": {
+      "type": "object",
+      "required": ["repo", "url"],
+      "additionalProperties": false,
+      "properties": { "repo": { "type": "string" }, "url": { "type": "string", "pattern": "^https?://" } }
+    },
+    "changes": { "type": "array", "items": { "type": "string", "pattern": "^CR-\\d{3}$" } },
+    "next": { "type": "string" }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "about": "What dashboard.py --write puts in the shareable page. Paths are globs from the repository root; anything not listed stays out.",
+  "overview": "README.md",
+  "factory": [
+    "README.md",
+    "factory/README.md",
+    "factory/stages/*.md",
+    "docs/personal-software-factory-spec-v0.1.md",
+    "CHANGELOG.md"
+  ],
+  "idea": [
+    "idea.md",
+    "application-definition.md",
+    "decisions.md",
+    "changes.md",
+    "verification.md",
+    "gates/*.md",
+    "spec/*.md"
+  ],
+  "ideas_exclude": []
+}

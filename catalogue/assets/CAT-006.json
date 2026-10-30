@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "CAT-006",
+  "name": "web-app",
+  "purpose": "a web application with a frontend and backend, geospatial-capable",
+  "type": "template",
+  "tags": [
+    "fastapi",
+    "react",
+    "postgis",
+    "postgres",
+    "auth",
+    "roles",
+    "maps",
+    "offline",
+    "files",
+    "web"
+  ],
+  "version": "1.0.0",
+  "status": "approved",
+  "source": {
+    "ref": "templates/web-app",
+    "revision": "v3-archive d52e2be (copied 2026-10-19)"
+  },
+  "runtime": "python+node",
+  "licence": "MIT, contributed to Organisation A by tpd2111 from the personal factory, under the MIT licence (2026-10-30)",
+  "maintainer": "tpd2111",
+  "dependencies": [],
+  "compatibility": [
+    "deployment: local, hosted",
+    "interfaces: web, mobile, specialist-visual"
+  ],
+  "interfaces": [],
+  "usage": "python factory/scripts/scaffold.py app <slug> web-app; stack rules in factory/standards/stacks/web-app.md",
+  "evidence": [
+    {
+      "date": "2026-10-19",
+      "check": "factory/scripts/verify.py --template web-app (clean containers)",
+      "result": "passed",
+      "detail": "backend ruff clean and 253 tests passed against PostGIS 17; frontend tsc, eslint and 231 vitest tests passed (node:24)"
+    },
+    {
+      "date": "2026-10-19",
+      "check": "Playwright end-to-end journeys and the real-stack run",
+      "result": "not-run"
+    },
+    {
+      "date": "2026-10-21",
+      "check": "factory/scripts/verify.py --template web-app after the seconds_until fix",
+      "result": "passed",
+      "detail": "2 of 2 parts; backend 256 passed (3 new clock-change tests), frontend passed"
+    }
+  ],
+  "risks": [],
+  "limitations": [
+    "Its example domain (sites and surveys) is woven through and is hard to strip (v3 lesson D-004)",
+    "Heavy for small ideas: database, backups, auth",
+    "Weak at: small ideas (heavy: database, backups, auth); sample sites/surveys code must be removed"
+  ],
+  "history": [
+    {
+      "date": "2026-10-19",
+      "status": "imported",
+      "by": "factory",
+      "note": "copied from the archived v3 factory"
+    },
+    {
+      "date": "2026-10-19",
+      "status": "validated",
+      "by": "factory",
+      "note": "its own checks passed in clean containers"
+    },
+    {
+      "date": "2026-10-19",
+      "status": "approved",
+      "by": "owner",
+      "note": "v1 build plan: the six templates are approved entries"
+    },
+    {
+      "date": "2026-10-30",
+      "status": "approved",
+      "by": "tpd2111",
+      "note": "contributed to Organisation A by tpd2111 from the personal factory, under the MIT licence"
+    }
+  ]
+}

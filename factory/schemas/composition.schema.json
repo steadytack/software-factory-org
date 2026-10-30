@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "composition",
+  "version": 1,
+  "title": "Composition manifest (ideas/<slug>/composition.json). Never holds secrets.",
+  "type": "object",
+  "required": ["schema_version", "components"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "role", "base"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "role": { "type": "string" },
+          "base": { "$ref": "#/$defs/assetRef" },
+          "modules": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                { "$ref": "#/$defs/assetRef" },
+                {
+                  "type": "object",
+                  "required": ["namespace"],
+                  "properties": { "namespace": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }, "parts": { "type": "array", "items": { "type": "string" } } }
+                }
+              ]
+            }
+          },
+          "assets": { "type": "array", "items": { "allOf": [{ "$ref": "#/$defs/assetRef" }, { "type": "object", "required": ["use"], "properties": { "use": { "type": "string" } } }] } },
+          "configuration": { "type": "object", "description": "Names of settings and where they are set; never values of secrets" },
+          "adaptations": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "kind", "what"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "kind": { "enum": ["http", "file", "database", "import", "queue"] },
+          "what": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "strategy": { "enum": ["single", "graft", "multi-component"] },
+    "validation": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["not-run", "passed", "failed", "partial"] },
+        "date": { "type": "string", "format": "date" },
+        "evidence": { "type": "string" }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "assetRef": {
+      "type": "object",
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^CAT-\\d{3}$" },
+        "version": { "type": "string" }
+      }
+    }
+  }
+}

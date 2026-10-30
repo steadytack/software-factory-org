@@ -1,0 +1,11 @@
+{
+  "name": "Green area polygons",
+  "style": {
+    "fillColor": "#10b981",
+    "fillOpacity": 0.25,
+    "strokeColor": "#047857",
+    "strokeWidth": 2,
+    "pointRadius": 6,
+    "labelField": ""
+  }
+}

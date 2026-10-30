@@ -1,0 +1,11 @@
+{
+  "name": "Red hazard markers",
+  "style": {
+    "fillColor": "#ef4444",
+    "fillOpacity": 0.8,
+    "strokeColor": "#b91c1c",
+    "strokeWidth": 1.5,
+    "pointRadius": 6,
+    "labelField": "description"
+  }
+}

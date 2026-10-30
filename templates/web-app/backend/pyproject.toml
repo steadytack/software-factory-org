@@ -1,0 +1,70 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "FastAPI backend for the web-app template"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "geoalchemy2>=0.16",
+    "shapely>=2.0",
+    "alembic>=1.14",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "python-multipart>=0.0.20",
+    "structlog>=24.4",
+    "bcrypt>=4.2",
+    "pyjwt>=2.9",
+    "uuid6>=2024.7",
+    # IANA timezone data for zoneinfo (APP_TIMEZONE): slim images and Windows
+    # have no system tz database.
+    "tzdata>=2024.1",
+    # Photo re-encoding on upload: strips EXIF, fixes rotation, thumbnails.
+    "pillow>=11",
+    "pillow-heif (>=0.20)",
+]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.3"
+pytest-asyncio = ">=0.24"
+httpx = ">=0.27"
+ruff = ">=0.7"
+black = ">=24.10"
+isort = ">=5.13"
+coverage = ">=7.6"
+aiosqlite = ">=0.20"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# Session-scoped async fixtures (the test engine) must share one event loop
+# with the tests that use them; the default function-scoped loop causes
+# "Future attached to a different loop" errors with asyncpg.
+asyncio_default_fixture_loop_scope = "session"
+# Tests must run in the same session-scoped loop as the engine fixtures.
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+# SQLAlchemy's async layer runs DB calls in greenlets; without this, code
+# after the first `await` in a request is invisible to coverage (~79% vs 91%).
+concurrency = ["greenlet", "thread"]
+
+[tool.ruff]
+# Ruff is the one linter and formatter (it replaces black and isort).
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = [
+    "S101",   # asserts allowed in tests
+    "B008",   # Depends()/Query() in argument defaults is the FastAPI idiom
+    "S311",   # seeder uses random.Random(42) deliberately (deterministic demo data)
+    "UP042",  # str+Enum classes are kept for pydantic serialization ergonomics
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106"]
+"migrations/*" = ["E501"]  # generated constraint text

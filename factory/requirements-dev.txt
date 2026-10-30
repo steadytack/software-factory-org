@@ -1,0 +1,3 @@
+# The factory's own scripts and tests (Python 3.12+). Templates carry their own dependencies.
+pytest>=8
+jsonschema>=4.20

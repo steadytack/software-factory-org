@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "slug": "brew-ratio",
+  "name": "Brew ratio",
+  "kind": "demo",
+  "stage": "spec",
+  "status": "in-progress",
+  "factory_version": "0.1.0",
+  "updated": "2026-10-19",
+  "template": "single-page-html",
+  "tier": 2,
+  "versions": {"application_definition": "1.0", "spec": "0.1", "composition": "1"},
+  "gates": {
+    "1": {"status": "approved", "date": "2026-10-19", "reply": "test fixture (acceptance scenario A), not a real project", "version": "1.0"},
+    "2": {"status": "not-reached"},
+    "3": {"status": "not-reached"},
+    "4": {"status": "not-reached"}
+  },
+  "blockers": [],
+  "last_verification": null,
+  "imports": [],
+  "changes": [],
+  "next": "Test fixture: a small standalone app's spec pack (factory spec scenario A)"
+}

@@ -1,0 +1,563 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* How see-through the floating "glass" surfaces are (phone nav, map controls). */
+  --glass-opacity: 70%;
+  /* The same for bottom sheets and toasts, which carry text and need to stay readable. */
+  --glass-sheet-opacity: 88%;
+  /* Colour follows the Atlassian Design System (ADS) light palette, mapped
+     onto shadcn's variables: navy text, ADS blue, neutral-alpha borders.
+     Comments give the ADS token each value comes from. */
+  /* Three surfaces: canvas (page), raised (cards, tables, popovers: white + soft shadow), sunken
+     (--muted: table heads, wells). Structure comes from the surface step, not from outlines. */
+  --background: #f6f7f9;              /* canvas */
+  --foreground: #172b4d;              /* color.text */
+  --card: #ffffff;                    /* raised */
+  --card-foreground: #172b4d;
+  --popover: #ffffff;                 /* elevation.surface.overlay */
+  --popover-foreground: #172b4d;
+  /* Brand blue, deeper and calmer than ADS brand.bold (#0c64df). Reserved for primary actions,
+     selection and focus. 6.7:1 on white and 5.8:1 for text on its own 10% tint (UI polish
+     2026-10-10, UI-P3). Success and destructive keep the earlier AA-driven values. */
+  --primary: #1556c0;
+  --primary-foreground: #ffffff;
+  --secondary: #eef0f4;               /* default button */
+  --secondary-foreground: #172b4d;
+  --muted: #eef0f4;                   /* sunken: table head, wells, neutral hover */
+  --muted-foreground: #44546f;        /* secondary text */
+  /* Tertiary text: helper copy, chart ticks, section labels, quiet icons. 4.7:1 on every surface. */
+  --text-tertiary: #5d6b82;
+  --accent: #eef0f4;
+  --accent-foreground: #172b4d;
+  --destructive: #c3352b;             /* color.background.danger.bold */
+  --destructive-foreground: #ffffff;
+  --success: #1d7953;                 /* color.background.success.bold */
+  --success-foreground: #ffffff;
+  --warning: #a54800;                 /* color.text.warning (AA on white) */
+  --warning-foreground: #ffffff;
+  --info: #1556c0;
+  --info-foreground: #ffffff;
+  /* Muted status colours: a pale background, a hairline border and a readable foreground. The
+     solid --success etc. above stay for fills and buttons. */
+  --success-subtle: #e6f4ed;
+  --success-border: #bfe3d1;
+  --success-fg: #176a47;
+  --warning-subtle: #fdf0e0;
+  --warning-border: #f1d3a8;
+  --warning-fg: #8f4100;
+  --destructive-subtle: #fcebe9;
+  --destructive-border: #f2c4bf;
+  --destructive-fg: #b3271d;
+  --info-subtle: #e8effb;
+  --info-border: #c3d5f3;
+  --info-fg: #1556c0;
+  --border: #0f1b3314;                /* hairline: ink at 8% */
+  --input: #8590a2;                   /* color.border.input */
+  --ring: #388bff;                    /* color.border.focused */
+  /* Status colours for charts, the same hues the map markers use (map/layers/colors.ts). */
+  --chart-draft: #e2a03f;
+  --chart-done: #22a06b;
+  /* The deep ink behind the login panel and other brand moments; same in both themes. */
+  --brand-ink: #0b1530;
+  /* Charts. Categorical: eight muted, harmonious hues, each 3:1 or better on a card. */
+  --chart-cat-1: #3b6fd0;
+  --chart-cat-2: #2a9470;
+  --chart-cat-3: #c4852a;
+  --chart-cat-4: #c25048;
+  --chart-cat-5: #7461c9;
+  --chart-cat-6: #23869e;
+  --chart-cat-7: #b04f86;
+  --chart-cat-8: #6e7b90;
+  /* Diverging: blue through a neutral midpoint to amber. */
+  --chart-div-1: #3b6fd0;
+  --chart-div-2: #8fb0e8;
+  --chart-div-3: #e4e2dd;
+  --chart-div-4: #e6bf84;
+  --chart-div-5: #c4852a;
+  /* Sequential: a single-hue blue ramp. */
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  /* App shell: a faint tint of the brand blue. ADS navigation
+     conventions: subtle text, neutral hover, blue-tinted selected item. */
+  --sidebar: #e9ecf1;                 /* the app chrome (sidebar and top bar): clearly darker than the canvas. Any darker and tertiary text on it drops under 4.5:1 */
+  /* Darker than ADS text.subtle so 16px line icons stay crisp. */
+  --sidebar-foreground: #2c3e5d;      /* ADS neutral.900 */
+  --sidebar-primary: #1556c0;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8ecf3;          /* selected item */
+  --sidebar-accent-foreground: #1556c0;
+  --sidebar-hover: #091e420f;
+  /* The current page is a lifted chip: a raised surface with a hairline and a soft shadow, and an accent icon. */
+  --sidebar-active: #ffffff;
+  --sidebar-border: #0f1b3314;
+  --sidebar-ring: #388bff;
+  --font-mono: JetBrains Mono, monospace;
+  --radius: 0.5rem;
+  /* ADS elevation: "raised" for cards and panels, "overlay" for menus,
+     popovers, dialogs and sheets. */
+  --shadow-raised: 0 1px 2px #1018280d, 0 1px 3px #1018280f;
+  --shadow-overlay: 0 12px 32px -8px #1018282e, 0 2px 6px #1018280f;
+  /* Controls (inputs, buttons) are flat in ADS. */
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: var(--shadow-raised);
+  --shadow: var(--shadow-raised);
+  --shadow-md: var(--shadow-raised);
+  --shadow-lg: var(--shadow-overlay);
+  --shadow-xl: var(--shadow-overlay);
+  --shadow-2xl: var(--shadow-overlay);
+  /* Motion (ADS durations). Zeroed under reduced motion below. */
+  /* Stacking layers (values are the ones already in use). */
+  --z-sticky: 10;
+  --z-dock: 20;
+  --z-header: 30;
+  --z-tabbar: 40;
+  --z-overlay: 50;
+  --z-toast: 60;
+  --duration-fast: 120ms;
+  --duration-normal: 160ms;
+  --duration-slow: 200ms;
+  /* Enter with ease-out, leave with ease-in; animate opacity and transform only. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  /* ADS dark palette. */
+  --background: #14171f;              /* canvas */
+  --foreground: #dee4ea;              /* color.text */
+  --card: #1a1f2a;                    /* raised */
+  --card-foreground: #dee4ea;
+  --popover: #1e2430;                 /* elevation.surface.overlay */
+  --popover-foreground: #b6c2cf;
+  /* Link/active blue at >=4.5:1 on the dark surfaces; dark label on it. */
+  --primary: #579dff;
+  --primary-foreground: #1d2125;
+  --secondary: #232b3b;
+  --secondary-foreground: #b6c2cf;
+  --muted: #232b3b;
+  --muted-foreground: #9fadbc;        /* secondary text */
+  --text-tertiary: #8997a8;
+  --accent: #232b3b;
+  --accent-foreground: #c7d1db;
+  --destructive: #f87168;             /* color.text.danger */
+  --destructive-foreground: #1d2125;
+  --success: #4bce97;
+  --success-foreground: #1d2125;
+  --warning: #f38a3f;                 /* color.text.warning */
+  --warning-foreground: #1d2125;
+  --info: #579dff;
+  --info-foreground: #1d2125;
+  --success-subtle: #16302a;
+  --success-border: #25513f;
+  --success-fg: #4bce97;
+  --warning-subtle: #33261a;
+  --warning-border: #5a3f22;
+  --warning-fg: #f38a3f;
+  --destructive-subtle: #3a2022;
+  --destructive-border: #623036;
+  --destructive-fg: #f87168;
+  --info-subtle: #1b2a45;
+  --info-border: #2c4470;
+  --info-fg: #7fb2ff;
+  --border: #a6c5e229;                /* color.border */
+  --input: #738496;                   /* color.border.input */
+  --ring: #85b8ff;                    /* color.border.focused */
+  --chart-draft: #e9b05a;
+  --chart-done: #3fbf88;
+  --chart-cat-1: #6f9df0;
+  --chart-cat-2: #4cc29a;
+  --chart-cat-3: #e0a24f;
+  --chart-cat-4: #e8837b;
+  --chart-cat-5: #a496ee;
+  --chart-cat-6: #52b6cc;
+  --chart-cat-7: #d780b2;
+  --chart-cat-8: #9aa7ba;
+  --chart-div-1: #6f9df0;
+  --chart-div-2: #3d5f99;
+  --chart-div-3: #3a4252;
+  --chart-div-4: #99743f;
+  --chart-div-5: #e0a24f;
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  /* Lighter than light mode: 3.5:1 on the dark card (the light value was 2.9:1). */
+  --chart-3: oklch(0.60 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: #0e1117;
+  --sidebar-foreground: #b6c2cf;
+  --sidebar-primary: #579dff;
+  --sidebar-primary-foreground: #1d2125;
+  --sidebar-accent: #1b2a45;          /* color.background.selected */
+  --sidebar-accent-foreground: #579dff;
+  --sidebar-hover: #a1bdd914;
+  --sidebar-active: #232b3b;
+  --sidebar-border: #a6c5e229;
+  --sidebar-ring: #85b8ff;
+  --shadow-raised: 0 1px 2px #03040466, 0 1px 3px #03040459;
+  --shadow-overlay: inset 0 0 0 1px #bcd6f00a, 0 16px 40px -8px #03040499, 0 2px 6px #03040466;
+}
+
+/* Density (Profile → Display). Compact is the default for mouse/desktop;
+   comfortable is the default on touch. `<html data-density>` is set from
+   the saved preference by AppLayout. */
+:root,
+[data-density="compact"] {
+  --row-py: 0.25rem;
+  --control-h: 2rem;
+  --card-p: 0.625rem;
+  /* Page rhythm: card padding, title-to-content gap, gap between sections and cards, key/value rows,
+     settings rows. One set per density, so every card and page follows the Interface density setting. */
+  --card-pad: 1rem;
+  --card-gap: 0.75rem;
+  --page-gap: 1rem;
+  --kv-py: 0.5rem;
+  --setting-h: 2.5rem;
+  /* A form label to its field: the one deliberate half-step on the grid. */
+  --field-gap: 0.375rem;
+}
+[data-density="comfortable"] {
+  --row-py: 0.625rem;
+  --control-h: 2.5rem;
+  --card-p: 0.875rem;
+  --card-pad: 1.25rem;
+  --card-gap: 1rem;
+  --page-gap: 1.5rem;
+  --kv-py: 0.75rem;
+  --setting-h: 3rem;
+  --field-gap: 0.5rem;
+}
+/* Touch devices: every control is 44px (WCAG 2.5.5 / Apple HIG), whatever the density
+   preference. Buttons, fields and selects read `--control-h` through `pointer-coarse:`. */
+@media (pointer: coarse) {
+  :root,
+  [data-density] {
+    --control-h: 2.75rem;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-tertiary: var(--text-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-border: var(--success-border);
+  --color-success-fg: var(--success-fg);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-border: var(--warning-border);
+  --color-warning-fg: var(--warning-fg);
+  --color-destructive-subtle: var(--destructive-subtle);
+  --color-destructive-border: var(--destructive-border);
+  --color-destructive-fg: var(--destructive-fg);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-border: var(--info-border);
+  --color-info-fg: var(--info-fg);
+  --color-chart-cat-1: var(--chart-cat-1);
+  --color-chart-cat-2: var(--chart-cat-2);
+  --color-chart-cat-3: var(--chart-cat-3);
+  --color-chart-cat-4: var(--chart-cat-4);
+  --color-chart-cat-5: var(--chart-cat-5);
+  --color-chart-cat-6: var(--chart-cat-6);
+  --color-chart-cat-7: var(--chart-cat-7);
+  --color-chart-cat-8: var(--chart-cat-8);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-mono);
+
+  /* Three steps: 6 (chips, kbd), 8 (controls), 12 (cards, popovers, dialogs, sheets). xl and 2xl are
+     12 too so older classes keep working. Nested radius = outer minus padding. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 12px;
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+  --color-transparent: transparent;
+  --radius-2xl: 12px;
+  --radius-3xl: 24px;
+  --radius-4xl: 28px;
+  --font-heading: var(--font-sans);
+
+  /* Type scale: Tailwind's (`text-xs` 12/16, `text-sm` 14/20 body, `text-base` 16/24) plus the
+     ADS headings below. `text-micro` is the floor for badges and the phone tab bar (11px); nothing
+     is set smaller. */
+  /* Dense: tables, form labels, nav items, tabs. */
+  --text-dense: 0.8125rem;
+  --text-dense--line-height: 1.25rem;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+  --text-subtitle: 0.9375rem;
+  --text-subtitle--line-height: 1.375rem;
+  --text-subtitle--font-weight: 600;
+  --text-title: 1.125rem;
+  --text-title--line-height: 1.625rem;
+  --text-title--font-weight: 650;
+  --text-title--letter-spacing: -0.01em;
+  /* Page titles. */
+  --text-display: 1.5rem;
+  --text-display--line-height: 1.875rem;
+  --text-display--font-weight: 650;
+  --text-display--letter-spacing: -0.02em;
+  /* Big figures (dashboard KPIs): light weight, tabular, tight. */
+  /* Hero headline (login). */
+  --text-hero: 2.5rem;
+  --text-hero--line-height: 2.75rem;
+  --text-hero--font-weight: 650;
+  --text-hero--letter-spacing: -0.025em;
+  --text-numeral: 2rem;
+  --text-numeral--line-height: 2.25rem;
+  --text-numeral--font-weight: 600;
+  --text-numeral--letter-spacing: -0.02em;
+
+  --ease-standard: cubic-bezier(0.15, 1, 0.3, 1);
+}
+
+/* Frosted, floating surface: the popover colour at --glass-opacity over a blurred backdrop. */
+@utility glass {
+  background-color: color-mix(in srgb, var(--popover) var(--glass-opacity), transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  box-shadow: var(--shadow-overlay);
+  backdrop-filter: blur(20px) saturate(1.5);
+}
+
+/* Bottom sheets hold forms and long lists, so they are frosted but much less see-through. */
+@utility glass-sheet {
+  /* !important: the sheet primitive's own bg-popover would otherwise win. */
+  background-color: color-mix(in srgb, var(--popover) var(--glass-sheet-opacity), transparent) !important;
+  backdrop-filter: blur(24px) saturate(1.5);
+}
+
+/* Map floating panels: one surface for the search, controls, status chips, draw bar and side panel. */
+@utility map-panel {
+  background-color: color-mix(in srgb, var(--popover) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-overlay);
+  backdrop-filter: blur(12px) saturate(1.4);
+}
+
+/* Skeleton shimmer: a soft highlight sweeping across the muted block. Static under reduced motion. */
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@utility skeleton-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--foreground) 6%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* The brand panel: deep ink, with the brand blue glowing in from the top-left corner. */
+@utility brand-panel {
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--primary) 70%, var(--brand-ink)) 0%, transparent 62%),
+    var(--brand-ink);
+  color: #ffffff;
+}
+
+/* The selected item inside a glass surface. */
+@utility glass-active {
+  background-color: color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+/* Touch only: stretches the tappable area of a small inline control (text link, column-header button,
+   badge) to roughly 44 px without moving anything. Needs a non-positioned element. */
+@utility tap-area {
+  @media (pointer: coarse) {
+    position: relative;
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -1rem -0.25rem;
+    }
+  }
+}
+
+/* Tabular figures: keeps numeric columns (tables, KPIs, pagination) aligned. */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Body copy: 14/22 (a little looser than ADS 14/20). */
+    font-size: 0.875rem;
+    line-height: 1.375rem;
+  }
+  /* Autofill paints its own opaque background and colour; keep it themed. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--foreground) !important;
+    box-shadow: 0 0 0 1000px var(--card) inset !important;
+    caret-color: var(--foreground);
+  }
+  code, pre {
+    font-family: var(--font-mono);
+  }
+  /* 1.75px strokes sit better beside 14px text than lucide's default 2px. */
+  svg.lucide {
+    stroke-width: 1.75;
+  }
+  html {
+    @apply font-sans;
+  }
+
+  /* One focus style everywhere: a 2px outline, 2px outside the control.
+     `!important` because shadcn components ship `outline-none` + a 3px
+     box-shadow ring as utilities; this suppresses the ring and restores a
+     single consistent outline. Colour is ADS color.border.focused. */
+  :focus-visible {
+    outline: 2px solid var(--ring) !important;
+    outline-offset: 2px !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+  }
+  /* The skip-link target is focused programmatically; outlining the whole
+     content region would just be noise. */
+  #main-content:focus-visible {
+    outline: none !important;
+  }
+  /* The shell has its own focus token. */
+  [data-slot="sidebar-wrapper"] [data-sidebar] :focus-visible,
+  header :focus-visible {
+    outline-color: var(--sidebar-ring) !important;
+  }
+  /* Dense/edge-aligned composites: inset so the outline isn't clipped. */
+  [data-sidebar="menu-button"]:focus-visible,
+  [role="tab"]:focus-visible,
+  td :focus-visible,
+  th :focus-visible {
+    outline-offset: -2px !important;
+  }
+  /* ── Text fields: a blue border, not an outer box ──
+     Typing into a field already shows a caret, so the 2px outline above read
+     as a stray blue box. Fields instead take the ADS "focused field" look: the
+     border turns blue and thickens to 2px (inset shadow), meeting WCAG 3:1
+     non-text contrast without anything drawn outside the control. */
+  :is(
+      input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]),
+      textarea,
+      select,
+      [data-slot="select-trigger"],
+      [contenteditable="true"]
+    ):focus-visible {
+    outline: none !important;
+    border-color: var(--ring) !important;
+    box-shadow: inset 0 0 0 1px var(--ring) !important;
+  }
+  /* Composite fields (an input inside a styled shell — map search pill,
+     InputGroup): the shell shows the border; the bare inner input shows
+     nothing. */
+  :is([data-field-shell], [data-slot="input-group"]):focus-within {
+    border-color: var(--ring) !important;
+    box-shadow: inset 0 0 0 1px var(--ring) !important;
+  }
+  :is([data-field-shell], [data-slot="input-group"]) :is(input, textarea):focus-visible {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+  /* …except the command palette, whose input is a bare row in a dialog. */
+  [data-slot="command-input-wrapper"] [data-slot="input-group"]:focus-within {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+  /* Keyboard-focused table rows show a tinted row + left rule instead. */
+  tr[data-row]:focus-visible {
+    outline: none !important;
+  }
+}
+
+/* Horizontal strips (e.g. tab rows) that scroll by swipe on phones without
+   showing a scrollbar track. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+  }
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@utility container {
+    margin-inline: auto;
+    padding-inline: 2rem;
+}

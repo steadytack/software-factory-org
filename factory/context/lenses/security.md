@@ -1,0 +1,12 @@
+# Lens: security, privacy and risk
+
+**Activate:** when there are users, stored data or anything exposed beyond the machine; always at tier 3 and above.
+
+- Who may see and change what? Where is that enforced?
+- What is exposed to the network, and to whom?
+- What secrets exist, and where do they live (POL-02)?
+- What is the worst thing that could leak or be changed, and by whom (abuse cases)?
+- Which events need an audit trail, and for how long?
+- Which dependencies or imported assets carry supply-chain or licence risk?
+
+**Feeds:** `07-security-and-permissions.md`, `05-non-functional-requirements.md`.

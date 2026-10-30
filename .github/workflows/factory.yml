@@ -1,0 +1,32 @@
+# Checks for the factory itself: the registry, schemas, context, ideas and catalogue agree, and the
+# scripts still behave.
+name: factory
+
+on:
+  push:
+    branches: [main]
+    paths: ["factory/**", "templates/**", "ideas/**", "catalogue/**", ".github/workflows/**", "README.md", ".claude/**"]
+  pull_request:
+    paths: ["factory/**", "templates/**", "ideas/**", "catalogue/**", ".github/workflows/**", "README.md", ".claude/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factory-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -r factory/requirements-dev.txt
+      - name: The factory agrees with its registry
+        run: python factory/scripts/check_factory.py
+      - name: Script tests
+        run: python -m pytest factory/scripts/tests

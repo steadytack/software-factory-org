@@ -1,0 +1,11 @@
+{
+  "name": "Amber routes / lines",
+  "style": {
+    "fillColor": "#f59e0b",
+    "fillOpacity": 0.35,
+    "strokeColor": "#b45309",
+    "strokeWidth": 2.5,
+    "pointRadius": 5,
+    "labelField": ""
+  }
+}

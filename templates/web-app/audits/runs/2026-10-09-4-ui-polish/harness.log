@@ -1,0 +1,20 @@
+# STEP 0c harness — 2026-10-09
+$ docker compose up -d --build            (templates/web-app, ports 5194/8031/5465, throwaway .env, gitignored)
+all containers Started; backend Healthy
+$ curl http://localhost:5194/             -> 200
+$ curl http://localhost:8031/api/health   -> {"status":"ok","database":"ok"}
+FINDING (environment, not UI): fresh DB is EMPTY. SEED_ENABLED=true only permits seeding; nothing runs it at startup.
+  Screens render but every list/chart is blank until:
+$ docker compose exec -T backend python -m app.seed
+  Seeded 6 sites (0 already present), 14 surveys.
+$ playwright (frontend): 12 passed (against this stack, before this branch's changes, on main@f86de81)
+$ vitest: 202 passed
+Screenshots: 40 baseline PNGs (desktop 1440x900 + Pixel 7; light + dark; 10 screens) in the session scratchpad, not committed.
+Measurement probes: scratchpad measure.mjs (DOM) and contrast.py (WCAG ratios) - outputs summarised in 01_findings.md.
+
+# 2026-10-10 — stage 1 verification
+$ playwright test  -> 1 failed (setup): ensureUser POST /api/users returned 404, expected 409.
+  Cause: the new preview .env copied MULTI_USER_ENABLED=false from .env.example; the e2e suite needs it true. Environment, not UI.
+$ sed MULTI_USER_ENABLED=true in .env (gitignored); docker compose up -d backend scheduler
+$ playwright test  -> 12 passed.   vitest -> 202 passed.   tsc/eslint clean.
+NOTE for H-1: to run the e2e suite against a local stack, also set MULTI_USER_ENABLED=true.

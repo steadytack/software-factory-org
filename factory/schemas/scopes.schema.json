@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scopes",
+  "version": 1,
+  "title": "Scopes (factory/context/scopes.json): the group, its businesses and their brands, who approves for each, and where apps are published. Without the file the factory has one scope, the group, and publishes as today.",
+  "type": "object",
+  "required": ["schema_version", "group"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "approvers": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Names (as in git user.name) who may approve gates for ideas in this scope, and catalogue entries in this scope",
+      "properties": {
+        "gates": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "catalogue": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "publish": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "type": ["string", "null"], "description": "GitHub user or organisation the repo is created under; null: the signed-in user" },
+        "visibility": { "enum": ["private", "public"] },
+        "licence": { "enum": ["MIT", "proprietary"] },
+        "copyright": { "type": ["string", "null"], "description": "Copyright holder in the LICENSE; null: git user.name" }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": { "const": 1 },
+    "group": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "approvers": { "$ref": "#/$defs/approvers" },
+        "publish": { "$ref": "#/$defs/publish" }
+      }
+    },
+    "businesses": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "approvers": { "$ref": "#/$defs/approvers" },
+          "publish": { "$ref": "#/$defs/publish" }
+        }
+      }
+    },
+    "brands": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name", "business"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "business": { "type": ["string", "null"], "description": "The business that owns the brand; null: a group brand" },
+          "approvers": { "$ref": "#/$defs/approvers" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,118 @@
+name: web-app-template
+
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Published on the host for running pytest against the real PostGIS
+    # database. Bound to 127.0.0.1 so the database is not reachable from the
+    # LAN. Each project made from this template needs its own set of host
+    # ports and its own compose `name:` (top of this file) so two stacks can
+    # run side by side — set DB_PORT / BACKEND_PORT / FRONTEND_PORT in .env.
+    ports:
+      - "127.0.0.1:${DB_PORT:-5434}:5432"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend.Dockerfile
+      additional_contexts:
+        docker: ./docker
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8001}:8000"
+    user: "1000:1000"
+    volumes:
+      - uploads:/data/uploads
+    # --proxy-headers: behind nginx, take the client IP from X-Forwarded-For
+    # so the login rate limiter keys on the real client, not the proxy (else
+    # every client shares one bucket). Trusted only from private (docker
+    # network) addresses; nginx overwrites the header, so it can't be spoofed
+    # from outside. One line on purpose: a folded YAML block with indented
+    # continuation lines keeps the newlines, which silently ran the proxy
+    # flags as a separate shell command. `exec` makes uvicorn PID 1, so
+    # `docker stop` shuts it down gracefully.
+    command:
+      - sh
+      - -c
+      - alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+    # /api/health runs SELECT 1, so "healthy" means the API can reach the
+    # database, not merely that the process is up.
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend.Dockerfile
+      additional_contexts:
+        docker: ./docker
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-5174}:80"
+
+  # Daily jobs (app/scheduler.py): the recycle-bin purge (and any jobs you add
+  # to `run_jobs`) at SCHEDULE_AT (07:00) in APP_TIMEZONE. Same image as the backend; no cron needed on the host.
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend.Dockerfile
+      additional_contexts:
+        docker: ./docker
+    env_file: .env
+    depends_on:
+      backend:
+        condition: service_healthy
+    user: "1000:1000"
+    volumes:
+      - uploads:/data/uploads
+    command: ["python", "-m", "app.scheduler"]
+    restart: unless-stopped
+
+  # Nightly pg_dump + uploads archive into ./backups, pruned after
+  # BACKUP_RETENTION_DAYS (default 14). Restore steps: README.md, "Backups".
+  # Copy ./backups somewhere off this machine too; a backup on the same disk
+  # does not survive losing the disk.
+  backup:
+    image: postgis/postgis:17-3.5
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - uploads:/uploads:ro
+      - ./backups:/backups
+      - ./docker/backup.sh:/backup.sh:ro
+    entrypoint: ["sh", "/backup.sh"]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:
