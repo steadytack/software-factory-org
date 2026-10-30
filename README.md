@@ -9,12 +9,12 @@ Analyse ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─g
 ## Layout
 | Folder | Holds | Updated by |
 |---|---|---|
-| `factory/` | The engine (stages, standards, audits, schemas, scripts) and the organisation's context (`factory/context/`) | Engine: `instance.py update`. Context: the organisation |
+| `factory/` | The engine (stages, standards, audits, schemas, scripts) and the organisation's context (`factory/context/`) | The organisation |
 | `catalogue/` | Approved reusable assets and reference cards for the organisation's systems, processes and policies | The organisation |
 | `templates/` | Application templates the organisation chose | The organisation |
 | `ideas/<slug>/` | One project each | The factory, at the gates |
 
-This repo is a factory **instance**: `factory/instance.json` records the engine version and where it came from. Engine updates are copied in with `python factory/scripts/instance.py update <this folder>`, run from the newer engine; they never touch context, catalogue, templates or ideas.
+This repo is standalone: it began from version 0.2.1 of the factory on 2026-10-30, and its factory files are now maintained here, like any other code in the repository.
 
 ## Templates
 <!-- templates:start -->
