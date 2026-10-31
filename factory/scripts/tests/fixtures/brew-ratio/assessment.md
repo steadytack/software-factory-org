@@ -30,5 +30,10 @@
 
 A test fixture (acceptance scenario A), not a real project.
 
+## Pre-mortem
+1. The brewer kept using the calculator out of habit (people: the amber allows for it).
+2. Recipes were lost when the browser was cleared (risk: not allowed for; it is the one thing).
+3. A rounding error spoiled a brew (risk: allowed for; the numbers are shown before pouring).
+
 ## Notes
 None.

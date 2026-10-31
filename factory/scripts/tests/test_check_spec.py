@@ -333,3 +333,55 @@ def test_fresh_stubs_include_the_business_process(repo):
     scaffold.new_spec("fresh", root=repo)
     assert (repo / "ideas/fresh/spec/13-business-process.md").exists()
     assert not blocked(findings(repo / "ideas/fresh"), "13-business-process")
+
+
+# ---------------------------------------------------------------- the pre-mortem and the challenge
+def started(idea: Path, version: str) -> None:
+    state = json.loads((idea / "state.json").read_text(encoding="utf-8"))
+    state["factory_version"] = version
+    (idea / "state.json").write_text(json.dumps(state), encoding="utf-8")
+
+
+def test_the_pre_mortem_is_required_at_gate_1_from_0_9_0(idea):
+    started(idea, "0.9.0")
+    assert findings(idea, assessment_only=True).blockers == []
+    edit(idea / "assessment.md", "## Pre-mortem", "## Afterthoughts")
+    assert blocked(findings(idea, assessment_only=True), "no '## Pre-mortem' section")
+    edit(idea / "assessment.md", "## Afterthoughts", "## Pre-mortem\n<The likeliest reasons>\n\n## Was")
+    assert blocked(findings(idea, assessment_only=True), "the pre-mortem is not written")
+    started(idea, "0.8.0")
+    f = findings(idea, assessment_only=True)
+    assert f.blockers == [] and warned(f, "required from factory 0.9.0; this idea started on 0.8.0")
+
+
+def test_an_unchallenged_gate_is_a_warning(idea):
+    (idea / "gates/challenge-1.md").unlink()
+    f = findings(idea, assessment_only=True)
+    assert f.blockers == [] and warned(f, "gates/challenge-1.md  missing")
+    f = check_spec.Findings()
+    check_spec.check_challenge(idea, 2, f)
+    assert f.blockers == [] and f.warnings == []
+    (idea / "gates/challenge-2.md").unlink()
+    check_spec.check_challenge(idea, 2, f)
+    assert warned(f, "gates/challenge-2.md  missing")
+
+
+def test_the_spec_check_reads_the_gate_2_challenge(pack):
+    edit(pack / "gates/challenge-2.md", "| kept |", "| |")
+    assert blocked(findings(pack), "challenge 1: outcome must be changed or kept")
+
+
+def test_every_challenge_is_answered(idea):
+    path = idea / "gates/challenge-1.md"
+    edit(path, "| The brewer asked for it; 80 stands | kept |", "|  | maybe |")
+    f = findings(idea, assessment_only=True)
+    assert blocked(f, "challenge 1 has no answer") and blocked(f, "outcome must be changed or kept")
+    edit(path, "| # | Where | Challenge | Answer | Outcome |", "| # | Challenge | Outcome |")
+    assert blocked(findings(idea, assessment_only=True), "columns must be # | Where | Challenge | Answer | Outcome")
+
+
+def test_a_challenge_with_nothing_found_is_a_warning(idea):
+    path = idea / "gates/challenge-1.md"
+    text = path.read_text(encoding="utf-8")
+    path.write_text(text.split("| 1 |")[0], encoding="utf-8")
+    assert warned(findings(idea, assessment_only=True), "no challenges recorded")

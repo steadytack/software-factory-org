@@ -47,6 +47,7 @@ def test_an_app_is_copied_without_build_output_or_factory_files(repo):
     assert (app / "package.json").exists() and (app / ".env.example").exists()
     assert not (app / "node_modules").exists() and not (app / ".env").exists()
     assert (app / "NOTES.md").exists() and (app / "standards/PRINCIPLES.md").exists()
+    assert (app / "standards/ai-features.md").exists()
     assert (app / "STANDARDS.md").read_text(encoding="utf-8") == (repo / "factory/standards/stacks/static-site.md").read_text(encoding="utf-8")
     assert (app / ".git").exists() or shutil.which("git") is None
     assert lib.load_state("notes", repo)["template"] == "static-site"

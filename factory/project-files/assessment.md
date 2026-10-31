@@ -30,5 +30,8 @@
 
 The block above is the record (schema `factory/schemas/assessment.schema.json`), rated against `idea-brief.md` as `factory/stages/develop-assess.md` says: knock-outs first, then the five foundations (each green, amber or red with a one-line reason), RICE from the brief's evidence, the one thing to know or fix before investing, and the recommendation for Gate 1: `go`, `get-ready` or `stop`. `python factory/scripts/pipeline.py render` ranks it with every other idea in `ideas/pipeline.md`.
 
+## Pre-mortem
+<It is a year from now and this idea failed. The three likeliest reasons, each naming its foundation and whether that rating already allows for it; a reason it does not allow for changes the rating, the confidence or the one thing.>
+
 ## Notes
 <Anything a rating needs that does not fit in its line, or "None".>

@@ -21,7 +21,7 @@ Recommend it at Gate 1 (`decision.route: "light"`, `timebox`) when every foundat
 
 ## Gate 3 for a spike
 1. Check the result against the success and kill criteria, as run (each run or not run).
-2. The outcome (`audit.md` step 6): `python factory/scripts/learned.py outcome <slug>`, filled in, with the time box as the estimate; `learned.py check <slug>` must pass.
+2. The outcome (`audit.md` step 7): `python factory/scripts/learned.py outcome <slug>`, filled in, with the time box as the estimate; `learned.py check <slug>` must pass.
 3. Write `gates/gate-3.md`: **Done** (what was built, how to run it), **Results exactly as run** against each criterion, **Recommended:** grow (to which tier, and why), keep or stop, **Decisions for you**, **Risks** (the shortcuts taken), **Next**.
 4. **Stop.** Accept `grow to 2|3|4`, `keep`, `stop` (with a reason) or `approve` (the recommendation). Record it with `python factory/scripts/pipeline.py light <slug> grow|keep|stop --reply "..." [--tier 2|3|4] [--reason "..."]`:
    - **Grow** (the tier is required; there is no default): leaves the light route for Spec (`spec.md`) at that tier, with gates 2 and 3 reset. What the spike showed updates the brief, the assessment's ambers and the one thing (record the changes in `decisions.md`); the spec starts from it, and a seed's code may be the base the build starts from (doc 12). Keep `outcome.md`, and update it at the full Gate 3 rather than writing a new one.

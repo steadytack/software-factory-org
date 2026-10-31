@@ -31,12 +31,13 @@ Set per idea (the factory records it in `state.json` and the spec; `factory/stan
 - Dependencies point one way: entry point → logic → data access → storage.
 - Configuration is injected, read from environment variables or an uncommitted `.env`, and validated at startup (fail fast).
 - Make code testable without live infrastructure: a mockable adapter beats a hard-coded call.
+- An app that calls a language model (or another trained model) while it runs also follows `standards/ai-features.md`.
 
 ## 4. Practices
 
 - **Logging and errors:** structured logging, no bare `print`/`console.log`. Do not swallow exceptions; wrap third-party ones where useful. User-facing messages stay safe, diagnostic detail goes to logs. (Agents are an exception: log tool calls and decisions, see `STANDARDS.md`.)
 - **Data:** UUIDv7 keys by default (serial ints for small tables); created/updated timestamps where "when" matters; parameterised queries always; indexes only where data is large or hot; reversible migrations where practical.
-- **Testing:** no coverage target. Test security- and credential-sensitive code, anything that could write data incorrectly, and genuinely tricky logic. Tools are in `STANDARDS.md`.
+- **Testing:** no coverage target. Test security- and credential-sensitive code, anything that could write data incorrectly, and genuinely tricky logic. Write a requirement's test from its acceptance criterion before the code, with expected values from the spec, never copied from the code's output; never weaken a test to make it pass. Tools are in `STANDARDS.md`.
 - **Performance:** avoid needless queries and O(n²); paginate or stream large data; profile before optimising.
 - **Docs:** one `README.md` per project: setup, running, tests, deployment, gotchas.
 - **Containers** (when the project has real dependencies): Docker Compose, non-root, official base images, multi-stage where it helps. A periodic manual image check is enough unless the project is public-facing with real credentials.

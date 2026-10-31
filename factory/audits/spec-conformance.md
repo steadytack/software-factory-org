@@ -173,6 +173,9 @@ Specific evidence of SCAFFOLDED that you must actively search for:
 - Commented-out implementations
 - Navigation to routes that do not resolve
 - Tests that assert the mock rather than the behaviour
+- Tests whose expected values match the code's output but not the spec (a
+  figure, message or rule copied from what the code does, where the acceptance
+  criterion or RULE example says otherwise), or that were weakened to pass
 - A pipeline stage or transform defined but never wired into the actual
   orchestration/DAG, so it never runs as part of the real process
 - A validation rule declared in a schema or type definition but never

@@ -3,12 +3,13 @@
 
 Usage:
   python factory/scripts/check_spec.py <slug | ideas/<slug> | path/to/spec>   the definition and the spec pack (Gate 2)
-  python factory/scripts/check_spec.py <slug> --assessment          the idea brief, the assessment and the overview (Gate 1)
+  python factory/scripts/check_spec.py <slug> --assessment          the idea brief, the assessment (with its pre-mortem) and the overview (Gate 1)
   python factory/scripts/check_spec.py <slug> --impact FR-007[,US-003]   what a change touches
 
 Deterministic, no AI. Prints `BLOCKER file:line message` and `warning file:line message`; exits 1
 when there is any blocker. Rules: factory/stages/develop-assess.md (Gate 1), factory/standards/requirement-ids.md
-and factory/stages/spec.md (Gate 2).
+and factory/stages/spec.md (Gate 2). At both gates, an idea in the factory has its challenger's review checked
+(gates/challenge-<gate>.md, factory/standards/challenge.md): missing is a warning, an unanswered challenge a blocker.
 A pack copied outside the factory can be checked by its path; catalogue references are then checked
 against this factory's catalogue.
 """
@@ -57,6 +58,10 @@ OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
 DOC_SINCE = {"13-business-process": "0.2.0"}
+PREMORTEM_SINCE = "0.9.0"
+PREMORTEM = re.compile(r"^##\s+Pre-mortem\s*$(.*?)(?=^##\s|\Z)", re.M | re.S | re.I)
+CHALLENGE_COLUMNS = ["#", "where", "challenge", "answer", "outcome"]
+CHALLENGE_OUTCOMES = {"changed", "kept"}
 MERMAID = re.compile(r"^```mermaid\s*$", re.M)
 
 
@@ -277,6 +282,54 @@ def check_plan(idea: Path, f: Findings) -> None:
             f.block(pipeline.PLAN, f"no '## {heading}' section")
 
 
+def check_premortem(idea: Path, f: Findings) -> None:
+    """The assessment's pre-mortem (Gate 1): the likeliest reasons the idea fails, written before the decision."""
+    text = re.sub(r"```.*?```", "", (idea / pipeline.ASSESSMENT).read_text(encoding="utf-8"), flags=re.S)
+    match = PREMORTEM.search(text)
+    if match and match.group(1).strip() and not has_placeholder(match.group(1)):
+        return
+    problem = "the pre-mortem is not written" if match else "no '## Pre-mortem' section"
+    started = started_on(idea)
+    if started is not None and version_key(started) < version_key(PREMORTEM_SINCE):
+        f.warn(pipeline.ASSESSMENT, f"{problem} (required from factory {PREMORTEM_SINCE}; this idea started on {started})")
+    else:
+        f.block(pipeline.ASSESSMENT, f"{problem}: the likeliest reasons it fails (factory/stages/develop-assess.md)")
+
+
+def check_challenge(idea: Path, gate: int, f: Findings) -> None:
+    """The challenger's review before a gate (factory/standards/challenge.md): every challenge answered."""
+    rel = f"gates/challenge-{gate}.md"
+    path = idea / rel
+    if not path.exists():
+        f.warn(rel, "missing: the recommendation has not been challenged (factory/standards/challenge.md)")
+        return
+    text = path.read_text(encoding="utf-8")
+    if has_placeholder(text):
+        f.block(rel, "placeholder text left (<...>)")
+    header: list[str] | None = None
+    rows = 0
+    for n, line in enumerate(text.splitlines(), 1):
+        if not line.strip().startswith("|"):
+            header = None
+            continue
+        cells = split_row(line)
+        if header is None:
+            header = [c.lower() for c in cells]
+            if header[0] == "#" and header != CHALLENGE_COLUMNS:
+                f.block(f"{rel}:{n}", "the table's columns must be # | Where | Challenge | Answer | Outcome")
+            continue
+        if header != CHALLENGE_COLUMNS or not "".join(cells).strip("-: "):
+            continue
+        rows += 1
+        row = dict(zip(header, cells))
+        if not row.get("answer"):
+            f.block(f"{rel}:{n}", f"challenge {row['#']} has no answer")
+        if row.get("outcome", "").lower() not in CHALLENGE_OUTCOMES:
+            f.block(f"{rel}:{n}", f"challenge {row['#']}: outcome must be changed or kept")
+    if not rows:
+        f.warn(rel, "no challenges recorded: a challenger that finds nothing has usually not looked")
+
+
 def factory_root(idea: Path) -> Path | None:
     """The factory an idea folder sits in (ideas/<slug>), or None for this one."""
     return idea.parents[1] if idea.parent.name == "ideas" and (idea.parents[1] / "factory").is_dir() else None
@@ -312,6 +365,9 @@ def check_gate_one(idea: Path, f: Findings, root: Path | None = None) -> dict | 
         f.warn("overview.md", "missing: the light route needs none, but sponsors read it if the idea grows")
     elif not a.get("knockout"):
         check_overview(idea, f)
+    if not a.get("knockout"):
+        check_premortem(idea, f)
+        check_challenge(idea, 1, f)
     return a
 
 
@@ -729,6 +785,8 @@ def run(arg: str, assessment_only: bool = False) -> tuple[Findings, str | None, 
     tier = data["maturity_tier"]["value"] if data else 2
     deployment = data["deployment"]["value"] if data else None
     by_id, ctx = check_pack(idea, spec, f, tier, deployment)
+    if in_factory:
+        check_challenge(idea, 2, f)
     f.done()
     return f, traceability(by_id, ctx), spec
 

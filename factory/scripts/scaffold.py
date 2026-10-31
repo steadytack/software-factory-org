@@ -269,7 +269,8 @@ def new_app(slug: str, template: str, root: Path | None = None) -> Path:
     copy_template(base / "templates" / template, app)
     shutil.copy(base / "factory" / "project-files" / "NOTES.md", app / "NOTES.md")
     (app / "standards").mkdir(exist_ok=True)
-    shutil.copy(base / "factory" / "standards" / "PRINCIPLES.md", app / "standards" / "PRINCIPLES.md")
+    for name in ("PRINCIPLES.md", "ai-features.md"):
+        shutil.copy(base / "factory" / "standards" / name, app / "standards" / name)
     shutil.copy(stack, app / "STANDARDS.md")
     if shutil.which("git"):
         subprocess.run(["git", "-C", str(app), "init", "-q"], check=True, capture_output=True)
@@ -293,7 +294,7 @@ def main(argv: list[str]) -> int:
             return 0
         if len(args) == 3 and args[0] == "app":
             app = new_app(args[1], args[2])
-            print(f"Scaffolded {app.relative_to(lib.ROOT).as_posix()}/ from {args[2]}, with NOTES.md, STANDARDS.md and standards/PRINCIPLES.md")
+            print(f"Scaffolded {app.relative_to(lib.ROOT).as_posix()}/ from {args[2]}, with NOTES.md, STANDARDS.md, standards/PRINCIPLES.md and standards/ai-features.md")
             return 0
     except lib.FactoryError as exc:
         print(f"scaffold: {exc}", file=sys.stderr)

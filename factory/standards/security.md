@@ -21,4 +21,6 @@
 | Imported assets | Static review only | Static review; tests run in a container before approval | Same, plus licence review | Same, plus owner sign-off |
 | Privacy | No real personal data | No personal data beyond names and work contact details, stated purpose (POL-09) | Privacy review before real data | Formal assessment where required |
 
+An app that calls a model while it runs adds the controls in `ai-features.md` (prompt injection, output handling, tool permissions, data sent to the provider) at its level.
+
 The spec's `07-security-and-permissions.md` records the level, why, and any exception; the audit checks against it.

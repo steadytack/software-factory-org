@@ -1,5 +1,7 @@
 """pipeline.py: capture, develop, knock-outs, the five foundations, RICE ranking, the report, and Gate 1 (Go, Get Ready, Stop)."""
 
+import re
+
 import check_factory
 import check_spec
 import factory_lib as lib
@@ -8,6 +10,13 @@ import scaffold
 import status
 import pipeline
 from conftest import run
+
+CHALLENGE = """# Challenge before Gate 1
+
+| # | Where | Challenge | Answer | Outcome |
+|---|---|---|---|---|
+| 1 | assessment.md, reach | Forty swaps a month is a guess | Lowered confidence to 80 | changed |
+"""
 
 CLASSES = """
 ## Data classes (POL-11)
@@ -75,7 +84,10 @@ def developed(root, reg: dict, idea: str, **kw) -> str:
     (folder / pipeline.BRIEF).write_text(BRIEF.format(name=entry["title"]), encoding="utf-8")
     pipeline.write_assessment(folder, assessment(slug, **kw))
     text = (folder / pipeline.ASSESSMENT).read_text(encoding="utf-8").replace('<Anything a rating needs that does not fit in its line, or "None".>', "None.")
+    text = re.sub(r"<It is a year from now[^>]*>", "Nobody swapped shifts on it (people: allowed for).", text)
     (folder / pipeline.ASSESSMENT).write_text(text, encoding="utf-8")
+    (folder / "gates").mkdir(exist_ok=True)
+    (folder / "gates" / "challenge-1.md").write_text(CHALLENGE, encoding="utf-8")
     scaffold.new_overview(slug, root=root)
     text = (folder / "overview.md").read_text(encoding="utf-8")
     text = lib.PLACEHOLDER.sub("filled", text)
