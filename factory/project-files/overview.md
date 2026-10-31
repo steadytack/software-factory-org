@@ -28,7 +28,7 @@ For sponsors and the team: one document, readable without the factory. Plain lan
 
 **Key risks.** <The top two or three, each with what reduces it.>
 
-**The decision asked.** {recommendation} <What Go would commit now (time, people, money) and what it does not commit yet; or, for a spike, the question it answers and its time box; or, for Get Ready, what has to be fixed first, by whom and by when.>
+**The decision asked.** {recommendation} <What Go would commit now (time, people, money) and what it does not commit yet; or, for a spike or an exploration prototype, the question it answers and its time box; or, for Get Ready, what has to be fixed first, by whom and by when.>
 
 ## What it is
 <A short plain description: what it would do and who would use it.>

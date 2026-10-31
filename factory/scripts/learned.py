@@ -176,7 +176,7 @@ def new_outcome(slug: str, root: Path | None = None) -> Path:
     state = lib.read_json(idea / "state.json")
     template = (base / "factory/project-files" / OUTCOME).read_text(encoding="utf-8")
     text = template.replace("{foundations}", json.dumps(foundations, ensure_ascii=False)) \
-        .replace("{effort}", json.dumps(a["decision"].get("timebox") if a["decision"].get("route") == "spike" else a["rice"]["effort"]["value"])) \
+        .replace("{effort}", json.dumps(a["decision"].get("timebox") if a["decision"].get("route") == "light" else a["rice"]["effort"]["value"])) \
         .replace("{one_thing}", json.dumps(a["one_thing"], ensure_ascii=False))
     text = text.replace("{slug}", slug).replace("{assessment_version}", a["version"]).replace("{name}", state.get("name", slug))
     match = BLOCK.match(text)

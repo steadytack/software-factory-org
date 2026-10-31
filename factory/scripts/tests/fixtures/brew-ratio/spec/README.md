@@ -4,7 +4,7 @@
 |---|---|---|---|---|
 | SPEC-00 | 0.1 | draft | 2026-10-19 | application-definition 1.0 |
 
-**Maturity tier:** 2. **Deployment:** simple. Readable without the factory.
+**Tier:** 3. **Deployment:** simple. Readable without the factory.
 
 | Document | Purpose |
 |---|---|

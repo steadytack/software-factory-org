@@ -1,16 +1,17 @@
-# Principles for Personal Projects
+# Principles for the factory's apps
 
-Applies to any personal project: fast to build, easy to pick up after months away, secure enough to expose, and free of process that only pays off with a team. The stack-specific choices (tools, security model, structure) are in `STANDARDS.md` at the project root; read both. A project that mixes types (a web app with an agent inside) follows every stack that applies.
+Applies to every app the factory builds: fast to build, easy to pick up after months away, protected for the data it holds, and with no more process than its tier needs. The stack-specific choices (tools, security model, structure) are in `STANDARDS.md` at the project root; read both. A project that mixes types (a web app with an agent inside) follows every stack that applies.
 
-## 1. Hardening level
+## 1. Tier
 
-Set per project (the factory writes it in `SPEC.md`). It decides how much of the rest applies.
+Set per idea (the factory records it in `state.json` and the spec; `factory/standards/tiers.md`). It decides how much of the rest applies; protection follows the data and who can reach it, at every tier (`security.md`).
 
-| Level | For | Treatment |
+| Tier | For | Treatment |
 |---|---|---|
-| Prototype | Spike or proof of concept | Normal stack (so it can be promoted), minimal tests (enough to show the concept works), no scanning or formal docs, mocks as thin as possible. Decide up front what would make you keep, rework or bin it |
-| Personal (default) | One user, kept running | Everything below. Auth on, secrets out of the repo, tests for security, data integrity and tricky logic, one README |
-| Shared | Several real users, untrusted uploads, or handed to someone else | Add: per-user accounts and roles, upload scanning, rate limiting, audit trail, runbook and firmer test coverage. Enterprise identity (Entra ID/OAuth2) and monitoring stacks (OpenTelemetry/Prometheus) are still dropped unless truly needed |
+| 1 Spike | One question, fast | Normal stack (so it can grow), the main path tested, no scanning or formal docs, synthetic or public data. Decide up front what would make you grow, keep or bin it |
+| 2 Exploration prototype | People seeing it and reacting | As a spike, plus what the people trying it will do tested; faked behind the screen where that is quicker, and said so |
+| 3 Business prototype | Real work with real users and data, to refine the idea | Everything below: per-user login, secrets out of the repo, tests per requirement and for permissions, data integrity and tricky logic, backups it can be recovered from, one README. Simple underneath (one instance, simple storage) |
+| 4 Production app | Being relied on | Add: hardening, monitoring, tested recovery, firmer test coverage (failure, concurrency, load where the spec sets it), a runbook, a named owner and support |
 
 ## 2. Code rules
 

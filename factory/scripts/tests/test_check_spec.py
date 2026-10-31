@@ -69,7 +69,7 @@ def test_a_pack_copied_outside_the_factory_still_passes(pack, tmp_path):
 
 
 def test_the_definition_is_checked_with_the_pack_at_gate_2(pack):
-    edit(pack / "application-definition.md", '"value": 2, "state": "accepted"', '"value": 7, "state": "accepted"')
+    edit(pack / "application-definition.md", '"value": 3, "state": "accepted"', '"value": 7, "state": "accepted"')
     assert blocked(findings(pack), "maturity_tier/value")
 
 
@@ -154,11 +154,17 @@ def test_a_selected_asset_that_is_not_approved_is_blocked(pack, monkeypatch):
 
 # ---------------------------------------------------------------- warnings, not blockers
 def test_tier_1_makes_a_missing_verification_a_warning(pack):
-    edit(pack / "application-definition.md", '"value": 2, "state": "accepted"', '"value": 1, "state": "accepted"')
+    edit(pack / "application-definition.md", '"value": 3, "state": "accepted"', '"value": 1, "state": "accepted"')
     edit(pack / "spec/08-user-stories.md", "| 288 ml is shown | TEST-001 |", "| 288 ml is shown | |")
     edit(pack / "spec/11-delivery-plan.md", "RULE-001, US-001-AC1, US-001-AC2", "RULE-001, US-001-AC2")
     f = findings(pack)
     assert not blocked(f, "US-001-AC1") and warned(f, "US-001-AC1 has no verification")
+
+
+def test_tiers_1_and_2_on_the_full_route_are_warned(idea):
+    assert not warned(findings(idea), "take the light route")
+    edit(idea / "application-definition.md", '"value": 3, "state": "accepted"', '"value": 2, "state": "accepted"')
+    assert warned(findings(idea), "tiers 1 and 2 take the light route")
 
 
 def test_a_could_requirement_without_a_story_is_only_a_warning(pack):

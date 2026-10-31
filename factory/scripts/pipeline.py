@@ -8,9 +8,10 @@ Usage:
   python factory/scripts/pipeline.py check                   validate ideas/pipeline.json and every assessment
   python factory/scripts/pipeline.py render                  validate, then write the ranked ideas/pipeline.md
   python factory/scripts/pipeline.py decide <slug> go|get-ready|stop --reply "..." [--reason "..."]
-        [--route full|spike] [--timebox N] [--fix data,risk --owner "..." [--review YYYY-MM-DD]]   Gate 1
+        [--route full|light [--tier 1|2] [--timebox N]] [--fix data,risk --owner "..." [--review YYYY-MM-DD]]   Gate 1
   python factory/scripts/pipeline.py reassess <slug>         after Get Ready: a light re-assessment, not a restart
-  python factory/scripts/pipeline.py spike <slug> grow|keep|stop --reply "..." [--reason "..."]   Gate 3 of a spike
+  python factory/scripts/pipeline.py light <slug> grow|keep|stop --reply "..." [--tier 2|3|4] [--reason "..."]
+                                                             Gate 3 of the light route (a spike or an exploration prototype)
 
 The register is ideas/pipeline.json (schema factory/schemas/pipeline.schema.json): every idea captured,
 and the folder it was developed into. Each developed idea's assessment is the JSON block at the top of
@@ -19,7 +20,7 @@ the five foundations rated green, amber or red, the RICE factors, the one thing,
 assistant writes those; this script does the arithmetic and the ranking, so the order is reproducible:
 score = Reach x Impact x Confidence% / Effort, ties broken by higher confidence, then lower effort, then slug.
 Data classes are checked against the data-classes table (POL-11) in every policies.md of the idea's scope:
-a class answered "no" there must be knocked out. Rules: factory/stages/develop-assess.md (a spike: factory/stages/spike.md).
+a class answered "no" there must be knocked out. Rules: factory/stages/develop-assess.md (the light route: factory/stages/light.md).
 """
 
 from __future__ import annotations
@@ -40,9 +41,11 @@ INBOX = "ideas/inbox.md"
 REPORT = "ideas/pipeline.md"
 ASSESSMENT = "assessment.md"
 BRIEF = "idea-brief.md"
-SPIKE = "spike.md"
+PLAN = "plan.md"
 REVIEW_DAYS = 28  # a Get Ready idea comes back to Gate 1 this long after the decision unless --review says otherwise
-SPIKE_RESULTS = {"grow": "Grow", "keep": "Keep", "stop": "Stop"}
+LIGHT_RESULTS = {"grow": "Grow", "keep": "Keep", "stop": "Stop"}
+LIGHT_TIERS = {1: "a spike", 2: "an exploration prototype"}
+GO_AS = {1: "as a spike", 2: "as a prototype"}
 IMPACTS = (0.25, 0.5, 1, 2, 3)
 FOUNDATIONS = {"problem": "Problem", "value": "Value", "data": "Data Foundations", "risk": "Risk", "people": "People & Process"}
 DECISIONS = {"go": "Go", "get-ready": "Get Ready", "stop": "Stop"}
@@ -471,14 +474,14 @@ def rag(a: dict) -> str:
 def decision_text(a: dict) -> str:
     d = a["decision"]
     fix = f": fix {', '.join(FOUNDATIONS[k] for k in d['fix'])}" if d.get("fix") and "get-ready" in (d.get("decided"), d["recommended"]) else ""
-    spike = " as a spike" if d.get("route") == "spike" and "go" in (d.get("decided"), d["recommended"]) else ""
+    light = f" {GO_AS[d.get('tier', 1)]}" if d.get("route") == "light" and "go" in (d.get("decided"), d["recommended"]) else ""
     if d.get("decided"):
         owner = (f" ({d['owner']}, review {d['review']}{', overdue' if overdue(a) else ''})"
                  if d["decided"] == "get-ready" and d.get("owner") else "")
-        return f"{DECISIONS[d['decided']]}{spike} ({d['date']}){fix}{owner}"
+        return f"{DECISIONS[d['decided']]}{light} ({d['date']}){fix}{owner}"
     if d["recommended"] == "undecided":
         return "being assessed"
-    return f"recommended {DECISIONS[d['recommended']]}{spike}{fix}"
+    return f"recommended {DECISIONS[d['recommended']]}{light}{fix}"
 
 
 def overdue(a: dict, today: str | None = None) -> bool:
@@ -597,7 +600,7 @@ def bump(version: str) -> str:
 
 
 def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix: list[str] | None = None,
-           root: Path | None = None, *, route: str | None = None, timebox: float | None = None,
+           root: Path | None = None, *, route: str | None = None, tier: int | None = None, timebox: float | None = None,
            owner: str | None = None, review: str | None = None) -> dict:
     """Record the owner's Gate 1 decision in the assessment and state.json; returns the state."""
     if decision not in DECISIONS:
@@ -617,17 +620,20 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
     if decision == "go" and reds:
         raise lib.FactoryError(f"a Go cannot have a red foundation ({', '.join(reds)})")
     route = route or d.get("route") or "full"
-    if route not in ("full", "spike"):
-        raise lib.FactoryError(f"the route is full or spike, not {route!r}")
-    if decision == "go" and route == "spike":
+    if route not in ("full", "light"):
+        raise lib.FactoryError(f"the route is full or light, not {route!r}")
+    if decision == "go" and route == "light":
         import check_spec
 
+        tier = tier or d.get("tier") or 1
+        if tier not in LIGHT_TIERS:
+            raise lib.FactoryError(f"the light route is tier 1 (a spike) or 2 (an exploration prototype), not {tier!r}")
         f = check_spec.Findings()
-        check_spec.check_spike(idea, f)
+        check_spec.check_plan(idea, f)
         f.done()
         if f.blockers:
-            raise lib.FactoryError(f"a spike needs its plan ({SPIKE}): " + "; ".join(f.blockers))
-        d.update(route="spike", timebox=timebox or d.get("timebox") or 1)
+            raise lib.FactoryError(f"the light route needs its plan ({PLAN}): " + "; ".join(f.blockers))
+        d.update(route="light", tier=tier, timebox=timebox or d.get("timebox") or 1)
     elif decision == "go":
         d["route"] = "full"
     if decision == "get-ready":
@@ -666,10 +672,11 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
     if decision == "get-ready":
         state["assessment"].update(fix=d["fix"], owner=d["owner"], review=d["review"])
     state["versions"]["assessment"] = a["version"]
-    if decision == "go" and d["route"] == "spike":
-        state["gates"]["2"] = {"status": "approved", "date": lib.today(), "reply": f"spike plan ({SPIKE}) approved with Gate 1: {reply}"}
-        state.update(stage="build", status="in-progress", route="spike", tier=1,
-                     next=f"Spike: build to {SPIKE} within {number(d['timebox'])} person-week(s), then Gate 3: grow, keep or stop (factory/stages/spike.md)")
+    if decision == "go" and d["route"] == "light":
+        state["gates"]["2"] = {"status": "approved", "date": lib.today(), "reply": f"plan ({PLAN}) approved with Gate 1: {reply}"}
+        state.update(stage="build", status="in-progress", route="light", tier=d["tier"],
+                     next=f"Build {LIGHT_TIERS[d['tier']]} to {PLAN} within {number(d['timebox'])} person-week(s), "
+                          "then Gate 3: grow, keep or stop (factory/stages/light.md)")
     elif decision == "go":
         state.pop("route", None)
         state.update(stage="spec", status="in-progress", next="Spec: the solution choices, then the spec pack (factory/stages/spec.md)")
@@ -708,33 +715,46 @@ def reassess(slug: str, root: Path | None = None) -> dict:
     return a
 
 
-def end_spike(slug: str, result: str, reply: str, reason: str | None = None, root: Path | None = None) -> dict:
-    """Gate 3 of a spike: grow it (to the full route, from Spec), keep it (as a tier 1 tool, on to Publish) or stop it."""
-    if result not in SPIKE_RESULTS:
-        raise lib.FactoryError(f"a spike ends grow, keep or stop, not {result!r}")
+def end_light(slug: str, result: str, reply: str, reason: str | None = None, root: Path | None = None,
+              tier: int | None = None) -> dict:
+    """Gate 3 of the light route: grow it (a spike to an exploration prototype, or to the full route at tier 3 or 4,
+    from Spec), keep it (as it is, on to Publish) or stop it."""
+    if result not in LIGHT_RESULTS:
+        raise lib.FactoryError(f"the light route ends grow, keep or stop, not {result!r}")
     state = lib.load_state(slug, root)
-    if state.get("route") != "spike" or state["stage"] != "build":
-        raise lib.FactoryError(f"ideas/{slug} is not a spike in Build (route {state.get('route', 'full')}, stage {state['stage']})")
+    if state.get("route") != "light" or state["stage"] != "build":
+        raise lib.FactoryError(f"ideas/{slug} is not on the light route in Build (route {state.get('route', 'full')}, stage {state['stage']})")
     import learned
 
     blockers = learned.gate_check(slug, root)
     if blockers:
-        raise lib.FactoryError("the spike's Gate 3 check has blockers: " + "; ".join(blockers))
+        raise lib.FactoryError("the Gate 3 check has blockers: " + "; ".join(blockers))
     if result == "stop" and not reason:
         raise lib.FactoryError("a Stop needs its reason (--reason)")
-    state["spike"] = {"result": result, "date": lib.today(), "reply": reply}
-    if result == "grow":
+    was = state.get("tier") or 1
+    target = tier or 3
+    if result == "grow" and (target not in (2, 3, 4) or target <= was):
+        raise lib.FactoryError(f"tier {was} grows to a higher tier (2 from a spike, else 3 or 4), not {target!r}")
+    state["light"] = {"result": result, "tier": was, "date": lib.today(), "reply": reply}
+    if result == "grow" and target == 2:
+        state["light"]["to_tier"] = 2
+        state["gates"]["3"] = {"status": "not-reached"}
+        state.update(tier=2, status="in-progress",
+                     next=f"Grow to an exploration prototype: revise {PLAN} (the question, criteria, time box), then build (factory/stages/light.md)")
+    elif result == "grow":
+        state["light"]["to_tier"] = target
         state.pop("route")
         state["gates"]["2"] = {"status": "not-reached"}
         state["gates"]["3"] = {"status": "not-reached"}
-        state.update(stage="spec", status="in-progress", tier=None,
-                     next="Grow: the full Spec, starting from what the spike showed (factory/stages/spec.md)")
+        state.update(stage="spec", status="in-progress", tier=target,
+                     next=f"Grow to tier {target}: the full Spec, starting from what the light build showed (factory/stages/spec.md)")
     elif result == "keep":
         state["gates"]["3"] = {"status": "approved", "date": lib.today(), "reply": reply}
-        state.update(stage="publish", status="in-progress", next="Keep: publish the spike as a tier 1 tool (factory/stages/publish.md)")
+        state.update(stage="publish", status="in-progress",
+                     next=f"Keep: publish {LIGHT_TIERS[was]} as it is, synthetic data only (factory/stages/publish.md)")
     else:
         state["gates"]["3"] = {"status": "stopped", "date": lib.today(), "reply": reply}
-        state.update(status="stopped", next=f"Stopped after the spike: {reason}")
+        state.update(status="stopped", next=f"Stopped after {LIGHT_TIERS[was]}: {reason}")
     lib.save_state(slug, state, root)
     return state
 
@@ -756,6 +776,7 @@ def main(argv: list[str]) -> int:
         reason = option(args, "--reason")
         fix = option(args, "--fix")
         route = option(args, "--route")
+        tier = option(args, "--tier")
         timebox = option(args, "--timebox")
         owner = option(args, "--owner")
         review = option(args, "--review")
@@ -796,13 +817,14 @@ def main(argv: list[str]) -> int:
             return 0
         if len(args) == 3 and args[0] == "decide" and reply:
             state = decide(args[1], args[2], reply, reason, [k.strip() for k in fix.split(",") if k.strip()] if fix else None,
-                           route=route, timebox=float(timebox) if timebox else None, owner=owner, review=review)
+                           route=route, tier=int(tier) if tier else None, timebox=float(timebox) if timebox else None,
+                           owner=owner, review=review)
             (lib.ROOT / REPORT).write_text(render(reg), encoding="utf-8", newline="\n")
             print(f"pipeline: {args[1]} {DECISIONS[args[2]]} at Gate 1; {state['next']}")
             return 0
-        if len(args) == 3 and args[0] == "spike" and reply:
-            state = end_spike(args[1], args[2], reply, reason)
-            print(f"pipeline: {args[1]} spike ended: {SPIKE_RESULTS[args[2]]}; {state['next']}")
+        if len(args) == 3 and args[0] == "light" and reply:
+            state = end_light(args[1], args[2], reply, reason, tier=int(tier) if tier else None)
+            print(f"pipeline: {args[1]} light route: {LIGHT_RESULTS[args[2]]}; {state['next']}")
             return 0
         if len(args) == 2 and args[0] == "reassess":
             a = reassess(args[1])

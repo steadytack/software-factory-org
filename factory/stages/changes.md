@@ -16,3 +16,6 @@ A change to something already approved is a controlled edit, not a restart (fact
 
 ## Interruptions and versions
 An interrupted stage sets `state.json` `status: interrupted` and `next` says what is done and what is left. Each idea records the `factory_version` it last ran under; when it resumes under a newer one, read the changelog since then, tell the owner what differs, and update the version once the idea meets the new rules.
+
+## Raising the tier
+A tier 3 business prototype becomes a tier 4 production app only by a change request, never by drift (`factory/standards/tiers.md`). The request lists what tier 4 adds (the full test suite, hardening, resilience and tested recovery, monitoring, a named owner and support, a retirement plan), fills in the spec documents the business prototype kept short, and returns to Gate 2. When people have come to rely on a business prototype, raise it.

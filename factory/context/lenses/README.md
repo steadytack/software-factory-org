@@ -12,7 +12,7 @@ Discovery frameworks, used twice:
 | [architecture](architecture.md) | - | When there is more than one component or a server | 10, 12 |
 | [security](security.md) | Risk | When there are users, stored data or exposure (tier 3+ always) | 07, 05 |
 | [ux-and-accessibility](ux-and-accessibility.md) | - | When there is a visual interface | 04, 05 |
-| [operations](operations.md) | - | When it runs as a service or a job (tier 2+) | 05, 10 |
+| [operations](operations.md) | - | When it runs as a service or a job (tier 3+) | 05, 10 |
 | [cost-and-maintainability](cost-and-maintainability.md) | - | When there are outside services, keys or licences | 10, 12 |
 
 ## Rules for questions

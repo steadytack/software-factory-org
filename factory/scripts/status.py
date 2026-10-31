@@ -60,7 +60,7 @@ def table(rows: list[dict]) -> str:
         if r.get("current", {}).get("milestone"):
             status += f" ({r['current']['milestone']})"
         lines.append(
-            f"| {r['slug']} | {r.get('kind', '')} | {r.get('stage', '?')}{' (spike)' if r.get('route') == 'spike' else ''} | {status} | {r.get('tier') or ''} | "
+            f"| {r['slug']} | {r.get('kind', '')} | {r.get('stage', '?')}{' (light)' if r.get('route') == 'light' else ''} | {status} | {r.get('tier') or ''} | "
             f"{r.get('template') or ''} | {r.get('gates_line', '')} | {r.get('factory_version', '')} | {r.get('updated', '')} | {r.get('next', '')} |"
         )
     return "\n".join(lines)

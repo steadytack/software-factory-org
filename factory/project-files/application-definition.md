@@ -5,8 +5,8 @@
   "name": "{name}",
   "version": "0.1",
   "status": "draft",
-  "maturity_tier": {"value": 2, "state": "recommended", "default": "DEF-01", "reason": "<why>"},
-  "deployment": {"value": "local", "state": "recommended", "default": "DEF-02", "reason": "<why>", "development": "<if it differs>"},
+  "maturity_tier": {"value": 3, "state": "recommended", "default": "DEF-01", "reason": "<why>"},
+  "deployment": {"value": "hosted", "state": "recommended", "default": "DEF-02", "reason": "<why>", "development": "<if it differs>"},
   "interfaces": {"value": ["web"], "state": "recommended", "reason": "<why>"},
   "brand": {"value": "unbranded", "state": "recommended", "default": "DEF-09"},
   "design_system": {"value": "<catalogue design asset or the template's design file>", "state": "recommended", "default": "DEF-09"},
@@ -23,8 +23,8 @@
 
 The solution choices, made at the start of Spec and approved with the spec at Gate 2. The block above is the machine-readable record (checked against `factory/schemas/application-definition.schema.json`). Each choice is `recommended`, `accepted`, `rejected`, `deferred` or `unresolved`; `default` names the DEF-nn it came from. The problem, outcome, users and success measures are in `idea-brief.md` and are not repeated here.
 
-## Maturity tier
-<Recommended tier and why; what it means for testing, security and documentation (`factory/standards/security.md`).>
+## Tier
+<3 Business prototype or 4 Production app, and why (`factory/standards/tiers.md`); the protection level its data and users need (`factory/standards/security.md`).>
 
 ## Deployment and runtime
 <Category, why, and the development environment if it differs.>

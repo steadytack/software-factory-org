@@ -8,7 +8,7 @@
   "factory_version": "0.2.0",
   "updated": "2026-10-19",
   "template": "single-page-html",
-  "tier": 2,
+  "tier": 3,
   "versions": {
     "assessment": "0.1",
     "application_definition": "1.0",

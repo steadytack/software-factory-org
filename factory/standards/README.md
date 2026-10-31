@@ -4,7 +4,8 @@
 |---|---|
 | [PRINCIPLES.md](PRINCIPLES.md) | Rules for every project the factory builds (copied into each app as `standards/PRINCIPLES.md`) |
 | [stacks/](stacks/) | One file per template: its stack rules (copied into each app as `STANDARDS.md`) |
-| [security.md](security.md) | Security baseline by maturity tier |
+| [tiers.md](tiers.md) | The four tiers: 1 Spike, 2 Exploration prototype, 3 Business prototype, 4 Production app |
+| [security.md](security.md) | The protection baseline, by data and who can reach it (at every tier) |
 | [testing.md](testing.md) | What is tested, where it runs, how results are reported |
 | [versioning.md](versioning.md) | Versions of the factory, templates, catalogue assets, specs and apps |
 | [planned.md](planned.md) | Kinds of app with no template yet |

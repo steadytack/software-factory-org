@@ -1,6 +1,6 @@
 # Lens: security, privacy and risk
 
-**Activate:** when there are users, stored data or anything exposed beyond the machine; always at tier 3 and above.
+**Activate:** when there are users, stored data or anything reachable beyond the builder; always at protection level B and above (`factory/standards/security.md`), so always at tier 3 and above.
 
 - Who may see and change what? Where is that enforced?
 - What is exposed to the network, and to whom?

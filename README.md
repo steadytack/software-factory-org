@@ -4,7 +4,9 @@ Turns an idea, an existing specification or an imported project into a built, te
 
 ```
 Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
-                   └─ Go as a spike (spike.md) ─→ Build ─gate 3→ grow (to Spec) │ keep (to Publish) │ stop
+                   └─ light route, tiers 1-2 (plan.md) ─→ Build ─gate 3→ grow (to tier 2, or Spec at 3-4) │ keep │ stop
+
+Tiers (factory/standards/tiers.md): 1 Spike · 2 Exploration prototype · 3 Business prototype · 4 Production app
 ```
 
 ## Layout

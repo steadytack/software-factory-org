@@ -1,6 +1,6 @@
 # Lens: testing, deployment and operations
 
-**Activate:** when it runs as a service or a scheduled job (tier 2 and above).
+**Activate:** when it runs as a service or a scheduled job (tier 3 and above).
 
 - How is it started, stopped, updated, backed up, restored and reset? Where does its data live?
 - How is it triggered (for jobs): schedule, file arrival, manual? What are the retry, idempotency and rerun rules?

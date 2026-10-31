@@ -4,7 +4,7 @@
 |---|---|---|---|---|
 | SPEC-00 | 0.1 | draft | {date} | application-definition {definition_version} |
 
-**Maturity tier:** {tier}. **Deployment:** {deployment}. Readable without the factory: every link is relative, and the IDs are explained in `03` (one line each) and below.
+**Tier:** {tier}. **Deployment:** {deployment}. Readable without the factory: every link is relative, and the IDs are explained in `03` (one line each) and below.
 
 | Document | Purpose |
 |---|---|

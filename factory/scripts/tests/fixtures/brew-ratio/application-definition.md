@@ -5,7 +5,7 @@
   "name": "Brew ratio",
   "version": "1.0",
   "status": "approved",
-  "maturity_tier": {"value": 2, "state": "accepted", "default": "DEF-01", "reason": "used repeatedly by one person"},
+  "maturity_tier": {"value": 3, "state": "accepted", "default": "DEF-01", "reason": "used for real by its owner, kept simple underneath"},
   "deployment": {"value": "simple", "state": "accepted", "default": "DEF-02", "reason": "no server needed: one page, data kept in the browser"},
   "interfaces": {"value": ["web", "mobile"], "state": "accepted", "reason": "used at the kitchen counter on a phone"},
   "brand": {"value": "unbranded", "state": "accepted", "default": "DEF-09"},
@@ -35,7 +35,7 @@
 The solution choices. The problem, outcome, users and success measures are in `idea-brief.md`.
 
 ## Maturity tier
-Tier 2: used repeatedly by one person; tests for the main behaviour.
+Tier 3, a business prototype: used for real by its owner; works end to end, simple underneath (one HTML file); tests per requirement.
 
 ## Deployment and runtime
 Simple: one HTML file opened in a browser. No Docker. Developed with Node 24 for the tests only.

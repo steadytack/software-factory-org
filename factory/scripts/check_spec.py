@@ -52,7 +52,7 @@ DECISIONS = {"reuse", "adapt", "build", "import", "redesign", "defer"}
 NEEDS_FR = {"RULE": "FR", "SCR": "FR", "DATA": "FR", "PERM": "FR", "INT": "FR"}
 BRIEF_HEADINGS = ["Problem", "Outcome and success measures", "How it's done today", "Data", "Risk", "People and process",
                   "Strategic fit", "Assumptions and unknowns"]
-SPIKE_HEADINGS = ["The question", "Success and kill criteria", "Time box", "In and out", "Data", "Template", "Afterwards"]
+PLAN_HEADINGS = ["The question", "Success and kill criteria", "Time box", "In and out", "Data", "Template", "Afterwards"]
 OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
@@ -208,6 +208,9 @@ def check_definition(idea: Path, f: Findings) -> dict | None:
         for key in ("maturity_tier", "deployment", "interfaces", "template"):
             if data.get(key, {}).get("state") == "unresolved":
                 f.warn("application-definition.md", f"{key} is unresolved")
+        if data["maturity_tier"]["value"] in (1, 2) and (idea / "state.json").exists():
+            f.warn("application-definition.md", "tiers 1 and 2 take the light route (a plan, no spec pack: factory/stages/light.md); "
+                                                "the full route is tier 3 (business prototype) or 4 (production app)")
     return data if not problems else None
 
 
@@ -257,18 +260,18 @@ def check_brief(idea: Path, f: Findings) -> None:
             f.block(pipeline.BRIEF, f"no '## {heading}' section")
 
 
-def check_spike(idea: Path, f: Findings) -> None:
-    """A spike's plan (Gate 1, when the route is a spike): present, every section there, nothing left to fill in."""
-    path = idea / pipeline.SPIKE
+def check_plan(idea: Path, f: Findings) -> None:
+    """The light route's plan (Gate 1): present, every section there, nothing left to fill in."""
+    path = idea / pipeline.PLAN
     if not path.exists():
-        f.block(pipeline.SPIKE, "missing (scaffold.py spike <slug>; see factory/stages/spike.md)")
+        f.block(pipeline.PLAN, "missing (scaffold.py plan <slug>; see factory/stages/light.md)")
         return
     text = path.read_text(encoding="utf-8")
     if has_placeholder(text):
-        f.block(pipeline.SPIKE, "placeholder text left (<...>): the question, the criteria and the time box are decided now")
-    for heading in SPIKE_HEADINGS:
+        f.block(pipeline.PLAN, "placeholder text left (<...>): the question, the criteria and the time box are decided now")
+    for heading in PLAN_HEADINGS:
         if not re.search(rf"(?im)^##\s+{re.escape(heading)}\s*$", text):
-            f.block(pipeline.SPIKE, f"no '## {heading}' section")
+            f.block(pipeline.PLAN, f"no '## {heading}' section")
 
 
 def factory_root(idea: Path) -> Path | None:
@@ -297,13 +300,13 @@ def check_gate_one(idea: Path, f: Findings, root: Path | None = None) -> dict | 
         f.block(pipeline.ASSESSMENT, b)
     for w in warnings:
         f.warn(pipeline.ASSESSMENT, w)
-    spike = a["decision"].get("route") == "spike"
-    if spike:
-        check_spike(idea, f)
+    light = a["decision"].get("route") == "light"
+    if light:
+        check_plan(idea, f)
         if "go" not in (a["decision"]["recommended"], a["decision"].get("decided")):
-            f.warn(pipeline.ASSESSMENT, "route is spike, but the recommendation is not Go")
-    if spike and not (idea / "overview.md").exists():
-        f.warn("overview.md", "missing: a spike needs none, but sponsors read it if the spike grows")
+            f.warn(pipeline.ASSESSMENT, "route is light, but the recommendation is not Go")
+    if light and not (idea / "overview.md").exists():
+        f.warn("overview.md", "missing: the light route needs none, but sponsors read it if the idea grows")
     elif not a.get("knockout"):
         check_overview(idea, f)
     return a

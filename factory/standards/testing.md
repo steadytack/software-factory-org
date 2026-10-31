@@ -5,7 +5,7 @@
 - **An end-to-end journey** for each user journey that crosses the UI.
 - **Negative and edge cases** from the acceptance criteria (empty, huge, duplicate, malformed, unauthorised).
 - **Module tests travel with the module:** a composed app runs each catalogue asset's own tests in the merged tree, as evidence the composition works.
-- Tier scales the depth (`../context/defaults.md` DEF-01): tier 1 covers the main path; tier 3 and above add permissions, concurrency and recovery.
+- Tier scales the depth (`tiers.md`): tier 1 the main path; tier 2 the main path and what the people trying it will do; tier 3 a test per FR, the journeys and permissions, and recovery from a backup; tier 4 all of this plus concurrency, failure and load where the spec sets thresholds, and abuse cases. Security and privacy tests follow the protection level (`security.md`), whatever the tier.
 
 ## Where tests run
 - Every check runs in a **clean container** from the template's `verify` parts in `factory/templates.json` (`factory/scripts/verify.py`), never against a running stack or database (POL-05).

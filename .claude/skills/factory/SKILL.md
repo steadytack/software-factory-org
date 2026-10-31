@@ -7,10 +7,12 @@ description: Develop ideas into built, audited apps through four gated stages (D
 
 ```
 Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
-                   └─ Go as a spike (spike.md) ─→ Build ─gate 3→ grow (to Spec) │ keep (to Publish) │ stop
+                   └─ light route, tiers 1-2 (plan.md) ─→ Build ─gate 3→ grow (to tier 2, or Spec at 3-4) │ keep │ stop
+
+Tiers (factory/standards/tiers.md): 1 Spike · 2 Exploration prototype · 3 Business prototype · 4 Production app
 ```
 
-The factory develops ideas; it does not filter them. An early or rough idea is worked on with its unknowns stated, an unknown is amber not red, and an idea whose questions a small build would answer goes as a spike.
+The factory develops ideas; it does not filter them. An early or rough idea is worked on with its unknowns stated, an unknown is amber not red, and an idea whose questions a small build would answer goes on the light route, as a spike or an exploration prototype.
 
 Every rule lives in plain files (`factory/`), so another model or a person can continue from them. This skill only orchestrates.
 
@@ -21,10 +23,10 @@ Every rule lives in plain files (`factory/`), so another model or a person can c
    - **Ideas in the inbox** (`/factory` with lines in `ideas/inbox.md`) or **one idea** (`/factory <idea>`): capture, develop and assess them (`factory/stages/develop-assess.md`), ending at Gate 1. If the owner wants to talk an idea through first, do that (Develop: work it through) before drafting.
    - **A document or spec supplied:** a new idea in source mode (`develop-assess.md`, Capture).
    - **A repository or folder to reuse from:** the catalogue importer (`catalogue/README.md`), not an idea.
-   - **Resume / continue:** read the idea's `state.json`, `idea.md`, `decisions.md` and continue at its stage. Never start a stage whose previous gate is not approved; a Get Ready idea resumes with `pipeline.py reassess`, a light re-assessment; a spike (`state.json` `route: spike`) follows `factory/stages/spike.md`.
+   - **Resume / continue:** read the idea's `state.json`, `idea.md`, `decisions.md` and continue at its stage. Never start a stage whose previous gate is not approved; a Get Ready idea resumes with `pipeline.py reassess`, a light re-assessment; the light route (`state.json` `route: light`) follows `factory/stages/light.md`.
    - **Status or blockers:** the status table, plus each idea's `blockers` and `next`; `ideas/pipeline.md` for the ranked pipeline, and any Get Ready idea past its review date (bring it back to Gate 1).
    - **A gate reply:** apply it (gate protocol, step 4).
-4. Follow the stage file: `develop-assess.md`, `spec.md`, `build.md`, then `audit.md`, `publish.md` (a spike: `spike.md`); `changes.md` for anything that changes after a gate.
+4. Follow the stage file: `develop-assess.md`, `spec.md`, `build.md`, then `audit.md`, `publish.md` (the light route: `light.md`); `changes.md` for anything that changes after a gate.
 5. Decide small, reversible things yourself, log them in the idea's `decisions.md` (decided by "factory"), and keep going.
 
 ## Stops (the only times to wait)
@@ -37,12 +39,12 @@ Every rule lives in plain files (`factory/`), so another model or a person can c
 ## Gate protocol (identical at every gate)
 1. Run the stage's check (`check_spec.py --assessment` at Gate 1, `check_spec.py` at Gate 2, the audit, verification and `learned.py check <slug>` at Gate 3, the publish dry run at Gate 4), and `python factory/scripts/learned.py review`. Write `ideas/<slug>/gates/gate-N.md`; set `state.json` (`status: awaiting-approval`, the gate `awaiting-approval`, `next`).
 2. Show **one page**: **Done** (what was produced, where, checks exactly as run); **Recommended**; **Decisions for you** (numbered, 2-3 options, the recommendation marked with a reason in one clause); **Answered from your defaults** (listed, not asked); **Risks**; **Next**. Each candidate change from `learned.py review` is one more numbered decision ("promote to a default?", "review the lens?"), recommended yes only when the evidence is clear.
-3. **Stop.** Accept only `approve`, `accept all`, `change 3 to B` (and free text for it), or `back to <stage>`; at Gate 1 also `go`, `go as a spike`, `get ready` and `stop`; at a spike's Gate 3 `grow`, `keep` and `stop`. Ask again otherwise.
-4. On approval: record the reply and date in the gate file, in `state.json` (gate `approved`, `date`, `reply`, the version approved) and, at Gate 2, in the definition's `approvals` (choices become `accepted`, version `1.0`, status `approved`). Gate 1 is recorded by `pipeline.py decide` (Go, Go as a spike, Get Ready with an owner and a review date, or Stop; `develop-assess.md`), a spike's Gate 3 by `pipeline.py spike` (`spike.md`). Record each answer in `decisions.md`; an answer that differs from the recommendation also goes into `factory/context/learned.md` with `learned.py add` (`observed`, with a key and its scope; never into defaults by itself). A yes to a candidate change: `learned.py mark <key> confirmed` and edit the default, lens or knock-out rule, a change to the factory (`CHANGELOG.md`, `VERSION`); a no: `learned.py mark <key> superseded` when the evidence no longer applies, else leave it observed. Move `state.json` to the next stage, `in-progress`.
+3. **Stop.** Accept only `approve`, `accept all`, `change 3 to B` (and free text for it), or `back to <stage>`; at Gate 1 also `go`, `go as a spike`, `go as a prototype`, `get ready` and `stop`; at the light route's Gate 3 `grow` (to a tier), `keep` and `stop`. Ask again otherwise.
+4. On approval: record the reply and date in the gate file, in `state.json` (gate `approved`, `date`, `reply`, the version approved) and, at Gate 2, in the definition's `approvals` (choices become `accepted`, version `1.0`, status `approved`). Gate 1 is recorded by `pipeline.py decide` (Go, Go as a spike or a prototype, Get Ready with an owner and a review date, or Stop; `develop-assess.md`), the light route's Gate 3 by `pipeline.py light` (`light.md`). Record each answer in `decisions.md`; an answer that differs from the recommendation also goes into `factory/context/learned.md` with `learned.py add` (`observed`, with a key and its scope; never into defaults by itself). A yes to a candidate change: `learned.py mark <key> confirmed` and edit the default, lens or knock-out rule, a change to the factory (`CHANGELOG.md`, `VERSION`); a no: `learned.py mark <key> superseded` when the evidence no longer applies, else leave it observed. Move `state.json` to the next stage, `in-progress`.
 5. Never report a check as passed unless it ran in this session. Say "not run".
 
 ## Publishing
 Only at Gate 4, only on an explicit approve, only through `factory/scripts/publish.py`, with the owner typing the confirmation. A previous approval never carries over.
 
 ## Where things are
-`factory/stages/` (what to do), `factory/context/` (owner, policies, defaults, learned, environment, lenses), `factory/standards/` (principles, stacks, spec pack, IDs, security, testing, versioning), `factory/schemas/`, `factory/scripts/`, `catalogue/` (approved reusable assets), `templates/`, `ideas/<slug>/` (state, idea, brief, assessment, overview, definition, decisions, changes, gates, source, spec, composition, `app/`, outcome); `ideas/inbox.md`, `ideas/pipeline.json` (the ideas captured) and `ideas/pipeline.md` (the ranked pipeline).
+`factory/stages/` (what to do), `factory/context/` (owner, policies, defaults, learned, environment, lenses), `factory/standards/` (principles, tiers, stacks, spec pack, IDs, security, testing, versioning), `factory/schemas/`, `factory/scripts/`, `catalogue/` (approved reusable assets), `templates/`, `ideas/<slug>/` (state, idea, brief, assessment, overview, definition, decisions, changes, gates, source, spec, composition, `app/`, outcome); `ideas/inbox.md`, `ideas/pipeline.json` (the ideas captured) and `ideas/pipeline.md` (the ranked pipeline).
