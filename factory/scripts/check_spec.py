@@ -52,7 +52,7 @@ DECISIONS = {"reuse", "adapt", "build", "import", "redesign", "defer"}
 NEEDS_FR = {"RULE": "FR", "SCR": "FR", "DATA": "FR", "PERM": "FR", "INT": "FR"}
 BRIEF_HEADINGS = ["Problem", "Outcome and success measures", "How it's done today", "Data", "Risk", "People and process",
                   "Strategic fit", "Assumptions and unknowns"]
-PLAN_HEADINGS = ["The question", "Success and kill criteria", "Time box", "In and out", "Data", "Template", "Afterwards"]
+PLAN_HEADINGS = ["The question", "Success and kill criteria", "Time box", "In and out", "Data and protection", "Template", "Afterwards"]
 OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
@@ -208,9 +208,12 @@ def check_definition(idea: Path, f: Findings) -> dict | None:
         for key in ("maturity_tier", "deployment", "interfaces", "template"):
             if data.get(key, {}).get("state") == "unresolved":
                 f.warn("application-definition.md", f"{key} is unresolved")
-        if data["maturity_tier"]["value"] in (1, 2) and (idea / "state.json").exists():
-            f.warn("application-definition.md", "tiers 1 and 2 take the light route (a plan, no spec pack: factory/stages/light.md); "
-                                                "the full route is tier 3 (business prototype) or 4 (production app)")
+        if data["maturity_tier"]["value"] == 1 and (idea / "state.json").exists():
+            f.warn("application-definition.md", "tier 1 is a spike, which takes the light route (a plan, no spec pack: "
+                                                "factory/stages/light.md); the full route is tier 2, 3 or 4")
+        for key in ("data", "protection"):
+            if key not in data:
+                f.warn("application-definition.md", f"no {key} decision (factory/standards/tiers.md: data and protection are decided apart from the tier)")
     return data if not problems else None
 
 
@@ -261,7 +264,7 @@ def check_brief(idea: Path, f: Findings) -> None:
 
 
 def check_plan(idea: Path, f: Findings) -> None:
-    """The light route's plan (Gate 1): present, every section there, nothing left to fill in."""
+    """The spike's plan (the light route, Gate 1): present, every section there, nothing left to fill in."""
     path = idea / pipeline.PLAN
     if not path.exists():
         f.block(pipeline.PLAN, "missing (scaffold.py plan <slug>; see factory/stages/light.md)")

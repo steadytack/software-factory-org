@@ -4,7 +4,7 @@
 Usage:
   python factory/scripts/scaffold.py new <slug> --name "Readable name" [--kind app|factory-asset|demo]
   python factory/scripts/scaffold.py overview <slug>       the overview, filled from the assessment (end of Develop and Assess)
-  python factory/scripts/scaffold.py plan <slug>           the light route's plan (Develop and Assess, for a spike or an exploration prototype)
+  python factory/scripts/scaffold.py plan <slug>           a spike's plan (the light route; Develop and Assess)
   python factory/scripts/scaffold.py definition <slug>     the Application Definition: the solution choices (start of Spec)
   python factory/scripts/scaffold.py spec <slug>           the spec pack stubs (Spec)
   python factory/scripts/scaffold.py app <slug> <template>
@@ -149,7 +149,10 @@ def new_definition(slug: str, root: Path | None = None) -> Path:
     if path.exists():
         raise lib.FactoryError(f"ideas/{slug}/application-definition.md already exists")
     template = (base / "factory" / "project-files" / "application-definition.md").read_text(encoding="utf-8")
-    path.write_text(fill(template, {"slug": slug, "name": state["name"]}), encoding="utf-8", newline="\n")
+    text = fill(template, {"slug": slug, "name": state["name"]})
+    if state.get("tier") in (2, 3, 4):  # a spike that grew names its tier at its Gate 3
+        text = text.replace('"maturity_tier": {"value": 3, "state": "unresolved",', f'"maturity_tier": {{"value": {state["tier"]}, "state": "recommended",')
+    path.write_text(text, encoding="utf-8", newline="\n")
     state["versions"]["application_definition"] = "0.1"
     lib.save_state(slug, state, root)
     return path
@@ -159,7 +162,7 @@ IMPACT_WORDS = {0.25: "minimal", 0.5: "low", 1: "medium", 2: "high", 3: "massive
 
 
 def new_plan(slug: str, root: Path | None = None) -> Path:
-    """The light route's plan: the question, success and kill criteria, the time box, scope, data, template, afterwards."""
+    """A spike's plan: the question, success and kill criteria, the time box, scope, data, template, afterwards."""
     base = root or lib.ROOT
     state = lib.load_state(slug, root)
     path = lib.idea_dir(slug, root) / "plan.md"

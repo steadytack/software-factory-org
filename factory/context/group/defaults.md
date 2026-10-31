@@ -4,9 +4,9 @@ Standing preferences. The factory recommends these and lists them at the gates a
 
 | ID | Topic | Default | Notes |
 |---|---|---|---|
-| DEF-01 | Tier | Tier 3, Business prototype, on the full route | The light route for an idea a small build answers faster: tier 1 Spike, tier 2 Exploration prototype; tier 4 Production app when it is to be relied on (`factory/standards/tiers.md`) |
+| DEF-01 | Tier | None: chosen per idea, with a reason (`factory/standards/tiers.md`) | 1 Spike (the light route), 2 Exploration prototype, 3 Business prototype, 4 Production app; data and protection are separate decisions |
 | DEF-02 | Deployment | Hosted, in Docker (Compose), at every tier; developed and tested locally in the same containers | Host: {organisation sets it: which Docker host, who runs it, how an app gets there}. Until it is set, builds run locally in the same containers |
-| DEF-03 | Authentication | A login for anything reachable by anyone but its builder; per-user accounts from tier 3 (real users) | Roles when the idea needs them; the organisation's identity provider once it is named in `system-landscape.md` |
+| DEF-03 | Authentication | A login for anything reachable by anyone but its builder; per-user accounts when more than one person uses it | Set by the protection level (`factory/standards/security.md`), not the tier; roles when the idea needs them; the organisation's identity provider once it is named in `system-landscape.md` |
 | DEF-04 | Data store | PostgreSQL for `web-app`; SQLite for `streamlit-app` and `etl-pipeline`; none for static | |
 | DEF-05 | Data retention | Keep until the owner deletes it; soft delete with a recycle bin where the template has one | |
 | DEF-06 | Backups | Nightly database dump plus uploads where data matters; persistent volumes for anything that must survive a rebuild | |

@@ -13,6 +13,16 @@
     "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
     "status": { "enum": ["draft", "in-review", "approved", "superseded"] },
     "maturity_tier": { "$ref": "#/$defs/choice", "properties": { "value": { "enum": [1, 2, 3, 4] } } },
+    "data": {
+      "$ref": "#/$defs/choice",
+      "description": "Which data it is built and run with, decided apart from the tier: synthetic, a sample of real records, or real data",
+      "properties": { "value": { "enum": ["synthetic", "sample", "real"] } }
+    },
+    "protection": {
+      "$ref": "#/$defs/choice",
+      "description": "The protection level (factory/standards/security.md), from the data and who can reach it, apart from the tier",
+      "properties": { "value": { "enum": ["A", "B", "C", "D"] } }
+    },
     "deployment": {
       "$ref": "#/$defs/choice",
       "properties": {

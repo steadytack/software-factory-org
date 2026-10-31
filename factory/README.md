@@ -6,7 +6,7 @@ The factory turns an idea, an existing specification or an imported project into
 Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
 ```
 
-Tiers (`standards/tiers.md`): **1 Spike** and **2 Exploration prototype** take the light route; **3 Business prototype** (the default) and **4 Production app** take the full route. Protection follows the data and who can reach it, at every tier (`standards/security.md`). Every tier is hosted in Docker (DEF-02).
+Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the light route; **2 Exploration prototype**, **3 Business prototype** and **4 Production app** take the full route with the spec pack. **Data** (synthetic, a real sample, real) and **protection** (levels A to D, `standards/security.md`) are separate decisions, at every tier. Every tier is hosted in Docker (DEF-02).
 
 | Stage | Produces | Gate approves |
 |---|---|---|
@@ -14,7 +14,7 @@ Tiers (`standards/tiers.md`): **1 Spike** and **2 Exploration prototype** take t
 | **Spec** | `application-definition.md` (the solution choices: tier, deployment, interfaces, design, template, candidate assets, lenses), then the spec pack in `spec/` (index plus 13 documents, the as-is and to-be business process included), `composition.json`, the component selection and gaps (doc 12), traceability | The solution choices, requirements, composition, gaps and the delivery plan |
 | **Build and Audit** | The app in `app/`, epic by epic with tests; the spec conformance audit; a verification report; `outcome.md` (did the Gate 1 assessment hold?) | The audit and readiness |
 | **Publish** | A dry-run report; on a typed confirmation, the repository | The release |
-| *The light route* (`stages/light.md`) | For tier 1 (spike) and 2 (exploration prototype), instead of Spec: `plan.md` (the question, success and kill criteria, the time box), approved with Gate 1; a time-boxed build on synthetic or public data; the outcome | Gate 3: grow (to tier 2, or to Spec at tier 3 or 4), keep or stop |
+| *The light route* (`stages/light.md`) | A spike (tier 1), instead of Spec: `plan.md` (the question, success and kill criteria, the time box, the data and protection), approved with Gate 1; a time-boxed build; the outcome | Gate 3: grow (to Spec at the tier named), keep or stop |
 
 ## Where things are
 | Path | What |
@@ -31,10 +31,10 @@ Tiers (`standards/tiers.md`): **1 Spike** and **2 Exploration prototype** take t
 ## Scripts
 | Script | Does |
 |---|---|
-| `pipeline.py capture / add / develop / check / render / decide / reassess` | Develop and Assess: captures ideas from `ideas/inbox.md` or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1 (Go, Go as a spike or a prototype, Get Ready with an owner and a review date, Stop), `reassess` reopens a Get Ready idea, `light` records the light route's Gate 3 (grow, keep, stop); overdue Get Ready ideas are flagged |
+| `pipeline.py capture / add / develop / check / render / decide / reassess` | Develop and Assess: captures ideas from `ideas/inbox.md` or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1 (Go, Go as a spike, Get Ready with an owner and a review date, Stop), `reassess` reopens a Get Ready idea, `light` records a spike's Gate 3 (grow to a tier, keep, stop); overdue Get Ready ideas are flagged |
 | `scaffold.py new <slug> --name "..."` | Creates `ideas/<slug>/` with the brief and assessment stubs (`pipeline.py develop` calls it) |
 | `scaffold.py overview <slug>` | The overview, filled from the assessment (Gate 1) |
-| `scaffold.py plan <slug>` | The light route's plan (`plan.md`), when a spike or an exploration prototype is recommended |
+| `scaffold.py plan <slug>` | A spike's plan (`plan.md`), when a spike is recommended |
 | `scaffold.py definition <slug>` | The Application Definition: the solution choices (start of Spec) |
 | `scaffold.py spec <slug>` | The spec pack stubs, filled from the definition |
 | `check_spec.py <slug> [--assessment] [--impact IDs]` | Checks the brief, the assessment and the overview (Gate 1), or the definition and the whole pack (Gate 2): blockers and warnings; writes `spec/traceability.md`; also checks a pack copied outside the factory |

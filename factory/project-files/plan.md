@@ -1,6 +1,6 @@
-# {name}: plan (light route)
+# {name}: spike plan
 
-The light route builds a **spike** (tier 1: one question, fast, throwaway) or an **exploration prototype** (tier 2: something people see and react to, to shape the idea) instead of writing a spec. This plan is approved with Gate 1, the build is time-boxed and uses synthetic or public data only, and it ends at Gate 3 with **grow**, **keep** or **stop**. Rules: `factory/stages/light.md`.
+A spike (tier 1, the light route) builds the smallest thing that answers one question, instead of writing a spec. This plan is approved with Gate 1, the build is time-boxed, and it ends at Gate 3 with **grow** (to the tier the owner names), **keep** or **stop**. Rules: `factory/stages/light.md`.
 
 ## The question
 <The ambers or the one thing this answers, each as a question with the answer that would settle it.>
@@ -9,13 +9,13 @@ The light route builds a **spike** (tier 1: one question, fast, throwaway) or an
 <What result means grow or keep, and what result means stop. Decide this now, before anything is built.>
 
 ## Time box
-<Person-weeks (1 for a spike, 2 for a prototype, by default) and the date it ends. When the time is up, the build stops and goes to Gate 3 with what it has.>
+<Person-weeks (1 by default) and the date it ends. When the time is up, the spike stops and goes to Gate 3 with what it has.>
 
 ## In and out
-<The smallest thing that answers the question: the journey or screens in, everything else out. For a prototype, who will use it and how their reactions are collected.>
+<The smallest thing that answers the question: the journey or screen in, everything else out.>
 
-## Data
-<The synthetic or public data it uses, and how it is made. No real records: an idea that needs them goes on the full route at tier 3.>
+## Data and protection
+<Synthetic, a sample of real records, or real data; its POL-11 classes and any conditions (an approval, synthetic only); and the protection level that follows (factory/standards/security.md).>
 
 ## Template
 <The template it is built on (the table in factory/stages/spec.md), and why.>

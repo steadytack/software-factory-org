@@ -2,6 +2,15 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.7.0 (2026-10-31)
+The tiers say only how mature a build is; data and protection are their own decisions.
+- **Only a spike takes the light route.** Tier 1 keeps the one-page `plan.md` and no spec pack; "go as a prototype" and the light route's `tier` are removed. A spike's Gate 3 grow must name the tier it grows to (`pipeline.py light <slug> grow --tier 2|3|4`; no default), and `scaffold.py definition` starts from that tier.
+- **Tier 2 has a spec pack.** An exploration prototype takes the full route: every document, with `Not applicable: <reason>` only where a section makes no sense for a prototype. Tiers 3 and 4 have the whole pack, tier 4 with 05 and 10 at production depth (`specification-pack.md`). `check_spec.py` warns only for tier 1 on the full route. "Raising the tier" (`changes.md`) covers 2 to 3 and 3 to 4.
+- **No default tier** (DEF-01): chosen per idea, with a reason. The definition template's tier starts `unresolved`.
+- **Data is a separate decision.** Any tier may use synthetic data, a sample of real records or real data, within the data classes POL-11 allows; a spike can test against a real sample. The definition gains `data` (synthetic, sample, real) and `protection` (A to D) choices (optional in the schema; `check_spec.py` warns when either is missing), and the spike plan's "Data" section becomes "Data and protection". Protection level A is now synthetic or Public data with the builder or reviewers only; B is Internal data (real or a sample) or organisation users; DEF-03's per-user accounts follow the protection level, not the tier.
+- `tiers.md`, `light.md`, `plan.md`, `security.md`, `PRINCIPLES.md`, `testing.md`, `spec.md`, `develop-assess.md`, the skill, the READMEs and `factory/web/` follow; the `brew-ratio` fixture records its data and protection.
+- Migration: none. No idea had a tier or used the light route.
+
 ## 0.6.0 (2026-10-31)
 The tiers came from a single-person factory (Explore, Personal tool, Shared pilot, Operational) and mixed two things: how mature a build is and how much protection it needs. They are now separate.
 - **Four tiers by maturity** (`factory/standards/tiers.md`, new): **1 Spike** (one question, fast, throwaway), **2 Exploration prototype** (people see it and react, to shape the idea), **3 Business prototype** (real users and real data; works end to end like a production system, simpler underneath, not production-grade testing or resilience), **4 Production app** (to be relied on). Real data starts at tier 3: tiers 1 and 2 use synthetic or public data only. Moving up is a gate decision, never drift: 1 and 2 grow at their Gate 3, and 3 becomes 4 by a change request that lists what tier 4 adds (`changes.md`, "Raising the tier").

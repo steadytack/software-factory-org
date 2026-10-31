@@ -4,11 +4,11 @@ Applies to every app the factory builds: fast to build, easy to pick up after mo
 
 ## 1. Tier
 
-Set per idea (the factory records it in `state.json` and the spec; `factory/standards/tiers.md`). It decides how much of the rest applies; protection follows the data and who can reach it, at every tier (`security.md`).
+Set per idea (the factory records it in `state.json` and the spec; `factory/standards/tiers.md`). It decides how much of the rest applies. The data it uses and the protection that data and its users need are decided separately and apply at every tier (`security.md`).
 
 | Tier | For | Treatment |
 |---|---|---|
-| 1 Spike | One question, fast | Normal stack (so it can grow), the main path tested, no scanning or formal docs, synthetic or public data. Decide up front what would make you grow, keep or bin it |
+| 1 Spike | One question, fast | Normal stack (so it can grow), the main path tested, no scanning or formal docs. Decide up front what would make you grow, keep or bin it |
 | 2 Exploration prototype | People seeing it and reacting | As a spike, plus what the people trying it will do tested; faked behind the screen where that is quicker, and said so |
 | 3 Business prototype | Real work with real users and data, to refine the idea | Everything below: per-user login, secrets out of the repo, tests per requirement and for permissions, data integrity and tricky logic, backups it can be recovered from, one README. Simple underneath (one instance, simple storage) |
 | 4 Production app | Being relied on | Add: hardening, monitoring, tested recovery, firmer test coverage (failure, concurrency, load where the spec sets it), a runbook, a named owner and support |

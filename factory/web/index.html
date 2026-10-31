@@ -90,7 +90,7 @@ function el(tag, props, ...kids) {
 const STAGES = ['develop', 'spec', 'build', 'publish', 'done'];
 const GATE_NAMES = ['Develop and Assess', 'Spec', 'Build and Audit', 'Publish'];
 const STAGE_TEXT = {
-  develop: 'A short brief, then the five foundations and RICE: Go, Go as a spike or a prototype, Get Ready or Stop.',
+  develop: 'A short brief, then the five foundations and RICE: Go, Go as a spike, Get Ready or Stop.',
   spec: 'The solution choices and a full specification pack: requirements, stories, tests, delivery plan.',
   build: 'Built epic by epic from tested templates, then audited.',
   publish: 'Checked for secrets and hygiene, then released on approval.',
@@ -122,7 +122,7 @@ function renderOverview() {
   const waiting = state.ideas.filter((i) => i.status === 'awaiting-approval').length;
   root.append(el('div', { class: 'card' },
     el('h2', {}, 'How it works'),
-    el('p', {}, 'Each idea is first developed into a short brief and assessed: knock-outs, the five foundations (Problem, Value, Data, Risk, People and Process) and a RICE score. The owner then decides Go (a business prototype or a production app), Go as a spike or an exploration prototype (a small time-boxed build on synthetic data that answers the open questions, then grow, keep or stop), Get Ready (with an owner and a review date) or Stop (Gate 1). Every stage ends at a gate: nothing moves on until the owner approves it.'),
+    el('p', {}, 'Each idea is first developed into a short brief and assessed: knock-outs, the five foundations (Problem, Value, Data, Risk, People and Process) and a RICE score. The owner then decides Go (to a specified build: an exploration prototype, a business prototype or a production app), Go as a spike (a small time-boxed build that answers the open questions, then grow, keep or stop), Get Ready (with an owner and a review date) or Stop (Gate 1). Every stage ends at a gate: nothing moves on until the owner approves it.'),
     el('div', { class: 'flow' }, STAGES.map((s, n) => el('div', {}, el('b', {}, n < 4 ? GATE_NAMES[n] : 'Done'), el('div', { class: 'n' }, String(count(s))), el('div', { class: 'mute' }, STAGE_TEXT[s])))),
     el('div', { class: 'mute' }, state.ideas.length + ' ideas · ' + waiting + ' waiting for approval · ' + state.apps.length + ' published'),
     state.pipeline ? el('div', { class: 'mute' }, state.pipeline) : null));

@@ -161,10 +161,14 @@ def test_tier_1_makes_a_missing_verification_a_warning(pack):
     assert not blocked(f, "US-001-AC1") and warned(f, "US-001-AC1 has no verification")
 
 
-def test_tiers_1_and_2_on_the_full_route_are_warned(idea):
-    assert not warned(findings(idea), "take the light route")
+def test_tier_1_on_the_full_route_and_a_missing_data_or_protection_decision_are_warned(idea):
+    assert not warned(findings(idea), "takes the light route") and not warned(findings(idea), "decision")
     edit(idea / "application-definition.md", '"value": 3, "state": "accepted"', '"value": 2, "state": "accepted"')
-    assert warned(findings(idea), "tiers 1 and 2 take the light route")
+    assert not warned(findings(idea), "takes the light route")  # tier 2 has a spec pack
+    edit(idea / "application-definition.md", '"value": 2, "state": "accepted"', '"value": 1, "state": "accepted"')
+    assert warned(findings(idea), "tier 1 is a spike, which takes the light route")
+    edit(idea / "application-definition.md", '  "protection": {"value": "A", "state": "accepted", "reason": "one user, nothing beyond the browser"},\n', "")
+    assert warned(findings(idea), "no protection decision")
 
 
 def test_a_could_requirement_without_a_story_is_only_a_warning(pack):
