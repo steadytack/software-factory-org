@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "outcome",
+  "version": 1,
+  "title": "Outcome (front matter of ideas/<slug>/outcome.md): what the build showed about the Gate 1 assessment, written at Gate 3",
+  "type": "object",
+  "required": ["schema_version", "slug", "assessment_version", "foundations", "effort", "one_thing", "lessons"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "assessment_version": { "type": "string", "pattern": "^\\d+\\.\\d+$", "description": "The assessment version approved at Gate 1" },
+    "foundations": {
+      "type": "object",
+      "required": ["problem", "value", "data", "risk", "people"],
+      "additionalProperties": false,
+      "properties": {
+        "problem": { "$ref": "#/$defs/held" },
+        "value": { "$ref": "#/$defs/held" },
+        "data": { "$ref": "#/$defs/held" },
+        "risk": { "$ref": "#/$defs/held" },
+        "people": { "$ref": "#/$defs/held" }
+      }
+    },
+    "effort": {
+      "type": "object",
+      "required": ["estimated", "actual", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "estimated": { "type": "number", "exclusiveMinimum": 0, "description": "RICE effort at Gate 1, person-weeks" },
+        "actual": { "type": "number", "minimum": 0, "description": "Person-weeks it took to Gate 3; 0 until filled in" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "one_thing": {
+      "type": "object",
+      "required": ["text", "held", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "held": { "$ref": "#/$defs/verdict" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "lessons": {
+      "type": "array",
+      "description": "What the factory should change because of this build (none is a valid answer: an empty list)",
+      "items": {
+        "type": "object",
+        "required": ["kind", "ref", "lesson"],
+        "additionalProperties": false,
+        "properties": {
+          "kind": { "enum": ["lens", "knockout", "default", "rice"] },
+          "ref": { "type": "string", "minLength": 1, "description": "The lens name, knock-out rule, DEF-nn or RICE factor it would change" },
+          "lesson": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "verdict": { "enum": ["unchecked", "yes", "partly", "no"], "description": "Did the Gate 1 view hold? unchecked until filled in" },
+    "held": {
+      "type": "object",
+      "required": ["rated", "held", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "rated": { "enum": ["green", "amber", "red"] },
+        "held": { "$ref": "#/$defs/verdict" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

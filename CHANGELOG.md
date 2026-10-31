@@ -2,6 +2,15 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.4.0 (2026-10-31)
+The factory now learns from its own record, with an approver deciding every change: it records, then proposes.
+- **`learned.py`** (new): `add` appends a gate answer that differed from a recommendation to `context/learned.md`; `review` lists candidate changes; `mark <key> confirmed|superseded` records the approver's answer; `outcome <slug>` writes an idea's outcome record; `check [<slug>]` validates them (with a slug, the Gate 3 check).
+- **`learned.md`** gains a **Key** column (`DEF-nn`, or a short key such as `gate1-decision`) so the same question can be found across projects; the table is validated (dates, keys, scopes, statuses).
+- **Outcome record at Gate 3** (`ideas/<slug>/outcome.md`, template `project-files/outcome.md`, schema `outcome.schema.json`): whether each foundation's Gate 1 rating held, effort estimated against actual, whether the one thing was the thing that mattered, and lessons naming the lens, knock-out rule, default or RICE factor they would change. `audit.md` adds it as step 6 and on the Gate 3 page.
+- **Review at every gate** (the skill's gate protocol): the same override chosen in two or more projects, a foundation rated wrongly (`held: no`) in two or more builds, the median effort off by 1.5x or more, or the same lesson in two or more builds becomes a numbered decision on the gate page. On yes the entries are marked `confirmed` and the default, lens or knock-out rule is edited as a change to the factory; nothing changes by itself.
+- `check_factory.py` checks `learned.md` and every outcome; `context/README.md` ("How the factory learns"), `factory/README.md`, `develop-assess.md` (Gate 1 overrides recorded with `learned.py add`) and the skill follow.
+- Migration: none. `learned.md` had no entries, and no idea has reached Gate 3.
+
 ## 0.3.1 (2026-10-30)
 - **Lens screening for the five foundations.** `business-value` (Problem, Value), `users-and-workflows` (People & Process), `data-and-integrations` (Data Foundations) and `security` (Risk) each carry a short **Screening** block, answered in the idea brief for every idea in Develop and Assess, whether or not the lens is activated later in Spec. A foundation is rated on its screening answers (green: all answered with evidence; amber: resting on assumptions; red: unanswered or a blocker), so a rating is evidence rather than a first impression and fewer problems surface only in Spec. `develop-assess.md`, `context/lenses/README.md` (a "Screens foundation" column) and `context/README.md` say so. Guidance only: no script, schema or check changes.
 

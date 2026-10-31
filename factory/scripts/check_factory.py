@@ -4,7 +4,7 @@
 Usage: python factory/scripts/check_factory.py [--fix] [--root PATH]
 
 Checks the template registry (factory/templates.json) against the template folders, stack standards,
-workflows and module manifests; the schemas; the context files and scopes; every idea's state.json, the idea register and each assessment; and
+workflows and module manifests; the schemas; the context files and scopes; every idea's state.json, the idea register and each assessment; learned.md and each outcome; and
 every catalogue entry and source record. Reference cards past their review date are warnings, not
 problems. Read-only unless --fix, which only regenerates the template tables
 between <!-- templates:start --> and <!-- templates:end --> markers. Exit 0 = consistent, 1 = problems.
@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import factory_lib as lib  # noqa: E402
 import scopes  # noqa: E402
 import pipeline  # noqa: E402
+import learned  # noqa: E402
 
 START, END = "<!-- templates:start -->", "<!-- templates:end -->"
 READY_KEYS = [
@@ -264,6 +265,7 @@ def check_ideas(root: Path, errors: list[str]) -> None:
         errors += pipeline.problems(pipeline.load(root), root)
     except ValueError as exc:
         errors.append(f"{pipeline.REGISTER}: not valid JSON ({exc})")
+    errors += learned.problems(root)
 
 
 def check_catalogue(root: Path, errors: list[str], warnings: list[str]) -> None:

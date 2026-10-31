@@ -10,7 +10,7 @@ Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ P
 |---|---|---|
 | **Develop and Assess** | Ideas captured in `ideas/pipeline.json`; per idea `idea-brief.md` (problem, outcome, today's process, data, risk, people, fit, assumptions), `assessment.md` (knock-outs, the five foundations rated red, amber or green, RICE, the one thing, the recommendation) and `overview.md` for sponsors and the team; the ranked `ideas/pipeline.md` | The investment decision: Go, Get Ready (fix the named foundations, then a light re-assessment) or Stop |
 | **Spec** | `application-definition.md` (the solution choices: tier, deployment, interfaces, design, template, candidate assets, lenses), then the spec pack in `spec/` (index plus 13 documents, the as-is and to-be business process included), `composition.json`, the component selection and gaps (doc 12), traceability | The solution choices, requirements, composition, gaps and the delivery plan |
-| **Build and Audit** | The app in `app/`, epic by epic with tests; the spec conformance audit; a verification report | The audit and readiness |
+| **Build and Audit** | The app in `app/`, epic by epic with tests; the spec conformance audit; a verification report; `outcome.md` (did the Gate 1 assessment hold?) | The audit and readiness |
 | **Publish** | A dry-run report; on a typed confirmation, the repository | The release |
 
 ## Where things are
@@ -40,7 +40,8 @@ Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ P
 | `import_source.py <file> <slug>` | A supplied document (docx, md, txt, pdf) into versioned markdown, images and source IDs in `ideas/<slug>/source/` |
 | `verify.py --template <name>` | A template's checks from the registry, in clean containers |
 | `publish.py <slug> [--fix] [--create] [--public]` | The publish dry run; creates a repository only on a typed confirmation |
-| `check_factory.py [--fix]` | The factory agrees with itself: registry, schemas, context, ideas, the idea register and assessments, catalogue, generated tables |
+| `learned.py add / review / mark / outcome / check` | The learning loop: records gate answers that differed from a recommendation in `context/learned.md`, writes each built idea's `outcome.md` (Gate 3), and `review` turns repeated overrides, foundations rated wrongly, effort mis-estimated and repeated lessons into candidate changes for an approver; nothing changes by itself |
+| `check_factory.py [--fix]` | The factory agrees with itself: registry, schemas, context, ideas, the idea register and assessments, learned entries and outcomes, catalogue, generated tables |
 | `catalogue.py list / search / show / import / validate / approve / reject` | The catalogue and its safe importer (`catalogue/README.md`) |
 | `scan.py` | Static secret, script, instruction and licence checks (used by publish and the importer) |
 
