@@ -14,7 +14,7 @@ Mandatory for every idea in every business and brand. A project, a default or an
 | POL-08 | Stop and report after the same failure three times without a new approach. |
 | POL-09 | Personal or sensitive data is collected only when a requirement needs it, and the spec says why and how it is removed. |
 | POL-10 | A catalogue asset is reused only when its lifecycle status is `approved`. |
-| POL-11 | Only the data classes marked "yes" in the table below may be used in the factory: in an idea's files, its spec pack, its test data or a conversation with the assistant. Develop and Assess records the classes an idea needs in its assessment; if one is not allowed here, the idea is knocked out and the factory stops and asks. |
+| POL-11 | Only the data classes the table below allows may be used in the factory: in an idea's files, its spec pack, its test data, its build or a conversation with the assistant. "yes" is allowed; "only by approval" is allowed for a named idea once an approver for its scope has approved it, recorded with `pipeline.py approve-data` before the idea goes ahead; "synthetic only" allows made-up records of that kind, never real ones; "no" is not allowed. Develop and Assess records the classes an idea needs in its assessment; an idea that needs a class answered "no" is knocked out, and the factory stops and asks. |
 
 ## Data classes (POL-11)
 Answer every double-braced placeholder in the table: `check_factory.py` reports each one as a problem until it is gone. Use the organisation's own classification names; add or remove rows as needed.
@@ -23,6 +23,6 @@ Answer every double-braced placeholder in the table: `check_factory.py` reports 
 |---|---|---|---|
 | Public | Published material, the public website | yes | none |
 | Internal | Process documents, system names, internal reference data | yes | none |
-| Confidential | Commercial terms, unreleased plans, customer lists | no | only when the owner approves it for a named idea, recorded in that idea's decisions.md |
-| Personal data | Names, contact details, account numbers of people | no | synthetic test data only; no real people's data |
+| Confidential | Commercial customer and supplier records (house builders, merchants), quotes and prices, commercial terms, unreleased plans | only by approval | an approver for the idea's scope approves it for that idea; recorded in its assessment (`data_approvals`) and `decisions.md` |
+| Personal data | Names, contact details, account numbers of people (a named contact at a customer included) | synthetic only | synthetic test data only; no real people's data |
 | Special category | Health, biometric or other special-category personal data | no | none |

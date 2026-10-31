@@ -10,6 +10,7 @@ Usage:
   python factory/scripts/pipeline.py decide <slug> go|get-ready|stop --reply "..." [--reason "..."]
         [--route full|light [--timebox N]] [--fix data,risk --owner "..." [--review YYYY-MM-DD]]   Gate 1
   python factory/scripts/pipeline.py reassess <slug>         after Get Ready: a light re-assessment, not a restart
+  python factory/scripts/pipeline.py approve-data <slug> <class> --by <approver> --reply "..."   POL-11: a class allowed only by approval
   python factory/scripts/pipeline.py light <slug> grow|keep|stop --reply "..." [--tier 2|3|4] [--reason "..."]
                                                              Gate 3 of the light route (a spike); grow names the tier
 
@@ -175,7 +176,8 @@ def develop(reg: dict, ref: str, slug: str | None = None, root: Path | None = No
 
 # ---------------------------------------------------------------- data classes (POL-11)
 def class_table(path: Path) -> dict[str, tuple[str, str]]:
-    """{class (lower case): (verdict, note)} from a policies.md data-classes table; verdict is yes, no or conditional."""
+    """{class (lower case): (verdict, note)} from a policies.md data-classes table; verdict is yes, no, approval (allowed
+    for a named idea once approved) or conditional (allowed on another condition, such as synthetic data only)."""
     out: dict[str, tuple[str, str]] = {}
     header: list[str] = []
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -196,6 +198,8 @@ def class_table(path: Path) -> dict[str, tuple[str, str]]:
         plain = answer.lower()
         if plain.startswith("no"):
             verdict = "no"
+        elif "approv" in plain:
+            verdict = "approval"
         elif plain.startswith("yes") and conditions.lower() in ("", "none", "-", "n/a"):
             verdict = "yes"
         else:
@@ -209,7 +213,7 @@ def class_rules(scope: str, root: Path | None = None) -> tuple[dict[str, tuple[s
     """The data classes for a scope across every layer's policies.md (the strictest answer wins), and the files read."""
     reg = scopes.registry(root)
     files = [p for p in scopes.context_files(scopes.parse(scope, reg), root) if p.name == "policies.md"]
-    rank = {"yes": 0, "conditional": 1, "no": 2}
+    rank = {"yes": 0, "conditional": 1, "approval": 2, "no": 3}
     rules: dict[str, tuple[str, str]] = {}
     used = []
     for path in files:
@@ -223,8 +227,32 @@ def class_rules(scope: str, root: Path | None = None) -> tuple[dict[str, tuple[s
 
 
 def conditions(a: dict, rules: dict[str, tuple[str, str]]) -> list[str]:
-    return [f"{c}: {rules[c.lower()][1] or 'conditional'}" for c in a.get("data_classes", [])
-            if rules.get(c.lower(), ("yes", ""))[0] == "conditional"]
+    out = []
+    approved = {x["class"].lower(): x for x in a.get("data_approvals", [])}
+    for c in a.get("data_classes", []):
+        verdict, note = rules.get(c.lower(), ("yes", ""))
+        if verdict == "approval":
+            x = approved.get(c.lower())
+            out.append(f"{c}: approved by {x['by']} ({x['date']})" if x else f"{c}: needs approval (POL-11)")
+        elif verdict == "conditional":
+            out.append(f"{c}: {note or 'conditional'}")
+    return out
+
+
+def unapproved(a: dict, rules: dict[str, tuple[str, str]]) -> list[str]:
+    """The data classes the idea needs that POL-11 allows only by approval, and that are not approved yet."""
+    approved = {x["class"].lower() for x in a.get("data_approvals", [])}
+    return [c for c in a.get("data_classes", []) if rules.get(c.lower(), ("", ""))[0] == "approval" and c.lower() not in approved]
+
+
+def approvers(scope: str, root: Path | None = None) -> list[str]:
+    """Who may approve for a scope: the group's gate approvers and its business's (scopes.json); [] when none are set."""
+    reg = scopes.registry(root)
+    people = list(reg.get("group", {}).get("approvers", {}).get("gates", []))
+    business = scopes.parse(scope, reg).get("business") if scope else None
+    if business:
+        people += reg.get("businesses", {}).get(business, {}).get("approvers", {}).get("gates", [])
+    return people
 
 
 # ---------------------------------------------------------------- the assessment
@@ -326,6 +354,13 @@ def assessment_problems(a: dict, slug: str, root: Path | None = None, *, complet
         barred = [c for c in a["data_classes"] if rules.get(c.lower(), ("", ""))[0] == "no"]
         if barred and not a.get("knockout"):
             out.append(f"needs {', '.join(barred)}, which POL-11 does not allow; knock it out (rule data-class)")
+        needed = {c.lower() for c in a["data_classes"]}
+        out += [f"data_approvals: {x['class']} is not a class this idea needs (data_classes)"
+                for x in a.get("data_approvals", []) if x["class"].lower() not in needed]
+        waiting = unapproved(a, rules)
+        if waiting and not a.get("knockout"):
+            warn.append(f"needs {', '.join(waiting)}, which POL-11 allows only by approval: ask for it at Gate 1 "
+                        "(pipeline.py approve-data); the idea cannot go ahead without it")
     ko = a.get("knockout")
     if ko:
         out += knockout_problems(ko, slug, base, reg or load(root))
@@ -618,6 +653,11 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
         raise lib.FactoryError("a knocked-out idea can only be stopped; to overrule the knock-out, remove it and rate the idea first")
     if decision == "go" and reds:
         raise lib.FactoryError(f"a Go cannot have a red foundation ({', '.join(reds)})")
+    if decision == "go":
+        waiting = unapproved(a, class_rules(idea_scope(state, load(root), slug), root)[0])
+        if waiting:
+            raise lib.FactoryError(f"a Go needs the approval POL-11 asks for {', '.join(waiting)} first "
+                                   f"(pipeline.py approve-data {slug} <class> --by <approver> --reply \"...\")")
     route = route or d.get("route") or "full"
     if route not in ("full", "light"):
         raise lib.FactoryError(f"the route is full or light, not {route!r}")
@@ -682,6 +722,31 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
         state.update(status="stopped", next=f"Stopped at Gate 1: {d['reason']}")
     lib.save_state(slug, state, root)
     return state
+
+
+def approve_data(slug: str, data_class: str, by: str, reply: str, root: Path | None = None) -> dict:
+    """POL-11: record an approver's approval for a data class the policy allows only by approval. Returns the assessment."""
+    state = lib.load_state(slug, root)
+    idea = lib.idea_dir(slug, root)
+    a, bad = read_assessment(idea, root)
+    if a is None or bad:
+        raise lib.FactoryError(f"ideas/{slug}/{ASSESSMENT} cannot be read" + (": " + "; ".join(bad) if bad else ""))
+    scope = idea_scope(state, load(root), slug)
+    rules = class_rules(scope, root)[0]
+    name = next((c for c in a["data_classes"] if c.lower() == data_class.lower()), None)
+    if name is None:
+        raise lib.FactoryError(f"{data_class} is not a class this idea needs (data_classes: {', '.join(a['data_classes']) or 'none'})")
+    if rules.get(name.lower(), ("", ""))[0] != "approval":
+        raise lib.FactoryError(f"POL-11 does not ask for approval for {name} ({rules.get(name.lower(), ('not in the table', ''))[0]})")
+    people = approvers(scope, root)
+    if people and by not in people:
+        raise lib.FactoryError(f"{by} is not an approver for {scope} (scopes.json: {', '.join(people)})")
+    if not reply.strip():
+        raise lib.FactoryError("the approval needs the approver's words (--reply)")
+    a["data_approvals"] = [x for x in a.get("data_approvals", []) if x["class"].lower() != name.lower()]
+    a["data_approvals"].append({"class": name, "by": by, "date": lib.today(), "reply": reply})
+    write_assessment(idea, a)
+    return a
 
 
 def reassess(slug: str, root: Path | None = None) -> dict:
@@ -768,6 +833,7 @@ def main(argv: list[str]) -> int:
         timebox = option(args, "--timebox")
         owner = option(args, "--owner")
         review = option(args, "--review")
+        by = option(args, "--by")
         source = option(args, "--source") or "single"
         reg = load()
         if args == ["capture"]:
@@ -812,6 +878,10 @@ def main(argv: list[str]) -> int:
         if len(args) == 3 and args[0] == "light" and reply:
             state = end_light(args[1], args[2], reply, reason, tier=int(tier) if tier else None)
             print(f"pipeline: {args[1]} light route: {LIGHT_RESULTS[args[2]]}; {state['next']}")
+            return 0
+        if len(args) == 3 and args[0] == "approve-data" and by and reply:
+            approve_data(args[1], args[2], by, reply)
+            print(f"pipeline: {args[2]} approved for {args[1]} by {by} (POL-11); record it in decisions.md too")
             return 0
         if len(args) == 2 and args[0] == "reassess":
             a = reassess(args[1])

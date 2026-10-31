@@ -310,11 +310,42 @@ def test_an_unknown_data_class_is_a_problem(reg, classes):
 
 
 def test_a_conditional_class_is_not_a_knock_out_but_is_shown(reg, classes):
-    developed(classes, reg, "Price list tool", classes=("Confidential", "Internal"))
+    developed(classes, reg, "Price list tool", classes=("Personal data", "Internal"))
     assert pipeline.problems(reg, classes) == []
     report = pipeline.render(reg, classes)
-    assert "Confidential: only by approval; a named approver" in report
+    assert "Personal data: yes; synthetic test data only" in report
     assert "factory/context/policies.md" in report
+
+
+def test_a_class_allowed_only_by_approval_needs_it_before_a_go(reg, classes):
+    slug = developed(classes, reg, "Quote tracker for house builders", classes=("Confidential", "Internal"))
+    assert pipeline.class_rules("group", classes)[0]["confidential"][0] == "approval"
+    assert pipeline.problems(reg, classes) == []  # not a knock-out
+    assert "Confidential: needs approval (POL-11)" in pipeline.render(reg, classes)
+    f = gate_findings(classes, slug)
+    assert f.blockers == [] and any("allows only by approval" in w for w in f.warnings)
+    with pytest.raises(lib.FactoryError, match="needs the approval POL-11 asks for Confidential"):
+        pipeline.decide(slug, "go", "go", root=classes)
+    with pytest.raises(lib.FactoryError, match="does not ask for approval for Internal"):
+        pipeline.approve_data(slug, "Internal", "steadytack", "yes", root=classes)
+    with pytest.raises(lib.FactoryError, match="not a class this idea needs"):
+        pipeline.approve_data(slug, "Special category", "steadytack", "yes", root=classes)
+    a = pipeline.approve_data(slug, "confidential", "steadytack", "yes: the builders' quotes only, for the prototype", root=classes)
+    assert a["data_approvals"] == [{"class": "Confidential", "by": "steadytack", "date": lib.today(),
+                                    "reply": "yes: the builders' quotes only, for the prototype"}]
+    assert f"Confidential: approved by steadytack ({lib.today()})" in pipeline.render(reg, classes)
+    assert not any("allows only by approval" in w for w in gate_findings(classes, slug).warnings)
+    assert pipeline.decide(slug, "go", "go", root=classes)["stage"] == "spec"
+
+
+def test_only_an_approver_for_the_scope_may_approve_data(reg, classes):
+    (classes / "factory/context/scopes.json").write_text(
+        '{"schema_version": 1, "group": {"name": "Org", "approvers": {"gates": ["steadytack"], "catalogue": ["steadytack"]}}, '
+        '"businesses": {}, "brands": {}}', encoding="utf-8")
+    slug = developed(classes, reg, "Quote tracker", classes=("Confidential",))
+    with pytest.raises(lib.FactoryError, match="someone is not an approver for group"):
+        pipeline.approve_data(slug, "Confidential", "someone", "yes", root=classes)
+    assert pipeline.approve_data(slug, "Confidential", "steadytack", "yes", root=classes)["data_approvals"][0]["by"] == "steadytack"
 
 
 def test_the_strictest_layer_wins(classes):

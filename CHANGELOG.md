@@ -2,6 +2,13 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.8.0 (2026-10-31)
+POL-11 said "no" to Confidential and Personal data while its conditions described allowing them, and the scripts read the "no", so an idea needing commercial customer data was knocked out even with approval. Changed by the group approver (steadytack).
+- **POL-11:** Confidential (commercial customer and supplier records such as house builders and merchants, quotes and prices, commercial terms, unreleased plans) is now **only by approval**: allowed for a named idea once an approver for its scope approves it. Personal data (a named contact at a customer included) is **synthetic only**. Special category stays **no**. The policy text says what each answer means.
+- **`pipeline.py approve-data <slug> <class> --by <approver> --reply "..."`** records the approval in the assessment (`data_approvals`, new in the schema), refusing a class the idea does not need, a class the policy does not ask approval for, or someone who is not a gate approver for the idea's scope (`scopes.json`). `decide ... go` refuses while an approval is missing; the Gate 1 check warns, so the approval is asked for at the gate; `ideas/pipeline.md` shows "needs approval" or "approved by ... (date)" beside the score. The data-class table reader gains an `approval` answer (stricter than another condition, less strict than no).
+- `develop-assess.md` (the data-class knock-out rule, Gate 1's decisions, data approvals) and `factory/README.md` follow.
+- Migration: none; no idea had recorded data classes.
+
 ## 0.7.0 (2026-10-31)
 The tiers say only how mature a build is; data and protection are their own decisions.
 - **Only a spike takes the light route.** Tier 1 keeps the one-page `plan.md` and no spec pack; "go as a prototype" and the light route's `tier` are removed. A spike's Gate 3 grow must name the tier it grows to (`pipeline.py light <slug> grow --tier 2|3|4`; no default), and `scaffold.py definition` starts from that tier.

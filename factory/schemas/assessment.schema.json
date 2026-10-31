@@ -12,6 +12,21 @@
     "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
     "period": { "type": "string", "minLength": 1, "description": "The period Reach is counted over (per month, per quarter...)" },
     "data_classes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "data_approvals": {
+      "type": "array",
+      "description": "POL-11: approvals for data classes the policy allows only by approval, one per class (pipeline.py approve-data)",
+      "items": {
+        "type": "object",
+        "required": ["class", "by", "date", "reply"],
+        "additionalProperties": false,
+        "properties": {
+          "class": { "type": "string", "minLength": 1 },
+          "by": { "type": "string", "minLength": 1, "description": "An approver for the idea's scope (scopes.json)" },
+          "date": { "type": "string", "format": "date" },
+          "reply": { "type": "string", "minLength": 1, "description": "The approver's words, and any limits (which records, for how long)" }
+        }
+      }
+    },
     "knockout": {
       "type": "object",
       "required": ["rule", "reason"],

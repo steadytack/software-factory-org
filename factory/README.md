@@ -31,7 +31,7 @@ Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the
 ## Scripts
 | Script | Does |
 |---|---|
-| `pipeline.py capture / add / develop / check / render / decide / reassess` | Develop and Assess: captures ideas from `ideas/inbox.md` or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1 (Go, Go as a spike, Get Ready with an owner and a review date, Stop), `reassess` reopens a Get Ready idea, `light` records a spike's Gate 3 (grow to a tier, keep, stop); overdue Get Ready ideas are flagged |
+| `pipeline.py capture / add / develop / check / render / decide / reassess / approve-data / light` | Develop and Assess: captures ideas from `ideas/inbox.md` or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1 (Go, Go as a spike, Get Ready with an owner and a review date, Stop), `reassess` reopens a Get Ready idea, `light` records a spike's Gate 3 (grow to a tier, keep, stop); overdue Get Ready ideas are flagged; `approve-data` records an approver's yes for a data class POL-11 allows only by approval |
 | `scaffold.py new <slug> --name "..."` | Creates `ideas/<slug>/` with the brief and assessment stubs (`pipeline.py develop` calls it) |
 | `scaffold.py overview <slug>` | The overview, filled from the assessment (Gate 1) |
 | `scaffold.py plan <slug>` | A spike's plan (`plan.md`), when a spike is recommended |
