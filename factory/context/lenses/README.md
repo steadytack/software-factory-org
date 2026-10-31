@@ -1,17 +1,19 @@
 # Lenses
 
-Discovery frameworks for Develop and Assess and for Spec. They are **activated per project**, not a questionnaire every idea must complete. Develop and Assess draws on the two that are always on to write the idea brief; Spec records which lenses apply and why (in the Application Definition), and the ones not used are listed with a one-line reason.
+Discovery frameworks, used twice:
+- **Screening, in Develop and Assess, for every idea.** Four lenses carry a short **Screening** block, one per foundation it informs. Their questions are answered in the idea brief (or listed there as unknowns), and each foundation's rating gives its reason from those answers. The screening is short: a few questions, not a discovery exercise.
+- **Discovery, in Spec, activated per project**, not a questionnaire every idea must complete. Spec records which lenses apply and why (in the Application Definition), and the ones not used are listed with a one-line reason.
 
-| Lens | Always on? | Feeds spec docs |
-|---|---|---|
-| [business-value](business-value.md) | Yes | 01, 02 |
-| [users-and-workflows](users-and-workflows.md) | Yes | 02, 03, 04, 08 |
-| [data-and-integrations](data-and-integrations.md) | When data is stored or exchanged | 06, 10 |
-| [architecture](architecture.md) | When there is more than one component or a server | 10, 12 |
-| [security](security.md) | When there are users, stored data or exposure (tier 3+ always) | 07, 05 |
-| [ux-and-accessibility](ux-and-accessibility.md) | When there is a visual interface | 04, 05 |
-| [operations](operations.md) | When it runs as a service or a job (tier 2+) | 05, 10 |
-| [cost-and-maintainability](cost-and-maintainability.md) | When there are outside services, keys or licences | 10, 12 |
+| Lens | Screens foundation (Develop and Assess) | Active in Spec | Feeds spec docs |
+|---|---|---|---|
+| [business-value](business-value.md) | Problem, Value | Always | 01, 02 |
+| [users-and-workflows](users-and-workflows.md) | People & Process | Always | 02, 03, 04, 08 |
+| [data-and-integrations](data-and-integrations.md) | Data Foundations | When data is stored or exchanged | 06, 10 |
+| [architecture](architecture.md) | - | When there is more than one component or a server | 10, 12 |
+| [security](security.md) | Risk | When there are users, stored data or exposure (tier 3+ always) | 07, 05 |
+| [ux-and-accessibility](ux-and-accessibility.md) | - | When there is a visual interface | 04, 05 |
+| [operations](operations.md) | - | When it runs as a service or a job (tier 2+) | 05, 10 |
+| [cost-and-maintainability](cost-and-maintainability.md) | - | When there are outside services, keys or licences | 10, 12 |
 
 ## Rules for questions
 - Ask only questions whose answer changes a meaningful decision (architecture, cost, risk, usability, delivery). Questions answered by `defaults.md`, `policies.md` or the source material are listed as answered, not asked.

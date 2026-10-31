@@ -2,6 +2,9 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.3.1 (2026-10-30)
+- **Lens screening for the five foundations.** `business-value` (Problem, Value), `users-and-workflows` (People & Process), `data-and-integrations` (Data Foundations) and `security` (Risk) each carry a short **Screening** block, answered in the idea brief for every idea in Develop and Assess, whether or not the lens is activated later in Spec. A foundation is rated on its screening answers (green: all answered with evidence; amber: resting on assumptions; red: unanswered or a blocker), so a rating is evidence rather than a first impression and fewer problems surface only in Spec. `develop-assess.md`, `context/lenses/README.md` (a "Screens foundation" column) and `context/README.md` say so. Guidance only: no script, schema or check changes.
+
 ## 0.3.0 (2026-10-30)
 A one-line idea cannot be assessed, so an idea is now developed before it is assessed, and assessed before anything is specified. The flow is Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done.
 - **Stage 1, Develop and Assess** (`factory/stages/develop-assess.md`) replaces Stage 0 Triage and Stage 1 Analyse (`triage.md` and `analyse.md` removed). Capture (inbox, a single idea or a supplied document; no filtering), then a 1-2 page **idea brief** per idea (`factory/project-files/idea-brief.md`: problem, outcome and success measures, today's process, data, risk, people and process, strategic fit, assumptions and unknowns; at most one question round), then an **assessment** (`factory/project-files/assessment.md`, schema `assessment.schema.json`): knock-outs, the **five foundations** (Problem, Value, Data Foundations, Risk, People & Process) each red, amber or green with a reason, RICE from the brief's evidence, and **the one thing** to know or fix before investing.

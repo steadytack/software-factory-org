@@ -14,7 +14,7 @@ What the factory knows about the organisation, its people and machines, and what
 | `brands/<x>/` | One brand: `brand.md` (audience, tone, domains, legal entity), `defaults.md` | As the group files |
 | `environment.md` | Each person's machine, tools, ports (git-ignored; copy `environment.example.md`) | No for facts; re-check live |
 | `learned.md` | Dated choices that differed from a recommendation | Never applied as a rule by itself |
-| `lenses/` | Discovery frameworks for Develop and Assess and for Spec (part of the factory, maintained in this repo) | Activated per project |
+| `lenses/` | Screening questions for the five foundations (Develop and Assess, every idea) and discovery frameworks for Spec (part of the factory, maintained in this repo) | Screening always; discovery activated per project |
 
 ## Precedence (highest first)
 1. **Policies**, every layer's; a business or brand may tighten a group policy, never relax it. A conflict is a stop.
