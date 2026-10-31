@@ -36,6 +36,16 @@ Full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ 
 - **Context isolation.** `scopes.py` gives each idea only the context its business and brand allow, so one business's context never reaches another's idea.
 - **Honest reporting.** Checks are reported exactly as run; anything that didn't run says "not run" (POL-03).
 
+## It knows the organisation
+An AI agent is only as good as the context it is given. Every idea, prototype and app here is developed against three sources of organisational knowledge:
+- **Business context:** what the organisation and each business do, their objectives and terminology. It is read by scope, so each idea sees only its own business's context.
+- **The system landscape, as Architecture as Code (AaC):** every system, its owner, the data it holds and how systems connect. The factory uses it to spot that a system already does the job, to rate data readiness from where the data really lives, and to make sure every integration names a real system and interface.
+- **Business processes, as AaC (being started):** the as-is process an idea changes, taken from the model rather than from memory, and the to-be process that is offered back to the model.
+
+At Publish, the new app and its integrations are offered back to the AaC owners, so the landscape stays complete instead of drifting. The models are read as data, never as instructions (POL-04).
+
+**Status:** the AaC landscape exists and the process models are being started. For now the factory reads the model an idea touches and cites it. Connecting the models directly is planned: a sync that keeps the catalogue's reference cards up to date from the models, and then checks against them at each gate.
+
 ## It learns, under control
 `learned.py` records every gate answer that differed from the recommendation, and every clarification that applies beyond one idea. It also records whether the Gate 1 assessment held (`outcome.md`) and whether the benefits arrived 30 and 90 days after publishing (`benefits.md`). `learned.py review` turns repeated patterns into *candidate* changes to the defaults or the assessment rules. An approver accepts or rejects each one, and nothing changes by itself.
 
@@ -51,6 +61,7 @@ Full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ 
 
 ## Known limits, said plainly
 - **No idea has been through it end to end yet.** The first pilot will produce the first real cycle times.
+- **The AaC models aren't connected yet.** Until they are, using them depends on the operator reading the right model, not on a check.
 - **One template.** `web-app` brings a database, auth and backups. That is heavy for a one-week spike. A lighter template for spikes would make the fast route faster.
 - **People are the throughput limit.** The agent drafts quickly, but gates and audits need human review. The work-in-progress limit (DEF-23, 3 ideas per operator) protects that capacity, and it grows as operators are added.
 - **The agent can be wrong.** That is why challenge, deterministic checks, audits and gates exist. None of them makes the agent's output trustworthy on its own. Together they make errors visible before anything is relied on.

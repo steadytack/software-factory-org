@@ -16,6 +16,8 @@ Data and protection are decided separately, per idea.
 
 The factory develops ideas; it does not filter them. An early or rough idea is worked on with its unknowns stated, an unknown is amber not red, and an idea whose questions a small build would answer goes on the light route as a spike. At Gate 1, say plainly whether a spike fits and why (`factory/stages/light.md`, When): it is the fast route, and often the right first step, but it is recommended on the idea's merits, never by default (DEF-01).
 
+Every idea is developed knowing the organisation: its business context, its system landscape and its processes, described as Architecture as Code (`factory/context/README.md`, "What the factory knows about the organisation"). Name the existing systems an idea uses, replaces or overlaps, and the process it changes, from those sources, and cite them.
+
 Every rule lives in plain files (`factory/`), so another model or a person can continue from them. This skill only orchestrates.
 
 ## Every run

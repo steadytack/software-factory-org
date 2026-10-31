@@ -30,6 +30,9 @@ Don't worry about having all the answers. "I don't know" is a fine answer. The t
 - **Business prototype**: does real work for a team, kept simple underneath.
 - **Production app**: relied on, fully tested, supported and looked after.
 
+## It already knows a lot
+The factory works from what the organisation already knows about itself: what each business does, every system we run and how they connect, and how our processes work. So you don't need to explain our systems. Say what's wrong, and the team will work out what already exists and what would change.
+
 ## What keeps it safe
 - Nothing goes outside the organisation, or into a live system, without a person approving it.
 - Only the kinds of information the organisation allows are used. Personal or confidential data needs extra approval, or made-up test data instead.

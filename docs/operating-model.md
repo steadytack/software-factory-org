@@ -9,6 +9,8 @@ How Organisation A runs the factory day to day: who does what, how often, and wh
 | **Factory operator** | Runs `/factory` in Claude Code: drafts briefs and assessments, builds spikes and apps, and prepares each gate page | to be named (IT, a small rota), each listed in `scopes.json` `group.operators` |
 | **Gate approver** | Decides at the gates: Go, Go as a spike, Get Ready or Stop at Gate 1; approves the spec, the build and the release | the gate approvers in `factory/context/scopes.json` |
 | **Idea owner** | The person or team the idea is for: answers questions, tries the spike, owns the success measures | the submitter, or someone they name |
+| **Architecture owner** | Owns the AaC model of the system landscape: answers questions about a system, and adds new apps and integrations to the model when the factory offers them at Publish | to be named (the AaC team) |
+| **Process owner** | Owns a process model: confirms the as-is an idea starts from, and adds its to-be once the app is live | to be named, per process |
 | **Catalogue maintainer** | Approves reusable assets and checks each system's reference card | the catalogue approvers in `scopes.json`, and each card's maintainer |
 | **Supporting team** | Takes over an app at tier 4: support, monitoring, backups, its retirement plan | the IT team that owns that service |
 
@@ -18,6 +20,7 @@ How Organisation A runs the factory day to day: who does what, how often, and wh
 | Weekly | Triage the inbox; reply to every submitter |
 | Every two weeks | Gate 1 decision meeting: the ranked `ideas/pipeline.md`, Get Ready ideas past their review date, and spikes ending at Gate 3 |
 | Monthly | `python factory/scripts/status.py` and the cycle times to leadership; `learned.py review` for changes to the factory |
+| Each publish | The new app, its integrations and its to-be process offered to the architecture and process owners for their models |
 | 30 and 90 days after publishing | The benefits review (`factory/stages/publish.md`) |
 
 ## Targets

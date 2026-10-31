@@ -10,6 +10,7 @@ Idea card ─→ Assess (days) ─→ Gate 1: decide ─→ Spike (about a week)
 ## Why
 - **Faster:** most ideas start as a spike, a working version in about a week, instead of a project.
 - **Cheaper to be wrong:** a spike that fails costs a week, and the factory records what it learned.
+- **Built knowing the organisation:** every idea is developed against our business context, our system landscape and our processes (described as Architecture as Code), so it builds on what exists instead of duplicating it.
 - **Reuse:** apps are built from the organisation's approved building blocks and templates where they fit.
 - **Evidence:** every idea is assessed before money is spent, and every published app is reviewed after 30 and 90 days against its success measures.
 

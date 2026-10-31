@@ -21,6 +21,10 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 | **POL-nn** | A policy: a rule that applies to every idea and is never broken. | `factory/context/group/policies.md` |
 | **DEF-nn** | A default: what the factory does unless an idea decides otherwise. | `factory/context/group/defaults.md` |
 | **Lens** | A set of questions from one point of view (security, operations, cost and so on), used in the assessment and, where it applies, in the spec. | `factory/context/lenses/README.md` |
+| **Architecture as Code (AaC)** | The organisation's system landscape, and increasingly its processes, described as code and kept up to date by their owners. It is the factory's source of truth for what exists. | `factory/context/group/system-landscape.md` |
+| **System landscape** | Every system the organisation runs, who owns it, the data it holds and how systems connect. | `factory/context/group/system-landscape.md` |
+| **Process model** | How a piece of work is done today, step by step and who does it, as AaC. The starting point for an idea's as-is process (doc 13). | `factory/context/group/system-landscape.md` |
+| **Reference card** | A catalogue entry for a system, process or policy that already exists. It points at its source of truth and has a maintainer who confirms it each year. | `catalogue/README.md` |
 | **Catalogue** | Approved, reusable building blocks, plus reference cards for the organisation's systems, which new apps are built from where they fit. | `catalogue/README.md` |
 | **Template** | The starting point an app is built from, with its stack and standards. | `templates/` |
 | **Audit** | The checks before Gate 3, spec conformance first: does the app do what was specified? | `factory/stages/audit.md` |
