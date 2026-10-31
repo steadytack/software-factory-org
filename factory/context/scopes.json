@@ -2,6 +2,7 @@
   "schema_version": 1,
   "group": {
     "name": "Organisation A",
+    "operators": ["steadytack"],
     "approvers": { "gates": ["steadytack"], "catalogue": ["steadytack"] },
     "publish": { "owner": "steadytack", "visibility": "private", "licence": "proprietary", "copyright": "Organisation A" }
   },

@@ -110,12 +110,14 @@ def view(root: Path | None = None) -> dict:
             "changes": parse_changes(base / "ideas" / slug / "changes.md"),
             "docs": idea_docs(base, slug) if SLUG.match(slug) else [],
         })
-    factory_docs = [p for p in ["README.md", "factory/README.md", "docs/personal-software-factory-spec-v0.1.md", "CHANGELOG.md", "CLAUDE.md"]
+    factory_docs = [p for p in ["docs/overview-for-leaders.md", "docs/for-staff.md", "docs/for-technical-leaders.md", "README.md", "factory/README.md", "docs/operating-model.md",
+                                    "docs/glossary.md", "CHANGELOG.md", "CLAUDE.md"]
                     if (base / p).exists()]
     factory_docs += sorted(p.relative_to(base).as_posix() for p in (base / "factory" / "stages").glob("*.md")) if (base / "factory" / "stages").is_dir() else []
     factory_docs += [pipeline.REPORT] if (base / pipeline.REPORT).exists() else []
     return {
         "pipeline": pipeline.summary(base),
+        "cycle": status.cycle_line(status.cycle_times(status.collect(base), base)),
         "overview": "README.md",
         "ideas": ideas,
         "apps": [{"slug": i["slug"], "name": i["name"], **i["app"]} for i in ideas if i["app"]],

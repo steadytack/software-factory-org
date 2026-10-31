@@ -2,7 +2,8 @@
 """Stage 1, Develop and Assess: capture ideas, develop each into a brief, assess it, rank them, record Gate 1.
 
 Usage:
-  python factory/scripts/pipeline.py capture                 add every line of ideas/inbox.md not yet captured (made if missing)
+  python factory/scripts/pipeline.py capture                 add every line of ideas/inbox.md (made if missing) and every
+                                                             row of ideas/inbox.csv (the idea card) not yet captured
   python factory/scripts/pipeline.py add "<idea>" [--source document]   add one idea
   python factory/scripts/pipeline.py develop IDEA-nnn [<slug>]          make ideas/<slug>/ with the brief and assessment stubs
   python factory/scripts/pipeline.py check                   validate ideas/pipeline.json and every assessment
@@ -26,6 +27,7 @@ a class answered "no" there must be knocked out. Rules: factory/stages/develop-a
 
 from __future__ import annotations
 
+import csv
 import datetime as dt
 import json
 import re
@@ -39,6 +41,11 @@ import scopes  # noqa: E402
 
 REGISTER = "ideas/pipeline.json"
 INBOX = "ideas/inbox.md"
+INBOX_CSV = "ideas/inbox.csv"
+# The idea card's questions (factory/project-files/idea-card.md), as the columns of ideas/inbox.csv; any form
+# tool's export works once its headers are these. Other columns (a timestamp, an email) are ignored, never stored.
+CARD_COLUMNS = [("title", ""), ("problem", ""), ("who", "Who it affects"), ("today", "How it's done today"),
+                ("better", "What better looks like"), ("data", "Data it touches")]
 REPORT = "ideas/pipeline.md"
 ASSESSMENT = "assessment.md"
 BRIEF = "idea-brief.md"
@@ -123,6 +130,28 @@ def inbox_lines(root: Path | None = None) -> list[str]:
     return out
 
 
+def inbox_csv_ideas(root: Path | None = None) -> list[str]:
+    """One idea per row of ideas/inbox.csv; a row without a problem is not an idea. The title, if given, leads."""
+    path = (root or lib.ROOT) / INBOX_CSV
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8-sig", newline="") as fh:  # utf-8-sig: spreadsheet exports start with a BOM
+        rows = list(csv.DictReader(fh))
+    out = []
+    for row in rows:
+        cells = {(k or "").strip().lower(): (v or "").strip() for k, v in row.items() if isinstance(v, str)}
+        if not cells.get("problem"):
+            continue
+        head = f"{cells['title']}: {cells['problem']}" if cells.get("title") else cells["problem"]
+        rest = [f"{label}: {cells[key]}." for key, label in CARD_COLUMNS[2:] if cells.get(key)]
+        out.append(" ".join([head.rstrip(".") + ".", *rest]))
+    return out
+
+
+def inbox_ideas(root: Path | None = None) -> list[str]:
+    return inbox_lines(root) + inbox_csv_ideas(root)
+
+
 def next_id(reg: dict) -> str:
     used = [int(e["id"][5:]) for e in reg["entries"] if re.match(r"^IDEA-\d{3}$", e.get("id", ""))]
     return f"IDEA-{max(used, default=0) + 1:03d}"
@@ -139,12 +168,12 @@ def add(reg: dict, idea: str, source: str = "single") -> dict | None:
 
 def capture(reg: dict, root: Path | None = None) -> list[dict]:
     ensure_inbox(root)
-    return [e for e in (add(reg, line, "inbox") for line in inbox_lines(root)) if e]
+    return [e for e in (add(reg, line, "inbox") for line in inbox_ideas(root)) if e]
 
 
 def not_captured(reg: dict, root: Path | None = None) -> list[str]:
     known = {norm(e["idea"]) for e in reg["entries"]}
-    return [line for line in inbox_lines(root) if norm(line) not in known]
+    return [line for line in inbox_ideas(root) if norm(line) not in known]
 
 
 def find(reg: dict, ref: str) -> dict:
@@ -531,7 +560,8 @@ DEFAULTS = ("factory/context/group/defaults.md", "factory/context/defaults.md")
 
 
 def wip_limit(root: Path | None = None) -> int | None:
-    """The most ideas past Gate 1 and not yet published at once (DEF-23's first number), or None when unset."""
+    """The most ideas past Gate 1 and not yet published at once (DEF-23's first number), or None when unset.
+    When DEF-23 says "per operator", the number is multiplied by the operators in scopes.json (at least one)."""
     base = root or lib.ROOT
     for rel in DEFAULTS:
         path = base / rel
@@ -541,7 +571,10 @@ def wip_limit(root: Path | None = None) -> int | None:
             cells = [c.strip() for c in row.strip().strip("|").split("|")]
             if cells and cells[0] == WIP_DEFAULT and len(cells) > 2:
                 found = re.search(r"\d+", cells[2])
-                return int(found.group(0)) if found else None
+                if not found:
+                    return None
+                per = "per operator" in cells[2].lower()
+                return int(found.group(0)) * (max(1, len(scopes.registry(root)["group"].get("operators", []))) if per else 1)
     return None
 
 
@@ -586,7 +619,7 @@ def line(c: dict[str, int]) -> str:
 def summary(root: Path | None = None) -> str | None:
     """One line for status.py, or None with no register, no inbox and no assessments."""
     rows = assessed_ideas(root)
-    if not register_path(root).exists() and not inbox_lines(root) and not rows:
+    if not register_path(root).exists() and not inbox_ideas(root) and not rows:
         return None
     try:
         reg = load(root)
@@ -886,7 +919,7 @@ def main(argv: list[str]) -> int:
         if args == ["capture"]:
             added = capture(reg)
             save(reg)
-            print(f"pipeline: {len(added)} idea(s) captured from {INBOX}" + "".join(f"\n  {e['id']} {e['title']}" for e in added))
+            print(f"pipeline: {len(added)} idea(s) captured from the inbox" + "".join(f"\n  {e['id']} {e['title']}" for e in added))
             return 0
         if len(args) == 2 and args[0] == "add":
             entry = add(reg, args[1], source)

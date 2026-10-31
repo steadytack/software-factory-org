@@ -385,3 +385,15 @@ def test_a_challenge_with_nothing_found_is_a_warning(idea):
     text = path.read_text(encoding="utf-8")
     path.write_text(text.split("| 1 |")[0], encoding="utf-8")
     assert warned(findings(idea, assessment_only=True), "no challenges recorded")
+
+
+def test_tier_2_may_leave_out_the_production_documents(idea):
+    pack = idea  # only the missing-document findings are asserted, which need no template or catalogue
+    (pack / "spec/05-non-functional-requirements.md").unlink()
+    (pack / "spec/10-architecture-and-deployment.md").unlink()
+    assert blocked(findings(pack), "spec/10-architecture-and-deployment.md  missing")  # the fixture is tier 3
+    edit(pack / "application-definition.md", '"value": 3, "state": "accepted"', '"value": 2, "state": "accepted"')
+    f = findings(pack)
+    assert not blocked(f, ".md  missing") and warned(f, "spec/05-non-functional-requirements.md  missing (optional at tier 2")
+    (pack / "spec/07-security-and-permissions.md").unlink()
+    assert blocked(findings(pack), "spec/07-security-and-permissions.md  missing")

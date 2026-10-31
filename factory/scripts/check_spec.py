@@ -58,6 +58,8 @@ OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes", "transition")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
 DOC_SINCE = {"13-business-process": "0.2.0"}
+# A tier 2 exploration prototype may leave these out: the production thresholds and the deployment (specification-pack.md).
+TIER2_OPTIONAL = {"05-non-functional-requirements", "10-architecture-and-deployment"}
 PREMORTEM_SINCE = "0.9.0"
 PREMORTEM = re.compile(r"^##\s+Pre-mortem\s*$(.*?)(?=^##\s|\Z)", re.M | re.S | re.I)
 CHALLENGE_COLUMNS = ["#", "where", "challenge", "answer", "outcome"]
@@ -553,6 +555,8 @@ def check_pack(idea: Path, spec: Path, f: Findings, tier: int, deployment: str |
             since = DOC_SINCE.get(name)
             if since and started is not None and version_key(started) < version_key(since):
                 f.warn(f"spec/{name}.md", f"missing (required from factory {since}; this idea started on {started}: add it with a change request)")
+            elif tier <= 2 and name in TIER2_OPTIONAL:
+                f.warn(f"spec/{name}.md", "missing (optional at tier 2; add it when the tier is raised)")
             else:
                 f.block(f"spec/{name}.md", "missing")
     items, def_lines = parse(spec)

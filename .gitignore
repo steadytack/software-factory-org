@@ -15,6 +15,9 @@ backups/
 # Each person's machine (copy factory/context/environment.example.md)
 factory/context/environment.md
 
+# A form tool's export of idea cards: it may hold submitters' names or emails, which capture never stores
+ideas/inbox.csv
+
 # The shareable dashboard snapshot (python factory/scripts/dashboard.py --write)
 ideas/dashboard.html
 

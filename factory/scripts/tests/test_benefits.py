@@ -113,3 +113,10 @@ def test_no_limit_when_the_default_is_not_set(isolated):
             path.write_text("\n".join(r for r in path.read_text(encoding="utf-8").splitlines() if not r.startswith("| DEF-23")), encoding="utf-8")
     assert pipeline.wip_limit(isolated) is None
     assert "In flight" not in pipeline.render(pipeline.load(isolated), isolated)
+
+
+def test_the_limit_is_per_operator(isolated):
+    assert pipeline.wip_limit(isolated) == 3  # no scopes.json: one operator is assumed
+    scopes_file = isolated / "factory/context/scopes.json"
+    scopes_file.write_text(json.dumps({"schema_version": 1, "group": {"name": "Org", "operators": ["a", "b", "c"]}}), encoding="utf-8")
+    assert pipeline.wip_limit(isolated) == 9

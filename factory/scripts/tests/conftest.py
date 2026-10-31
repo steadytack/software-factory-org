@@ -57,7 +57,7 @@ def repo(tmp_path: Path) -> Path:
     for name in ("factory", "templates", "catalogue", "ideas", ".github", "docs"):
         if (REAL_ROOT / name).exists():
             shutil.copytree(REAL_ROOT / name, root / name, ignore=SKIP)
-    for name in ("README.md", "CLAUDE.md", "VERSION"):
+    for name in ("README.md", "CLAUDE.md", "VERSION", "CHANGELOG.md"):
         shutil.copy(REAL_ROOT / name, root / name)
     return root
 

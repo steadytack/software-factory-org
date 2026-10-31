@@ -7,7 +7,7 @@ Work through this list once, in order. Each step is done when `python factory/sc
 3. **Paste the general context file** into `factory/context/group/business-context.md`, and fill in the hosting and approved services in `group/defaults.md` (DEF-02, DEF-11).
 4. **Add the businesses and brands** to `scopes.json` (format: `factory/context/README.md`). Give each its folder when it has context of its own: `factory/context/businesses/<b>/`, `factory/context/brands/<x>/brand.md`. A business or brand without its own approvers uses the group's.
 5. **Create one reference card per main system** (and per key process or policy): `python factory/scripts/catalogue.py card system <name> --link URL --maintainer WHO --purpose TEXT`, then `catalogue.py confirm <id>` once its maintainer has checked it.
-6. **People.** Each person adds themselves to `factory/context/group/team.md` and copies `factory/context/environment.example.md` to `factory/context/environment.md` (git-ignored).
+6. **People.** Name the roles in `docs/operating-model.md` (intake triage, operators, the supporting team), and list the operators in `scopes.json` (`group.operators`: the work-in-progress limit, DEF-23, is per operator). Each person adds themselves to `factory/context/group/team.md` and copies `factory/context/environment.example.md` to `factory/context/environment.md` (git-ignored).
 7. **Run** `python factory/scripts/check_factory.py`. It should print `check_factory: OK`.
 
 Then try one small idea: `/factory <idea>` in Claude Code.

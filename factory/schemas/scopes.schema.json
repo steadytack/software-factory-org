@@ -36,6 +36,7 @@
       "additionalProperties": false,
       "properties": {
         "name": { "type": "string", "minLength": 1 },
+        "operators": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Who runs /factory (as in git user.name); the DEF-23 work-in-progress limit is per operator" },
         "approvers": { "$ref": "#/$defs/approvers" },
         "publish": { "$ref": "#/$defs/publish" }
       }

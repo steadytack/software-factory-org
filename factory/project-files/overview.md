@@ -1,6 +1,6 @@
 # {name}: overview
 
-For sponsors and the team: one document, readable without the factory. Plain language throughout, with no requirement IDs, codes or jargon. Written at the end of Develop and Assess from the idea brief and the assessment, and shown at Gate 1, the investment decision.
+For sponsors and the team: one document, readable without the factory. Plain language throughout, with no requirement IDs, codes or jargon. Written at the end of Develop and Assess from the idea brief and the assessment, and shown at Gate 1, the investment decision. Any term it must use is in the [glossary](../../docs/glossary.md).
 
 ## Executive summary
 

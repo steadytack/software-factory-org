@@ -1,10 +1,17 @@
 # Organisation A software factory
 
-Turns an idea, an existing specification or an imported project into a built, tested and audited application, assembled from the organisation's approved catalogue assets where possible. Ideas are developed with `/factory` in Claude Code. How the factory works: [factory/README.md](factory/README.md). First time here: [SETUP.md](SETUP.md).
+Turns an idea, an existing specification or an imported project into a built, tested and audited application, assembled from the organisation's approved catalogue assets where possible. Ideas are developed with `/factory` in Claude Code. Most start as a spike: a working version in about a week, then grow, keep or stop.
+
+- **Have an idea?** [docs/for-staff.md](docs/for-staff.md): what to send and what happens next.
+- **Leading or sponsoring it?** [docs/overview-for-leaders.md](docs/overview-for-leaders.md), the factory on one page.
+- **A technical or AI leader?** [docs/for-technical-leaders.md](docs/for-technical-leaders.md): how it works, the controls and its known limits.
+- **Running it?** [docs/operating-model.md](docs/operating-model.md) (who does what), [factory/README.md](factory/README.md) (how it works), [SETUP.md](SETUP.md) (first time here).
+- **A word you don't know?** [docs/glossary.md](docs/glossary.md).
 
 ```
-Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
-                   └─ a spike, tier 1 (plan.md) ─→ Build ─gate 3→ grow (to Spec at tier 2, 3 or 4) │ keep │ stop
+The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, about a week ─gate 3→ grow │ keep │ stop
+The full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
+                                  (a spike that grows joins the full route at Spec, at the tier the owner names)
 
 Tiers (factory/standards/tiers.md): 1 Spike · 2 Exploration prototype · 3 Business prototype · 4 Production app.
 Data and protection are decided separately, per idea.
@@ -17,6 +24,7 @@ Data and protection are decided separately, per idea.
 | `catalogue/` | Approved reusable assets and reference cards for the organisation's systems, processes and policies | The organisation |
 | `templates/` | Application templates the organisation chose | The organisation |
 | `ideas/<slug>/` | One project each | The factory, at the gates |
+| `docs/` | Plain-language guides: for staff, for leaders, for technical leaders, the operating model, the glossary | The organisation |
 
 This repo is standalone: it began from version 0.2.1 of the factory on 2026-10-30, and its factory files are now maintained here, like any other code in the repository.
 

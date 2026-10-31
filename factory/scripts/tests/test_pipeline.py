@@ -529,3 +529,22 @@ def test_status_and_check_factory_read_the_pipeline(reg, isolated):
     edit_assessment(isolated, slug, lambda a: a["rice"]["impact"].update(value=7))
     errors, _ = check_factory.run(isolated)
     assert any(e.startswith(f"ideas/{slug}/assessment.md: impact must be one of") for e in errors)
+
+
+def test_capture_takes_idea_cards_from_a_csv_export_once(reg, repo):
+    (repo / "ideas/inbox.csv").write_text(
+        "﻿Timestamp,Email,Title,Problem,Who,Today,Better,Data\n"
+        "2026-10-31,a@example.org,Shift swap board,Rota changes take the manager an hour a week,Shop staff,"
+        "\"Messages to the manager, who edits the rota\",Staff swap without the manager,The rota (Internal)\n"
+        "2026-10-31,b@example.org,,,,,,\n"
+        "2026-10-31,c@example.org,,Invoices are matched to orders by hand.,Finance,,,\n", encoding="utf-8")
+    added = pipeline.capture(reg, repo)
+    assert [e["idea"] for e in added] == [
+        "Shift swap board: Rota changes take the manager an hour a week. Who it affects: Shop staff. "
+        "How it's done today: Messages to the manager, who edits the rota. What better looks like: Staff swap without "
+        "the manager. Data it touches: The rota (Internal).",
+        "Invoices are matched to orders by hand. Who it affects: Finance.",
+    ]
+    assert added[0]["title"] == "Shift swap board" and all(e["source"] == "inbox" for e in added)
+    assert not any("example.org" in e["idea"] or "2026-10-31" in e["idea"] for e in added)  # other columns are never stored
+    assert pipeline.capture(reg, repo) == [] and pipeline.not_captured(reg, repo) == []

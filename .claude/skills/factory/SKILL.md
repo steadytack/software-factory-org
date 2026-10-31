@@ -6,14 +6,15 @@ description: Develop ideas into built, audited apps through four gated stages (D
 # Factory run
 
 ```
-Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
-                   └─ a spike, tier 1 (plan.md) ─→ Build ─gate 3→ grow (to Spec at tier 2, 3 or 4) │ keep │ stop
+The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, about a week ─gate 3→ grow │ keep │ stop
+The full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
+                                  (a spike that grows joins the full route at Spec, at the tier the owner names)
 
 Tiers (factory/standards/tiers.md): 1 Spike · 2 Exploration prototype · 3 Business prototype · 4 Production app.
 Data and protection are decided separately, per idea.
 ```
 
-The factory develops ideas; it does not filter them. An early or rough idea is worked on with its unknowns stated, an unknown is amber not red, and an idea whose questions a small build would answer goes on the light route as a spike.
+The factory develops ideas; it does not filter them. An early or rough idea is worked on with its unknowns stated, an unknown is amber not red, and an idea whose questions a small build would answer goes on the light route as a spike. At Gate 1, say plainly whether a spike fits and why (`factory/stages/light.md`, When): it is the fast route, and often the right first step, but it is recommended on the idea's merits, never by default (DEF-01).
 
 Every rule lives in plain files (`factory/`), so another model or a person can continue from them. This skill only orchestrates.
 
@@ -21,7 +22,7 @@ Every rule lives in plain files (`factory/`), so another model or a person can c
 1. Read `factory/README.md`, `factory/context/README.md`, the context files `python factory/scripts/scopes.py context <slug>` lists, in that order (policies first; for a new idea, `--scope group` or the business it is for), what earlier ideas taught that applies here (`python factory/scripts/learned.py recall <slug>`, or `--scope` for a new idea; at the start of every stage), and `factory/standards/PRINCIPLES.md`.
 2. `python factory/scripts/status.py`.
 3. Work out what was asked:
-   - **Ideas in the inbox** (`/factory` with lines in `ideas/inbox.md`) or **one idea** (`/factory <idea>`): capture, develop and assess them (`factory/stages/develop-assess.md`), ending at Gate 1. If the owner wants to talk an idea through first, do that (Develop: work it through) before drafting.
+   - **Ideas in the inbox** (`/factory` with lines in `ideas/inbox.md` or rows in `ideas/inbox.csv`, the idea cards) or **one idea** (`/factory <idea>`): capture, develop and assess them (`factory/stages/develop-assess.md`), ending at Gate 1. If the owner wants to talk an idea through first, do that (Develop: work it through) before drafting.
    - **A document or spec supplied:** a new idea in source mode (`develop-assess.md`, Capture).
    - **A repository or folder to reuse from:** the catalogue importer (`catalogue/README.md`), not an idea.
    - **Resume / continue:** read the idea's `state.json`, `idea.md`, `decisions.md` and continue at its stage. Never start a stage whose previous gate is not approved; a Get Ready idea resumes with `pipeline.py reassess`, a light re-assessment; the light route (`state.json` `route: light`) follows `factory/stages/light.md`.

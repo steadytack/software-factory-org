@@ -5,7 +5,7 @@ Usage: python factory/scripts/check_factory.py [--fix] [--root PATH]
 
 Checks the template registry (factory/templates.json) against the template folders, stack standards,
 workflows and module manifests; the schemas; the context files and scopes; every idea's state.json, the idea register and each assessment; learned.md and each outcome; and
-every catalogue entry and source record. Reference cards past their review date are warnings, not
+every catalogue entry and source record; and that every path factory/web/share.json lists exists. Reference cards past their review date are warnings, not
 problems. Read-only unless --fix, which only regenerates the template tables
 between <!-- templates:start --> and <!-- templates:end --> markers. Exit 0 = consistent, 1 = problems.
 """
@@ -364,6 +364,17 @@ def check_removed_names(root: Path, registry: dict, errors: list[str]) -> None:
                     errors.append(f"{path.relative_to(root).as_posix()}: mentions the removed template '{name}'")
 
 
+def check_share(root: Path, errors: list[str]) -> None:
+    """Every factory path factory/web/share.json lists must match a file, so the shareable page never drops one silently."""
+    path = root / "factory/web/share.json"
+    if not path.exists():
+        return
+    rules = lib.read_json(path)
+    for pattern in [rules.get("overview"), *rules.get("factory", [])]:
+        if pattern and not any(p.is_file() for p in root.glob(pattern)):
+            errors.append(f"factory/web/share.json: '{pattern}' matches no file")
+
+
 def run(root: Path, fix: bool = False, warnings: list[str] | None = None) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings = [] if warnings is None else warnings
@@ -379,6 +390,7 @@ def run(root: Path, fix: bool = False, warnings: list[str] | None = None) -> tup
     check_catalogue(root, errors, warnings)
     fixed = check_tables(root, registry, errors, fix)
     check_removed_names(root, registry, errors)
+    check_share(root, errors)
     return errors, fixed
 
 

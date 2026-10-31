@@ -3,8 +3,11 @@
 The factory turns an idea, an existing specification or an imported project into a built, audited application. An idea is first developed into a short brief and assessed against it (knock-outs, the five foundations, RICE, the one thing to know or fix), so the owner can make the investment decision at Gate 1, Go, Get Ready or Stop, before anything is specified. It decides small things itself and records them; it stops at the gates, and for anything only the owner can decide (`context/policies.md`).
 
 ```
-Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
+The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, about a week ─gate 3→ grow │ keep │ stop
+The full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
 ```
+
+Ideas come in as lines in `ideas/inbox.md` or as idea cards (`project-files/idea-card.md`) exported to `ideas/inbox.csv`. The terms are in `docs/glossary.md`, and who does what is in `docs/operating-model.md`.
 
 Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the light route; **2 Exploration prototype**, **3 Business prototype** and **4 Production app** take the full route with the spec pack. **Data** (synthetic, a real sample, real) and **protection** (levels A to D, `standards/security.md`) are separate decisions, at every tier. Every tier is hosted in Docker (DEF-02).
 
@@ -31,7 +34,7 @@ Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the
 ## Scripts
 | Script | Does |
 |---|---|
-| `pipeline.py capture / add / develop / check / render / decide / reassess / approve-data / light` | Develop and Assess: captures ideas from `ideas/inbox.md` or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1 (Go, Go as a spike, Get Ready with an owner and a review date, Stop), `reassess` reopens a Get Ready idea, `light` records a spike's Gate 3 (grow to a tier, keep, stop); overdue Get Ready ideas are flagged; `approve-data` records an approver's yes for a data class POL-11 allows only by approval |
+| `pipeline.py capture / add / develop / check / render / decide / reassess / approve-data / light` | Develop and Assess: captures ideas from `ideas/inbox.md`, the idea cards in `ideas/inbox.csv`, or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1 (Go, Go as a spike, Get Ready with an owner and a review date, Stop), `reassess` reopens a Get Ready idea, `light` records a spike's Gate 3 (grow to a tier, keep, stop); overdue Get Ready ideas are flagged; `approve-data` records an approver's yes for a data class POL-11 allows only by approval |
 | `scaffold.py new <slug> --name "..."` | Creates `ideas/<slug>/` with the brief and assessment stubs (`pipeline.py develop` calls it) |
 | `scaffold.py overview <slug>` | The overview, filled from the assessment (Gate 1) |
 | `scaffold.py plan <slug>` | A spike's plan (`plan.md`), when a spike is recommended |
@@ -39,7 +42,7 @@ Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the
 | `scaffold.py spec <slug>` | The spec pack stubs, filled from the definition |
 | `check_spec.py <slug> [--assessment] [--impact IDs]` | Checks the brief, the assessment and the overview (Gate 1), or the definition and the whole pack (Gate 2): blockers and warnings; writes `spec/traceability.md`; also checks a pack copied outside the factory |
 | `scaffold.py app <slug> <template>` | Copies a template into `ideas/<slug>/app/` with its standards, and starts its git repository |
-| `status.py [--write]` | Every idea, its stage, tier, template and gates |
+| `status.py [--write]` | Every idea, its stage, tier, template and gates; the cycle times so far (capture to Gate 1, Gate 1 to Gate 3, spikes within their time box) |
 | `dashboard.py [--port N] [--write [path]]` | Read-only web page: how the factory works, each idea's progress, published apps, documents. `--write` makes one shareable page from the documents in `factory/web/share.json` |
 | `import_source.py <file> <slug>` | A supplied document (docx, md, txt, pdf) into versioned markdown, images and source IDs in `ideas/<slug>/source/` |
 | `verify.py --template <name>` | A template's checks from the registry, in clean containers |

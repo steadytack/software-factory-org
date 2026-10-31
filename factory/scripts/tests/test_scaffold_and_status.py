@@ -123,3 +123,25 @@ def test_saving_an_invalid_state_is_refused(repo):
 def test_real_ideas_folder_has_status_markers():
     text = (REAL_ROOT / "ideas/README.md").read_text(encoding="utf-8")
     assert status.START in text and status.END in text
+
+
+def test_cycle_times_come_from_the_dates_already_recorded(repo):
+    entries = [{"id": f"IDEA-00{n}", "title": s, "idea": s, "source": "inbox", "added": "2026-10-01", "slug": s}
+               for n, s in enumerate(["swap-board", "route-plan", "new-one"], start=1)]
+    (repo / "ideas/pipeline.json").write_text(json.dumps({"schema_version": 1, "entries": entries}), encoding="utf-8")
+    rows = [
+        {"slug": "swap-board", "route": "light", "gates": {"1": {"status": "approved", "date": "2026-10-05"}},
+         "light": {"result": "keep", "date": "2026-10-10", "reply": "keep"}},
+        {"slug": "route-plan", "gates": {"1": {"status": "approved", "date": "2026-10-11"},
+                                         "3": {"status": "approved", "date": "2026-11-10"}}},
+        {"slug": "new-one", "gates": {}},
+    ]
+    times = {t["slug"]: t for t in status.cycle_times(rows, repo)}
+    assert (times["swap-board"]["to_gate1"], times["swap-board"]["gate1_to_gate3"]) == (4, 5)
+    assert (times["route-plan"]["to_gate1"], times["route-plan"]["gate1_to_gate3"]) == (10, 30)
+    assert times["new-one"]["to_gate1"] is None
+    times["swap-board"]["timebox_weeks"] = 1
+    line = status.cycle_line(list(times.values()))
+    assert line == ("Cycle times: capture to Gate 1, median 7 days over 2 idea(s); Gate 1 to Gate 3, median 17.5 days over 2; "
+                    "1 of 1 spike(s) within their time box")
+    assert status.cycle_line([times["new-one"]]) is None

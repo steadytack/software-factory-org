@@ -144,3 +144,11 @@ def test_a_missing_workflow_and_stack_file_are_reported(repo, py):
     shutil.move(repo / "factory/standards/stacks/agent.md", repo / "factory/standards/agent-stack.md")
     out = check(repo, py).stdout
     assert ".github/workflows/agent.yml: missing" in out and "stacks/agent.md: missing" in out
+
+
+def test_a_share_path_that_matches_no_file_is_reported(repo, py):
+    path = repo / "factory/web/share.json"
+    rules = json.loads(path.read_text(encoding="utf-8"))
+    rules["factory"].append("docs/nowhere.md")
+    path.write_text(json.dumps(rules), encoding="utf-8")
+    assert "factory/web/share.json: 'docs/nowhere.md' matches no file" in check(repo, py).stdout

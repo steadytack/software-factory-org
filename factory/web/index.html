@@ -125,7 +125,8 @@ function renderOverview() {
     el('p', {}, 'Each idea is first developed into a short brief and assessed: knock-outs, the five foundations (Problem, Value, Data, Risk, People and Process) and a RICE score. The owner then decides Go (to a specified build: an exploration prototype, a business prototype or a production app), Go as a spike (a small time-boxed build that answers the open questions, then grow, keep or stop), Get Ready (with an owner and a review date) or Stop (Gate 1). Every stage ends at a gate: nothing moves on until the owner approves it.'),
     el('div', { class: 'flow' }, STAGES.map((s, n) => el('div', {}, el('b', {}, n < 4 ? GATE_NAMES[n] : 'Done'), el('div', { class: 'n' }, String(count(s))), el('div', { class: 'mute' }, STAGE_TEXT[s])))),
     el('div', { class: 'mute' }, state.ideas.length + ' ideas · ' + waiting + ' waiting for approval · ' + state.apps.length + ' published'),
-    state.pipeline ? el('div', { class: 'mute' }, state.pipeline) : null));
+    state.pipeline ? el('div', { class: 'mute' }, state.pipeline) : null,
+    state.cycle ? el('div', { class: 'mute' }, state.cycle) : null));
   if (state.overview) {
     const slot = el('div', {}, el('p', { class: 'mute' }, 'Loading...'));
     root.append(slot);
