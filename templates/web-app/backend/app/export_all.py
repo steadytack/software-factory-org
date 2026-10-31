@@ -73,7 +73,7 @@ async def _table_csv(session: AsyncSession, model) -> str:
     return BOM + out.getvalue()
 
 
-async def build_export(session: AsyncSession, include_files: bool) -> Path:
+async def build_export(session: AsyncSession, *, include_files: bool) -> Path:
     """Write the ZIP to a temp file and return its path (caller deletes)."""
     handle = tempfile.NamedTemporaryFile(prefix="fieldline-export-", suffix=".zip", delete=False)
     handle.close()

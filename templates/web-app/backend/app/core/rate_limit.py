@@ -97,7 +97,7 @@ async def account_locked(session: AsyncSession, email: str | None) -> bool:
 
 
 async def record_failure(session: AsyncSession, request: Request, email: str | None) -> None:
-    global _last_prune
+    global _last_prune  # noqa: PLW0603 -- a per-process prune timer; losing it on restart only prunes early
     # Insert + (throttled) prune run in the request's active transaction; the
     # single commit below persists them. The commit must happen here — the
     # caller raises 401 immediately after, and the request-scoped transaction

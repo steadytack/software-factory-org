@@ -35,7 +35,16 @@ Use alongside `standards/PRINCIPLES.md`. This covers a project with both a front
 
 Dropped from the enterprise stack as unnecessary weight for solo projects: Redux Toolkit (TanStack Query covers most state needs), MapServer (MapLibre GL JS is lighter and does the job), MSAL/Entra ID (see Security below).
 
-## Security
+## Architecture checks
+
+The rules in `standards/PRINCIPLES.md` 2 and 3 are checked by the template's own lint, so a change that breaks them fails `verify.py` rather than waiting for a review:
+- **Backend layering** (`lint-imports`, import-linter; contracts in `backend/pyproject.toml`): `api` → `services` → `repositories` → `models`, never upward; `core` and `schemas` never import `api`, `services` or `repositories`.
+- **Backend code rules** (ruff): complexity at most 12 (`C90`), at most 50 statements per function (`PLR0915`), no `global` (`PLW0603`), no boolean positional parameters (`FBT001`, `FBT002`: make them keyword-only).
+- **Frontend layering** (eslint `no-restricted-imports`, `frontend/eslint.config.js`): `api` imports none of the layers above it; `hooks` no components, pages, layout or routes; `components` no pages, layout or routes.
+- **An exception** is named where it is made, with its reason: a `# noqa: <rule> -- why` line, or an `ignore_imports` entry with a comment. Never a blanket ignore.
+- **SBOM** (protection C and D, `security.md`): `cyclonedx-py requirements backend/requirements-dev.txt -o sbom-backend.cdx.json` (the `cyclonedx-bom` package; the file lists the runtime packages first, then the dev tools) and `npx @cyclonedx/cyclonedx-npm --output-file sbom-frontend.cdx.json` in `frontend/`; commit both before the Publish dry run.
+- **Not linted:** React component length (most pages and panels are long JSX). The refactor and hardening audit looks at it instead.
+
 
 Security still matters even when you're the only user — the app may sit on the open internet.
 

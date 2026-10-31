@@ -26,3 +26,4 @@ Standing preferences. The factory recommends these and lists them at the gates a
 | DEF-20 | Explore in a helper | A search across many files or logs that needs only a conclusion goes to a sub-agent that returns a short summary; the bulk never enters the main conversation (two helpers cost under 0.5 % of the DNO Outage Matcher session) | Not for work that needs the context already held |
 | DEF-21 | Fewer, fuller turns | Independent steps go in one batch of tool calls; do not re-read a file just written or re-run a check that has not changed | |
 | DEF-22 | Effort to the task | Routine edits, formatting and test runs do not need the deepest thinking or the largest model | |
+| DEF-23 | Work in progress | At most 3 ideas past Gate 1 and not yet published (in Spec, Build or Publish) at once | A Go beyond the limit is recorded, flagged in `ideas/pipeline.md` and raised with the owner: finish or pause one first. The approver may change the number |

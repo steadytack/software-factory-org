@@ -290,6 +290,7 @@ async def purge_from_bin(
 
 @router.get("/export")
 async def export_everything(
+    *,
     files: bool = Query(default=False, description="Include the uploaded files"),
     session: AsyncSession = SessionDep,
     actor: str = Depends(get_current_subject),

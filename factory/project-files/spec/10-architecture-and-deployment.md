@@ -7,7 +7,20 @@
 Deployment category: {deployment}
 
 ## Overview and boundaries
-<What runs where; a component diagram (Mermaid) if there is more than one component.>
+<What runs where.> The C4 views, as Mermaid flowcharts: **context** (the system as one box, the people who use it and the outside systems it talks to) and **containers** (the apps, databases and services inside it, and how they talk). A single-file app with no integrations may say `Not applicable: reason`.
+
+```mermaid
+flowchart LR
+    user([User role]) -->|uses| system[The system]
+    system -->|reads or sends| outside[(Outside system)]
+```
+
+```mermaid
+flowchart LR
+    user([User role]) -->|HTTPS| web[Web app]
+    web -->|JSON API| api[API]
+    api -->|SQL| db[(Database)]
+```
 
 ## Components
 Built from is a catalogue asset (`CAT-nnn` and version) or `custom`.

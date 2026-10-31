@@ -25,7 +25,8 @@ Every rule lives in plain files (`factory/`), so another model or a person can c
    - **A document or spec supplied:** a new idea in source mode (`develop-assess.md`, Capture).
    - **A repository or folder to reuse from:** the catalogue importer (`catalogue/README.md`), not an idea.
    - **Resume / continue:** read the idea's `state.json`, `idea.md`, `decisions.md` and continue at its stage. Never start a stage whose previous gate is not approved; a Get Ready idea resumes with `pipeline.py reassess`, a light re-assessment; the light route (`state.json` `route: light`) follows `factory/stages/light.md`.
-   - **Status or blockers:** the status table, plus each idea's `blockers` and `next`; `ideas/pipeline.md` for the ranked pipeline, and any Get Ready idea past its review date (bring it back to Gate 1).
+   - **Status or blockers:** the status table, plus each idea's `blockers` and `next`; `ideas/pipeline.md` for the ranked pipeline, any Get Ready idea past its review date (bring it back to Gate 1), any benefits review overdue, and the ideas in flight against the DEF-23 limit.
+   - **A benefits review due** (`ideas/pipeline.md`, "Benefits reviews due"): run it (`publish.md`, "The benefits review").
    - **A gate reply:** apply it (gate protocol, step 4).
 4. Follow the stage file: `develop-assess.md`, `spec.md`, `build.md`, then `audit.md`, `publish.md` (the light route: `light.md`); `changes.md` for anything that changes after a gate.
 5. Decide small, reversible things yourself, log them in the idea's `decisions.md` (decided by "factory"), and keep going.

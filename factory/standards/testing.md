@@ -4,6 +4,7 @@
 - **A test per functional requirement** (FR), at the level that proves it: unit for a rule or calculation, API or integration for behaviour across a boundary.
 - **An end-to-end journey** for each user journey that crosses the UI.
 - **Negative and edge cases** from the acceptance criteria (empty, huge, duplicate, malformed, unauthorised).
+- **A contract test per integration** (INT), at tier 3 and above: the shape of what crosses it (fields, types, errors, status codes) checked against what the other side really sends or accepts, from its published schema or a recorded real exchange; a mock that only agrees with this app proves nothing. `check_spec.py` warns about an INT no TEST names.
 - **Evals for an AI feature** (`ai-features.md`): an eval set against the real model with a pass threshold, beside tests that mock the model for malformed output, refusals, timeouts and injection.
 - **Module tests travel with the module:** a composed app runs each catalogue asset's own tests in the merged tree, as evidence the composition works.
 - Tier scales the depth (`tiers.md`): tier 1 the main path; tier 2 the main path and what the people trying it will do; tier 3 a test per FR, the journeys and permissions, and recovery from a backup; tier 4 all of this plus concurrency, failure and load where the spec sets thresholds, and abuse cases. Security and privacy tests follow the protection level (`security.md`), whatever the tier: a spike on real data tests what protects it.

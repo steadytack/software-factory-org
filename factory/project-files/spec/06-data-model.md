@@ -18,6 +18,21 @@ One table per entity, headed by the entity's ID (the rows are fields, not new ID
 | REL | From | To | Cardinality | Rule |
 |---|---|---|---|---|
 
+An entity-relationship diagram once there are two or more entities (the database's tables and keys at tier 3 and above):
+
+```mermaid
+erDiagram
+    PARENT ||--o{ CHILD : has
+    PARENT {
+        uuid id PK
+        string name
+    }
+    CHILD {
+        uuid id PK
+        uuid parent_id FK
+    }
+```
+
 ## Ownership, flows and source of truth
 <Where each piece comes from.>
 

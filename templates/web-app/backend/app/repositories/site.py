@@ -45,6 +45,7 @@ class SiteRepository:
         notes: str | None,
         latitude: float,
         longitude: float,
+        *,
         is_demo: bool = False,
         postcode: str | None = None,
         client_id: uuid.UUID | None = None,

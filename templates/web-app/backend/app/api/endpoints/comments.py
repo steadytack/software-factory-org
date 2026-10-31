@@ -241,6 +241,7 @@ async def upload_attachment(
 @router.get("/attachments/{attachment_id}/download")
 async def download_attachment(
     attachment_id: uuid.UUID,
+    *,
     inline: bool = Query(False, description="Serve for in-browser preview where the type allows"),
     session=SessionDep,
     _actor: str = Depends(get_current_subject),

@@ -48,10 +48,10 @@ IDEA_MD = """# {name}
 
 DECISIONS_MD = """# Decisions
 
-Decisions for this project, newest last. Small calls the factory made are logged here too (with "factory" as the decider); anything approved at a gate names the gate.
+Decisions for this project, newest last. Small calls the factory made are logged here too (with "factory" as the decider); anything approved at a gate names the gate. A significant decision (architecture or layering, a technology or dependency, a security or data boundary, a public contract) fills every column, as a short decision record: Consequences says what it makes easier and harder, and what would make you revisit it.
 
-| ID | Date | Decision | Options considered | Why | Decided by | Gate |
-|---|---|---|---|---|---|---|
+| ID | Date | Decision | Options considered | Why | Consequences | Decided by | Gate |
+|---|---|---|---|---|---|---|---|
 """
 
 CHANGES_MD = """# Change requests

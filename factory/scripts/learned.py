@@ -8,19 +8,23 @@ Usage:
   python factory/scripts/learned.py review [--threshold 2]     candidate changes, for an approver to accept or not
   python factory/scripts/learned.py mark <key> confirmed|superseded [--scope S] [--chosen "..."]   after the approver answers
   python factory/scripts/learned.py outcome <slug>             write ideas/<slug>/outcome.md from the Gate 1 assessment
-  python factory/scripts/learned.py check [<slug>]             validate learned.md and every outcome; with a slug, the Gate 3 check
+  python factory/scripts/learned.py check [<slug>]             validate learned.md, every outcome and benefits review; with a slug, the Gate 3 check
+  python factory/scripts/learned.py benefits <slug> [--published YYYY-MM-DD]   write ideas/<slug>/benefits.md at Publish
+  python factory/scripts/learned.py check <slug> --review 30|90   the check for a benefits review done
 
 learned.md is a table, one row per gate answer that differed from the recommendation (status observed).
 outcome.md (schema factory/schemas/outcome.schema.json) says, at Gate 3, whether each foundation's rating,
-the effort and the one thing held. `review` groups both: the same override in `threshold` or more projects,
-a foundation missed in that many outcomes, effort mis-estimated by half or more (the median), or the same
-lesson repeated. Each is a candidate, never a change: the factory changes a default only when an approver
+the effort and the one thing held; benefits.md (schema factory/schemas/benefits.schema.json) says, 30 and 90 days after
+Publish, whether the success measures were met and the reach and impact held in use. `review` groups them: the same override in `threshold` or more projects,
+a foundation missed in that many outcomes, effort or reach mis-estimated by half or more (the median), impact
+that did not hold or success measures missed in that many reviews, or the same lesson repeated. Each is a candidate, never a change: the factory changes a default only when an approver
 says yes (then `mark ... confirmed` and edit defaults.md, a lens or the knock-out rules). Rules:
 factory/context/README.md and the gate protocol in the factory skill.
 """
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import re
 import statistics
@@ -39,6 +43,9 @@ KEY = re.compile(r"^(DEF-\d{2}|[a-z][a-z0-9-]*)$")
 SCOPE = re.compile(r"^(project|type|global|brand:[a-z][a-z0-9-]*|business:[a-z][a-z0-9-]*)$")
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 BLOCK = re.compile(r"\A\s*```json outcome\s*\n(.*?)\n```", re.S)
+BENEFITS = "benefits.md"
+BENEFITS_BLOCK = re.compile(r"\A\s*```json benefits\s*\n(.*?)\n```", re.S)
+REVIEW_DAYS = (30, 90)
 # The lens whose screening questions rate each foundation (factory/context/lenses/README.md).
 LENS = {"problem": "business-value", "value": "business-value", "data": "data-and-integrations",
         "risk": "security", "people": "users-and-workflows"}
@@ -187,18 +194,8 @@ def new_outcome(slug: str, root: Path | None = None) -> Path:
 
 def outcome_problems(o: dict, slug: str, root: Path | None = None, *, complete: bool = False) -> list[str]:
     """Problems beyond the schema; `complete` (the Gate 3 check) also refuses anything left to fill in."""
-    base = root or lib.ROOT
     found = [] if o["slug"] == slug else [f"slug {o['slug']!r} does not match the folder"]
-    for lesson in o["lessons"]:
-        kind, ref = lesson["kind"], lesson["ref"]
-        if kind == "lens" and not (base / "factory/context/lenses" / f"{ref}.md").exists():
-            found.append(f"lesson: no lens {ref!r} in factory/context/lenses/")
-        elif kind == "knockout" and ref not in KNOCKOUTS:
-            found.append(f"lesson: knock-out rule {ref!r} must be one of {', '.join(KNOCKOUTS)}")
-        elif kind == "rice" and ref not in RICE:
-            found.append(f"lesson: RICE factor {ref!r} must be one of {', '.join(RICE)}")
-        elif kind == "default" and not re.fullmatch(r"DEF-\d{2}", ref):
-            found.append(f"lesson: default {ref!r} must be DEF-nn")
+    found += lesson_problems(o["lessons"], root)
     if complete:
         found += [f"foundations/{k}: held is unchecked" for k, v in o["foundations"].items() if v["held"] == "unchecked"]
         found += ["one_thing: held is unchecked"] if o["one_thing"]["held"] == "unchecked" else []
@@ -233,14 +230,139 @@ def gate_check(slug: str, root: Path | None = None) -> list[str]:
     return found
 
 
+def lesson_problems(lessons: list[dict], root: Path | None = None) -> list[str]:
+    """A lesson must name a lens, knock-out rule, default or RICE factor that exists."""
+    base = root or lib.ROOT
+    found = []
+    for lesson in lessons:
+        kind, ref = lesson["kind"], lesson["ref"]
+        if kind == "lens" and not (base / "factory/context/lenses" / f"{ref}.md").exists():
+            found.append(f"lesson: no lens {ref!r} in factory/context/lenses/")
+        elif kind == "knockout" and ref not in KNOCKOUTS:
+            found.append(f"lesson: knock-out rule {ref!r} must be one of {', '.join(KNOCKOUTS)}")
+        elif kind == "rice" and ref not in RICE:
+            found.append(f"lesson: RICE factor {ref!r} must be one of {', '.join(RICE)}")
+        elif kind == "default" and not re.fullmatch(r"DEF-\d{2}", ref):
+            found.append(f"lesson: default {ref!r} must be DEF-nn")
+    return found
+
+
+# ---------------------------------------------------------------- benefits.md
+def read_benefits(idea: Path, root: Path | None = None) -> tuple[dict | None, list[str]]:
+    """(the JSON block of ideas/<slug>/benefits.md, schema problems); (None, []) when there is none."""
+    path = idea / BENEFITS
+    if not path.exists():
+        return None, []
+    match = BENEFITS_BLOCK.match(path.read_text(encoding="utf-8"))
+    if not match:
+        return None, ["must start with a ```json benefits block"]
+    try:
+        data = json.loads(match.group(1))
+    except ValueError as exc:
+        return None, [f"the benefits block is not valid JSON ({exc})"]
+    found = lib.validate("benefits", data, root)
+    if not found and tuple(r["day"] for r in data["reviews"]) != REVIEW_DAYS:
+        found.append("reviews must be the 30-day and the 90-day review, in that order")
+    return data, found
+
+
+def new_benefits(slug: str, published: str | None = None, root: Path | None = None) -> Path:
+    """Write benefits.md at Publish: the Gate 1 reach and impact, and the 30- and 90-day reviews with their due dates."""
+    base = root or lib.ROOT
+    idea = lib.idea_dir(slug, root)
+    path = idea / BENEFITS
+    if path.exists():
+        raise lib.FactoryError(f"ideas/{slug}/{BENEFITS} already exists")
+    a, bad = pipeline.read_assessment(idea, root)
+    if a is None or bad:
+        raise lib.FactoryError(f"ideas/{slug} has no valid assessment" + (f" ({'; '.join(bad)})" if bad else ""))
+    state = lib.read_json(idea / "state.json")
+    if state.get("stage") != "done":
+        raise lib.FactoryError(f"ideas/{slug} is not published yet; the benefits review starts at Publish")
+    day = dt.date.fromisoformat(published or lib.today())
+    estimated = {"reach": a["rice"]["reach"]["value"], "period": a["period"], "impact": a["rice"]["impact"]["value"]}
+    reviews = [{"day": n, "due": (day + dt.timedelta(days=n)).isoformat(), "done": None,
+                "measures": [{"measure": "<a success measure from the brief or doc 02>", "target": "<its target>",
+                              "actual": "<what was measured, and how>", "met": "unchecked"}],
+                "reach": {"actual": None, "note": "<how it was counted>"},
+                "impact": {"held": "unchecked", "note": "<what showed it>"},
+                "in_use": {"held": "unchecked", "note": "<is it used as the to-be process expects?>"},
+                "lessons": []} for n in REVIEW_DAYS]
+    template = (base / "factory/project-files" / BENEFITS).read_text(encoding="utf-8")
+    text = template.replace("{estimated}", json.dumps(estimated)).replace("{reviews}", json.dumps(reviews, ensure_ascii=False))
+    text = text.replace("{slug}", slug).replace("{published}", day.isoformat()).replace("{name}", state.get("name", slug))
+    match = BENEFITS_BLOCK.match(text)
+    block = "```json benefits\n" + json.dumps(json.loads(match.group(1)), indent=2, ensure_ascii=False) + "\n```"
+    path.write_text(block + text[match.end():], encoding="utf-8", newline="\n")
+    return path
+
+
+def review_problems(review: dict) -> list[str]:
+    """What a review still needs before it counts as done."""
+    day = review["day"]
+    found = [f"{day}-day review: done is not set"] if not review["done"] else []
+    found += [f"{day}-day review: measure {m['measure']!r}: met is unchecked" for m in review["measures"] if m["met"] == "unchecked"]
+    found += [f"{day}-day review: reach actual is not measured"] if review["reach"]["actual"] is None else []
+    found += [f"{day}-day review: {k} held is unchecked" for k in ("impact", "in_use") if review[k]["held"] == "unchecked"]
+    text = json.dumps(review, ensure_ascii=False)
+    found += [f"{day}-day review: placeholder left: {m}" for m in sorted(set(lib.PLACEHOLDER.findall(text)))]
+    return found
+
+
+def benefits_check(slug: str, day: int, root: Path | None = None) -> list[str]:
+    """The check for a benefits review done: the file is valid and that review is filled in."""
+    if day not in REVIEW_DAYS:
+        return ["--review must be 30 or 90"]
+    idea = lib.idea_dir(slug, root)
+    b, bad = read_benefits(idea, root)
+    where = f"ideas/{slug}/{BENEFITS}"
+    if b is None and not bad:
+        return [f"{where} is missing: python factory/scripts/learned.py benefits {slug}"]
+    if bad:
+        return [f"{where}: {p}" for p in bad]
+    review = next(r for r in b["reviews"] if r["day"] == day)
+    return [f"{where}: {p}" for p in review_problems(review) + lesson_problems(review["lessons"], root)]
+
+
+def benefits(root: Path | None = None) -> list[dict]:
+    """Every idea with a benefits review: {slug, b (None if unreadable), problems}."""
+    ideas = (root or lib.ROOT) / "ideas"
+    rows = []
+    for folder in sorted(p for p in ideas.iterdir() if p.is_dir()) if ideas.is_dir() else []:
+        if (folder / BENEFITS).exists():
+            b, bad = read_benefits(folder, root)
+            rows.append({"slug": folder.name, "b": None if bad else b, "problems": bad})
+    return rows
+
+
+def reviews_due(root: Path | None = None, today: str | None = None) -> list[dict]:
+    """Benefits reviews not yet done: {slug, day, due, overdue}, soonest first (for ideas/pipeline.md)."""
+    today = today or lib.today()
+    due = [{"slug": r["slug"], "day": rv["day"], "due": rv["due"], "overdue": rv["due"] < today}
+           for r in benefits(root) if r["b"] for rv in r["b"]["reviews"] if not rv["done"]]
+    return sorted(due, key=lambda d: (d["due"], d["slug"]))
+
+
+def latest_review(b: dict) -> dict | None:
+    """The latest review done and filled in (the 90-day over the 30-day), or None."""
+    done = [rv for rv in b["reviews"] if rv["done"] and not review_problems(rv)]
+    return done[-1] if done else None
+
+
 def problems(root: Path | None = None) -> list[str]:
-    """learned.md and every outcome (in full only once it is past the stub: see gate_check)."""
+    """learned.md, every outcome and every benefits review (in full only once past the stub: see the checks)."""
     _entries, found = read(root)
     for r in outcomes(root):
         where = f"ideas/{r['slug']}/{OUTCOME}"
         found += [f"{where}: {p}" for p in r["problems"]]
         if r["o"]:
             found += [f"{where}: {p}" for p in outcome_problems(r["o"], r["slug"], root)]
+    for r in benefits(root):
+        where = f"ideas/{r['slug']}/{BENEFITS}"
+        found += [f"{where}: {p}" for p in r["problems"]]
+        if r["b"]:
+            found += [f"{where}: slug {r['b']['slug']!r} does not match the folder"] if r["b"]["slug"] != r["slug"] else []
+            found += [f"{where}: {p}" for rv in r["b"]["reviews"] for p in lesson_problems(rv["lessons"], root)]
     return found
 
 
@@ -270,10 +392,27 @@ def review(root: Path | None = None, threshold: int = 2) -> list[str]:
         if median >= DRIFT or median <= 1 / DRIFT:
             found.append(f"Re-calibrate RICE effort? Builds took {pipeline.number(round(median, 2))}x the estimate "
                          f"(median of {len(ratios)})")
+    reviewed = [(r["slug"], r["b"], rv) for r in benefits(root) if r["b"] for rv in [latest_review(r["b"])] if rv]
+    reach = [rv["reach"]["actual"] / b["estimated"]["reach"] for _s, b, rv in reviewed if b["estimated"]["reach"] > 0]
+    if len(reach) >= threshold:
+        median = statistics.median(reach)
+        if median >= DRIFT or median <= 1 / DRIFT:
+            found.append(f"Re-calibrate RICE reach? Reach in use was {pipeline.number(round(median, 2))}x the Gate 1 estimate "
+                         f"(median of {len(reach)} published ideas)")
+    missed = sorted(s for s, _b, rv in reviewed if rv["impact"]["held"] == "no")
+    if len(missed) >= threshold:
+        found.append(f"Re-calibrate RICE impact? Impact did not hold in {len(missed)} published ideas ({', '.join(missed)})")
+    missed = sorted(s for s, _b, rv in reviewed if any(m["met"] == "no" for m in rv["measures"]))
+    if len(missed) >= threshold:
+        found.append(f"Review the business-value screening questions? Success measures were missed in "
+                     f"{len(missed)} published ideas ({', '.join(missed)})")
     lessons: dict[tuple[str, str], list[str]] = {}
     for r in done:
         for lesson in r["o"]["lessons"]:
             lessons.setdefault((lesson["kind"], lesson["ref"]), []).append(r["slug"])
+    for slug, _b, rv in reviewed:
+        for lesson in rv["lessons"]:
+            lessons.setdefault((lesson["kind"], lesson["ref"]), []).append(slug)
     for (kind, ref), slugs in sorted(lessons.items()):
         if len(set(slugs)) >= threshold:
             found.append(f"Change the {kind} {ref}? The same lesson came up in {len(set(slugs))} builds ({', '.join(sorted(set(slugs)))})")
@@ -285,7 +424,7 @@ def main(argv: list[str]) -> int:
     args = argv[1:]
     try:
         opts = {name: pipeline.option(args, f"--{name}") for name in
-                ("project", "key", "question", "recommended", "chosen", "reason", "scope", "threshold")}
+                ("project", "key", "question", "recommended", "chosen", "reason", "scope", "threshold", "published", "review")}
         if args == ["add"]:
             need = ("project", "key", "question", "recommended", "chosen", "reason")
             missing = [f"--{n}" for n in need if not opts[n]]
@@ -307,8 +446,15 @@ def main(argv: list[str]) -> int:
             path = new_outcome(args[1])
             print(f"learned: wrote {path.relative_to(lib.ROOT).as_posix()} (fill in held, the actual effort and any lessons)")
             return 0
+        if len(args) == 2 and args[0] == "benefits":
+            path = new_benefits(args[1], opts["published"])
+            print(f"learned: wrote {path.relative_to(lib.ROOT).as_posix()} (the 30- and 90-day reviews are due as it says)")
+            return 0
         if args and args[0] == "check" and len(args) in (1, 2):
-            bad = problems() + (gate_check(args[1]) if len(args) == 2 else [])
+            if opts["review"] and len(args) == 2:
+                bad = problems() + benefits_check(args[1], int(opts["review"]))
+            else:
+                bad = problems() + (gate_check(args[1]) if len(args) == 2 else [])
             for p in bad:
                 print("  " + p)
             print(f"learned: FAILED ({len(bad)} problem(s))" if bad else "learned: OK")

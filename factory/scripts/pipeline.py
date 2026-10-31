@@ -524,6 +524,32 @@ def overdue(a: dict, today: str | None = None) -> bool:
     return d.get("decided") == "get-ready" and bool(d.get("review")) and d["review"] < (today or lib.today())
 
 
+IN_FLIGHT = ("spec", "build", "publish")
+WIP_DEFAULT = "DEF-23"
+# The defaults file: an instance keeps its group defaults in group/ (check_factory.py CONTEXT_FILES).
+DEFAULTS = ("factory/context/group/defaults.md", "factory/context/defaults.md")
+
+
+def wip_limit(root: Path | None = None) -> int | None:
+    """The most ideas past Gate 1 and not yet published at once (DEF-23's first number), or None when unset."""
+    base = root or lib.ROOT
+    for rel in DEFAULTS:
+        path = base / rel
+        if not path.exists():
+            continue
+        for row in path.read_text(encoding="utf-8").splitlines():
+            cells = [c.strip() for c in row.strip().strip("|").split("|")]
+            if cells and cells[0] == WIP_DEFAULT and len(cells) > 2:
+                found = re.search(r"\d+", cells[2])
+                return int(found.group(0)) if found else None
+    return None
+
+
+def in_flight(rows: list[dict]) -> list[dict]:
+    """Ideas past Gate 1 and not yet published: in Spec, Build or Publish, and not stopped."""
+    return [r for r in rows if r["stage"] in IN_FLIGHT and r["state"].get("status") not in ("stopped", "done")]
+
+
 def counts(reg: dict, rows: list[dict], root: Path | None = None) -> dict[str, int]:
     def decided(r: dict) -> str | None:
         return r["a"]["decision"].get("decided") if r["a"] else None
@@ -537,13 +563,24 @@ def counts(reg: dict, rows: list[dict], root: Path | None = None) -> dict[str, i
         "knocked-out": sum(1 for r in rows if r["a"] and r["a"].get("knockout")),
         "developing": sum(1 for r in rows if not (r["a"] and (scored(r["a"]) or r["a"].get("knockout")))),
         "captured": sum(1 for e in reg["entries"] if not e.get("slug")) + len(not_captured(reg, root)),
+        "in-flight": len(in_flight(rows)),
+        "reviews-overdue": sum(1 for d in reviews_due(root) if d["overdue"]),
     }
+
+
+def reviews_due(root: Path | None = None) -> list[dict]:
+    """Benefits reviews not yet done (learned.py, which imports this module, is imported here)."""
+    import learned
+
+    return learned.reviews_due(root)
 
 
 def line(c: dict[str, int]) -> str:
     late = f" ({c['overdue']} past review)" if c.get("overdue") else ""
+    benefits = f", {c['reviews-overdue']} benefits review(s) overdue" if c.get("reviews-overdue") else ""
     return (f"{c['ranked']} ranked, {c['go']} go, {c['get-ready']} getting ready{late}, {c['stopped']} stopped, "
-            f"{c['knocked-out']} knocked out, {c['developing']} being developed, {c['captured']} captured and not yet developed")
+            f"{c['knocked-out']} knocked out, {c['developing']} being developed, {c['captured']} captured and not yet developed"
+            f"{benefits}")
 
 
 def summary(root: Path | None = None) -> str | None:
@@ -569,8 +606,12 @@ def render(reg: dict, root: Path | None = None) -> str:
         "Impact is 0.25 minimal, 0.5 low, 1 medium, 2 high, 3 massive; Confidence is a percentage; Effort is rough person-weeks. "
         "Score = Reach x Impact x Confidence / Effort.", "",
         f"Updated {reg.get('updated', lib.today())}: {line(c)}. The owner decides Go, Get Ready or Stop at Gate 1, idea by idea.", "",
-        "## Ranked", "",
     ]
+    limit = wip_limit(root)
+    if limit is not None:
+        over = " **Over the limit**: finish or pause one before the next Go." if c["in-flight"] > limit else ""
+        lines += [f"In flight (past Gate 1, not yet published): {c['in-flight']} of {limit} ({WIP_DEFAULT}).{over}", ""]
+    lines += ["## Ranked", ""]
     order = ranked(rows)
     if order:
         lines += ["| Rank | Idea | Score | Reach | Impact | Confidence | Effort | Foundations | Decision | The one thing | Conditions |",
@@ -591,6 +632,12 @@ def render(reg: dict, root: Path | None = None) -> str:
             d = r["a"]["decision"]
             lines.append(f"| {cell(r['name'])} | {', '.join(FOUNDATIONS[k] for k in d['fix'])} | {cell(d.get('owner', '-'))} | "
                          f"{d.get('review', '-')} | {'**overdue**: back to Gate 1' if overdue(r['a']) else ''} |")
+    due = reviews_due(root)
+    if due:
+        names = {r["slug"]: r["name"] for r in rows}
+        lines += ["", "## Benefits reviews due", "", "| Idea | Review | Due | |", "|---|---|---|---|"]
+        lines += [f"| {cell(names.get(d['slug'], d['slug']))} | {d['day']} days | {d['due']} | {'**overdue**' if d['overdue'] else ''} |"
+                  for d in due]
     stopped = [r for r in rows if r["a"] and r["a"]["decision"].get("decided") == "stop"]
     if stopped:
         lines += ["", "## Stopped at Gate 1", "", "| Idea | Reason | Date |", "|---|---|---|"]
@@ -874,6 +921,10 @@ def main(argv: list[str]) -> int:
                            route=route, timebox=float(timebox) if timebox else None, owner=owner, review=review)
             (lib.ROOT / REPORT).write_text(render(reg), encoding="utf-8", newline="\n")
             print(f"pipeline: {args[1]} {DECISIONS[args[2]]} at Gate 1; {state['next']}")
+            limit, flying = wip_limit(), len(in_flight(assessed_ideas()))
+            if args[2] == "go" and limit is not None and flying > limit:
+                print(f"pipeline: {flying} ideas are now in flight, over the {WIP_DEFAULT} limit of {limit}: "
+                      "say so to the owner, and finish or pause one before the next starts")
             return 0
         if len(args) == 3 and args[0] == "light" and reply:
             state = end_light(args[1], args[2], reply, reason, tier=int(tier) if tier else None)

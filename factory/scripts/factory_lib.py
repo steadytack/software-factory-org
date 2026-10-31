@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SLUG_PATTERN = r"^[a-z][a-z0-9-]*$"
-SCHEMAS = ("application-definition", "assessment", "state", "composition", "catalogue-entry", "source-record", "scopes", "pipeline", "outcome")
+SCHEMAS = ("application-definition", "assessment", "state", "composition", "catalogue-entry", "source-record", "scopes", "pipeline", "outcome", "benefits")
 # Template text like <Who has the problem> left in a document (a link like <https://...> is not one).
 PLACEHOLDER = re.compile(r"<(?!https?:)[A-Za-z][^<>\n]{2,}>")
 

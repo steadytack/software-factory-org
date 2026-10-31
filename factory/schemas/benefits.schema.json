@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "benefits",
+  "version": 1,
+  "title": "Benefits review (front matter of ideas/<slug>/benefits.md): whether a published app delivered what Gate 1 expected, 30 and 90 days after it was published",
+  "type": "object",
+  "required": ["schema_version", "slug", "published", "estimated", "reviews"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "published": { "type": "string", "format": "date", "description": "The date the app was published (Gate 4)" },
+    "estimated": {
+      "type": "object",
+      "required": ["reach", "period", "impact"],
+      "additionalProperties": false,
+      "description": "Copied from the assessment approved at Gate 1",
+      "properties": {
+        "reach": { "type": "number", "minimum": 0 },
+        "period": { "type": "string", "minLength": 1 },
+        "impact": { "type": "number", "minimum": 0 }
+      }
+    },
+    "reviews": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/review" }
+    }
+  },
+  "$defs": {
+    "verdict": { "enum": ["unchecked", "yes", "partly", "no"], "description": "unchecked until the review is done" },
+    "judged": {
+      "type": "object",
+      "required": ["held", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "held": { "$ref": "#/$defs/verdict" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "review": {
+      "type": "object",
+      "required": ["day", "due", "done", "measures", "reach", "impact", "in_use", "lessons"],
+      "additionalProperties": false,
+      "properties": {
+        "day": { "enum": [30, 90] },
+        "due": { "type": "string", "format": "date" },
+        "done": { "type": ["string", "null"], "format": "date", "description": "The date the review was done; null until then" },
+        "measures": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The success measures from the brief and the objectives (spec doc 02), each with what was measured",
+          "items": {
+            "type": "object",
+            "required": ["measure", "target", "actual", "met"],
+            "additionalProperties": false,
+            "properties": {
+              "measure": { "type": "string", "minLength": 1 },
+              "target": { "type": "string", "minLength": 1 },
+              "actual": { "type": "string", "minLength": 1 },
+              "met": { "$ref": "#/$defs/verdict" }
+            }
+          }
+        },
+        "reach": {
+          "type": "object",
+          "required": ["actual", "note"],
+          "additionalProperties": false,
+          "properties": {
+            "actual": { "type": ["number", "null"], "minimum": 0, "description": "People or processes reached per period, measured; null until then (0 is a real answer)" },
+            "note": { "type": "string", "minLength": 1 }
+          }
+        },
+        "impact": { "$ref": "#/$defs/judged", "description": "Did the Gate 1 impact per person or process hold?" },
+        "in_use": { "$ref": "#/$defs/judged", "description": "Is it still used as the to-be process (spec doc 13) expects?" },
+        "lessons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["kind", "ref", "lesson"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["lens", "knockout", "default", "rice"] },
+              "ref": { "type": "string", "minLength": 1 },
+              "lesson": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

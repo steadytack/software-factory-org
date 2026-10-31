@@ -19,7 +19,7 @@ from app.core.database import SessionDep
 from app.services.base import ParentNotFoundError
 
 
-def make_crud_router(
+def make_crud_router(  # noqa: C901 -- one branch per optional route; splitting would hide the router's shape
     *,
     prefix: str,
     tags: list[str],

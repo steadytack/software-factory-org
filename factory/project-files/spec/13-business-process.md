@@ -32,3 +32,13 @@ Change is removed, automated, changed or new. The saving is the expected time or
 
 | Step | Change | Who does it now | Who does it then | Expected saving |
 |---|---|---|---|---|
+
+## Transition
+How people get from the as-is to the to-be: what they need to know, when the old way stops, and who helps them in the first weeks. A personal tool may say `Not applicable: <reason>`.
+
+| Item | What | Who | When |
+|---|---|---|---|
+| Training | <what each role needs to learn, and how: a demo, a one-page guide, help in the app> | | |
+| Communication | <who is told what, and when> | | |
+| Cutover | <when the old way stops; what happens to its data and records> | | |
+| Support | <who helps in the first weeks, how people ask, and when it becomes normal support> | | |

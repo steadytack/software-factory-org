@@ -6,7 +6,7 @@
       "name": "web-app",
       "status": "ready",
       "order": 6,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "runtime": "python+node",
       "readme_status": "ready, verified (see its README)",
       "readme_for": "a web application with a frontend and backend, geospatial-capable",
@@ -45,6 +45,7 @@
           ],
           "steps": [
             "ruff check app tests migrations",
+          "PYTHONPATH=. lint-imports",
             "python -m pytest -q"
           ]
         },

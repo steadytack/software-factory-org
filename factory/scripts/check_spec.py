@@ -30,7 +30,7 @@ import scopes  # noqa: E402
 
 PREFIXES = [
     "OBJ", "JRN", "FR", "RULE", "SCR", "NFR", "DATA", "REL", "ROLE", "PERM", "SEC", "US", "AC",
-    "ASM", "Q", "RISK", "DEP", "DEC", "CR", "CMP", "INT", "EPIC", "TEST", "CAP",
+    "ASM", "Q", "RISK", "DEP", "ISS", "DEC", "CR", "CMP", "INT", "EPIC", "TEST", "CAP",
 ]
 ID = re.compile(r"\b(" + "|".join(PREFIXES + ["CAT"]) + r")-(\d{3})(-AC\d+)?\b")
 ID_ONLY = re.compile(r"^(" + "|".join(PREFIXES) + r")-\d{3}(-AC\d+)?$")
@@ -46,7 +46,7 @@ DOCS = [
 ]
 GENERATED = {"traceability.md"}
 PRIORITIES = {"must", "should", "could"}
-OPEN_ITEMS = {"ASM", "Q", "RISK", "DEP"}
+OPEN_ITEMS = {"ASM", "Q", "RISK", "DEP", "ISS"}
 STATUSES = {"open", "closed", "accepted", "withdrawn"}
 BLOCKS = {"none", "spec", "build", "release"}
 DECISIONS = {"reuse", "adapt", "build", "import", "redesign", "defer"}
@@ -55,13 +55,17 @@ BRIEF_HEADINGS = ["Problem", "Outcome and success measures", "How it's done toda
                   "Strategic fit", "Assumptions and unknowns"]
 PLAN_HEADINGS = ["The question", "Success and kill criteria", "Time box", "In and out", "Data and protection", "Template", "Afterwards"]
 OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
-PROCESS_SECTIONS = ("as-is", "to-be", "what changes")
+PROCESS_SECTIONS = ("as-is", "to-be", "what changes", "transition")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
 DOC_SINCE = {"13-business-process": "0.2.0"}
 PREMORTEM_SINCE = "0.9.0"
 PREMORTEM = re.compile(r"^##\s+Pre-mortem\s*$(.*?)(?=^##\s|\Z)", re.M | re.S | re.I)
 CHALLENGE_COLUMNS = ["#", "where", "challenge", "answer", "outcome"]
 CHALLENGE_OUTCOMES = {"changed", "kept"}
+STRIDE = {"s": "spoofing", "t": "tampering", "r": "repudiation", "i": "information disclosure",
+          "d": "denial of service", "e": "elevation of privilege"}
+THREATS_FROM = ("B", "C", "D")  # protection levels whose doc 07 records its threats (security.md)
+MITIGATED_BY = {"SEC", "PERM", "RISK", "NFR"}
 MERMAID = re.compile(r"^```mermaid\s*$", re.M)
 
 
@@ -330,6 +334,37 @@ def check_challenge(idea: Path, gate: int, f: Findings) -> None:
         f.warn(rel, "no challenges recorded: a challenger that finds nothing has usually not looked")
 
 
+def check_threats(spec: Path, live: set[str], protection: str | None, f: Findings) -> None:
+    """Doc 07's threats (STRIDE per trust boundary): each a known category, mitigated by a SEC, PERM, NFR or RISK."""
+    path = spec / "07-security-and-permissions.md"
+    if not path.exists():
+        return
+    header: list[str] | None = None
+    rows = 0
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip().startswith("|"):
+            header = None
+            continue
+        cells = split_row(line)
+        if header is None:
+            header = [c.lower() for c in cells]
+            continue
+        if header[:2] != ["boundary", "stride"] or not "".join(cells).strip("-: "):
+            continue
+        rows += 1
+        row = dict(zip(header, cells))
+        kind = row.get("stride", "").strip().lower()
+        if kind not in STRIDE and kind not in STRIDE.values():
+            f.warn(f"{path.name}:{n}", f"threat category {row.get('stride')!r} is not one of STRIDE (spoofing, tampering, "
+                                       "repudiation, information disclosure, denial of service, elevation of privilege)")
+        ids = {m.group(0) for m in ID.finditer(row.get("mitigation", ""))}
+        if not any(kind_of(i) in MITIGATED_BY and i in live for i in ids):
+            f.warn(f"{path.name}:{n}", "threat with no mitigation: name the SEC, PERM, NFR or RISK (accepted) that answers it")
+    if not rows and protection in THREATS_FROM:
+        f.warn(path.name, f"no threats recorded: protection level {protection} lists them, STRIDE per trust boundary "
+                          "(## Threats; factory/standards/security.md)")
+
+
 def factory_root(idea: Path) -> Path | None:
     """The factory an idea folder sits in (ideas/<slug>), or None for this one."""
     return idea.parents[1] if idea.parent.name == "ideas" and (idea.parents[1] / "factory").is_dir() else None
@@ -372,7 +407,7 @@ def check_gate_one(idea: Path, f: Findings, root: Path | None = None) -> dict | 
 
 
 def process_sections(text: str) -> dict[str, tuple[int, str]]:
-    """{as-is | to-be | what changes: (line of the heading, the section's text)} from doc 13."""
+    """{as-is | to-be | what changes | transition: (line of the heading, the section's text)} from doc 13."""
     out: dict[str, tuple[int, str]] = {}
     current, start, body = None, 0, []
     for n, line in enumerate(text.splitlines() + ["## end"], start=1):
@@ -389,7 +424,7 @@ def process_sections(text: str) -> dict[str, tuple[int, str]]:
 
 
 def check_process(spec: Path, by_id: dict[str, Item], f: Findings) -> None:
-    """Doc 13: as-is and to-be as Mermaid, to-be steps naming the FRs they rely on, and what changes."""
+    """Doc 13: as-is and to-be as Mermaid, to-be steps naming the FRs they rely on, what changes, and the transition."""
     path = spec / "13-business-process.md"
     if not path.exists():
         return  # reported as a missing document
@@ -403,6 +438,11 @@ def check_process(spec: Path, by_id: dict[str, Item], f: Findings) -> None:
         f.warn(path.name, "no '## What changes' section (steps removed, automated or changed; who does what; savings)")
     elif not any(ln.strip().startswith("|") for ln in sections["what changes"][1].splitlines()):
         f.warn(f"{path.name}:{sections['what changes'][0]}", "'What changes' has no table")
+    if "transition" not in sections:
+        f.warn(path.name, "no '## Transition' section (training, communication, cutover, support; or Not applicable: reason)")
+    elif not (re.search(r"(?i)not applicable", sections["transition"][1])
+              or any(ln.strip().startswith("|") and not is_rule(split_row(ln)) for ln in sections["transition"][1].splitlines()[2:])):
+        f.warn(f"{path.name}:{sections['transition'][0]}", "'Transition' has no table (Item | What | Who | When) and does not say Not applicable")
     if "to-be" not in sections:
         return
     start, body = sections["to-be"]
@@ -426,6 +466,18 @@ def check_process(spec: Path, by_id: dict[str, Item], f: Findings) -> None:
             f.warn(f"{path.name}:{n}", f"to-be step {cells[0]} names no FR it relies on (a manual step may say so and be accepted)")
     if not steps:
         f.warn(f"{path.name}:{start}", "the to-be section has no steps table (Step | Who | What happens | Relies on)")
+
+
+def check_diagrams(spec: Path, kinds: dict[str, dict[str, Item]], f: Findings) -> None:
+    """An entity-relationship diagram in doc 06 once there are two entities; a C4 context and container view in
+    doc 10 once there are two components or an integration."""
+    live = {k: [i for i, it in kinds[k].items() if not it.withdrawn] for k in ("DATA", "CMP", "INT")}
+    data = spec / "06-data-model.md"
+    if len(live["DATA"]) >= 2 and data.exists() and "erDiagram" not in data.read_text(encoding="utf-8"):
+        f.warn(data.name, "no entity-relationship diagram (a ```mermaid erDiagram of the entities and relationships)")
+    arch = spec / "10-architecture-and-deployment.md"
+    if (len(live["CMP"]) >= 2 or live["INT"]) and arch.exists() and not MERMAID.search(arch.read_text(encoding="utf-8")):
+        f.warn(arch.name, "no architecture diagram (the C4 context and container views, as ```mermaid flowcharts)")
 
 
 def load_catalogue() -> dict[str, dict] | None:
@@ -605,6 +657,9 @@ def check_pack(idea: Path, spec: Path, f: Findings, tier: int, deployment: str |
             f.block(loc[i], f"{i} names no role (ROLE)")
         if not it.col("test") and not tests_for.get(i):
             f.warn(loc[i], f"{i} has no test")
+    for i in kinds["INT"]:
+        if tier >= 3 and not kinds["INT"][i].withdrawn and not tests_for.get(i):
+            f.warn(loc[i], f"{i} has no contract or integration test (a TEST naming it)")
     for i, it in kinds["REL"].items():
         if len(it.refs("DATA")) < 2:
             f.warn(loc[i], f"{i} should name the two entities (DATA) it relates")
@@ -664,6 +719,8 @@ def check_pack(idea: Path, spec: Path, f: Findings, tier: int, deployment: str |
                 f.warn(loc[i], f"{i} has no owner")
             if status in ("", "open") and blocks == "spec":
                 f.block(loc[i], f"{i} is open and blocks the spec (resolve it, or accept it explicitly)")
+
+    check_diagrams(spec, kinds, f)
 
     if deployment and (spec / "10-architecture-and-deployment.md").exists():
         text = (spec / "10-architecture-and-deployment.md").read_text(encoding="utf-8")
@@ -785,6 +842,7 @@ def run(arg: str, assessment_only: bool = False) -> tuple[Findings, str | None, 
     tier = data["maturity_tier"]["value"] if data else 2
     deployment = data["deployment"]["value"] if data else None
     by_id, ctx = check_pack(idea, spec, f, tier, deployment)
+    check_threats(spec, {i for i, it in by_id.items() if not it.withdrawn}, (data.get("protection") or {}).get("value") if data else None, f)
     if in_factory:
         check_challenge(idea, 2, f)
     f.done()

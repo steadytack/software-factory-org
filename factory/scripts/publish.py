@@ -17,6 +17,7 @@ signed-in GitHub user, MIT, copyright git user.name.
 from __future__ import annotations
 
 import datetime as dt
+import json
 import re
 import shutil
 import subprocess
@@ -107,6 +108,29 @@ def settings_for(slug: str, root: Path | None = None) -> dict:
     return scopes.publish_settings(scopes.idea_scope(state), scopes.registry(root))
 
 
+SBOM = re.compile(r"(^|/)(sbom[^/]*\.json|[^/]*\.cdx\.json)$", re.I)
+SBOM_LEVELS = ("C", "D")
+
+
+def protection_of(idea: Path) -> str | None:
+    """The protection level (A to D) in the idea's Application Definition, or None when it has none."""
+    path = idea / "application-definition.md"
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    match = re.match(r"\A\s*```json definition\s*\n(.*?)\n```", text, re.S)
+    try:
+        return (json.loads(match.group(1)).get("protection") or {}).get("value") if match else None
+    except ValueError:
+        return None
+
+
+def sbom_problem(level: str | None, tracked: list[str]) -> str | None:
+    """A software bill of materials is published with the app at protection C and D (security.md)."""
+    if level in SBOM_LEVELS and not any(SBOM.search(name) for name in tracked):
+        return (f"no SBOM: protection level {level} publishes one (sbom*.json or *.cdx.json; "
+                "the stack standards say how to generate it)")
+    return None
+
+
 def run_checks(slug: str, fix: bool, root: Path | None = None) -> Report:
     base = root or lib.ROOT
     idea = lib.idea_dir(slug, root)
@@ -183,7 +207,13 @@ def run_checks(slug: str, fix: bool, root: Path | None = None) -> Report:
     clean = is_repo and not git(app, "status", "--porcelain").stdout.strip()
     r.check(clean, "working tree clean", "uncommitted changes (the spec copy counts); commit before publishing", blocking=False)
 
-    # 6. open items the spec says must be settled before publishing
+    # 6. supply chain: a software bill of materials at protection C and D
+    level = protection_of(idea)
+    if level in SBOM_LEVELS:
+        problem = sbom_problem(level, tracked)
+        r.check(problem is None, f"SBOM present (protection level {level})", problem or "")
+
+    # 7. open items the spec says must be settled before publishing
     register = spec / "09-assumptions-risks-decisions.md"
     if register.exists():
         items = [

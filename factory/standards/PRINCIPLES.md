@@ -21,7 +21,7 @@ Set per idea (the factory records it in `state.json` and the spec; `factory/stan
 - Name things with specific verbs and nouns (`calculate_total_tax`, not `calc`). If a comment explains *what*, rewrite the code; comments explain *why*.
 - Types are mandatory, in whatever form the language supports.
 - Composition over inheritance. No global mutable state. Specific exceptions. No boolean flag parameters.
-- Latest stable packages; remove unused ones. Prefer changing existing code to writing a parallel version.
+- Latest stable packages; remove unused ones. Before adding one, confirm on its registry that it exists under that exact name and is maintained and widely used (`security.md`): never install a name you have not checked. Prefer changing existing code to writing a parallel version.
 - Document public interfaces and anything non-obvious. Skip the obvious.
 
 ## 3. Architecture

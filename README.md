@@ -24,5 +24,5 @@ This repo is standalone: it began from version 0.2.1 of the factory on 2026-10-3
 <!-- templates:start -->
 | Template | Version | Status | For |
 |---|---|---|---|
-| `web-app` | 1.0.0 | ready, verified (see its README) | a web application with a frontend and backend, geospatial-capable |
+| `web-app` | 1.1.0 | ready, verified (see its README) | a web application with a frontend and backend, geospatial-capable |
 <!-- templates:end -->

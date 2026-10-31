@@ -42,6 +42,28 @@ export default tseslint.config(
       ],
     },
   },
+  // The layering in PRINCIPLES.md 3: pages and layout use components, components use hooks,
+  // hooks use the API client; nothing imports a layer above its own.
+  ...[
+    { files: ["src/api/**"], above: ["hooks", "components", "pages", "layout", "search", "help", "routes"] },
+    { files: ["src/hooks/**"], above: ["components", "pages", "layout", "routes"] },
+    { files: ["src/components/**"], above: ["pages", "layout", "routes"] },
+  ].map(({ files, above }) => ({
+    files,
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: above.flatMap((dir) => [`@/${dir}`, `@/${dir}/*`, `**/${dir}`, `**/${dir}/*`]),
+              message: `${files[0]} must not import ${above.join(", ")} (PRINCIPLES.md 3: dependencies point one way).`,
+            },
+          ],
+        },
+      ],
+    },
+  })),
   {
     ignores: ["dist/**", "node_modules/**", "playwright-report/**", "test-results/**"],
   },

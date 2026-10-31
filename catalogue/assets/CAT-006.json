@@ -16,7 +16,7 @@
     "files",
     "web"
   ],
-  "version": "1.0.0",
+  "version": "1.1.0",
   "status": "approved",
   "source": {
     "ref": "templates/web-app",
@@ -49,6 +49,12 @@
       "check": "factory/scripts/verify.py --template web-app after the seconds_until fix",
       "result": "passed",
       "detail": "2 of 2 parts; backend 256 passed (3 new clock-change tests), frontend passed"
+    },
+    {
+      "date": "2026-10-31",
+      "check": "factory/scripts/verify.py --template web-app (clean containers)",
+      "result": "passed",
+      "detail": "1.1.0 adds architecture checks: backend ruff with C90, PLR0915, PLW0603 and FBT, and lint-imports (2 contracts kept, 1 ignored import); 256 backend tests passed; frontend tsc, eslint (with the layering rule) and vitest passed (count not printed by verify)"
     }
   ],
   "risks": [],

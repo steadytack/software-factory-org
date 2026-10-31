@@ -20,18 +20,19 @@ A table **defines** IDs only when its first header cell is the prefix (`| FR | .
 | US | User story | 08-user-stories | the FR it satisfies, its EPIC; has at least one AC |
 | AC | Acceptance criterion (`US-nnn-ACn`) | 08-user-stories | a verification (test intent or a TEST) |
 | ASM, Q, RISK, DEP | Assumption, open question, risk, dependency | 09-assumptions-risks-decisions | a status, an owner, what it blocks |
-| DEC | Decision | 09-assumptions-risks-decisions | rationale, date, who decided |
+| ISS | Issue: something that has gone wrong (a risk is something that might) | 09-assumptions-risks-decisions | a status, an owner, what it blocks |
+| DEC | Decision | 09-assumptions-risks-decisions | rationale, date, who decided; a significant one also its context, rejected alternatives and consequences |
 | CR | Change request | 09-assumptions-risks-decisions (and the project's `changes.md`) | the IDs it affects |
 | CMP | Component of the architecture | 10-architecture-and-deployment | what it is built from (a CAT asset, custom, or external: a third-party component not yet catalogued) |
 | INT | Integration: an outside system, or an interface between two components | 10-architecture-and-deployment | the FRs it serves |
 | EPIC | Epic (a coherent, testable increment) | 11-delivery-plan | the FRs and stories it delivers |
-| TEST | Planned test or check | 11-delivery-plan | what it verifies (AC, FR, NFR, SEC, PERM) |
+| TEST | Planned test or check | 11-delivery-plan | what it verifies (AC, FR, NFR, SEC, PERM, INT) |
 | CAP | Required capability | 12-component-selection-and-gaps | the requirements it supports; a decision |
 | CAT | Catalogue asset | `catalogue/assets/` (outside the pack) | referenced from CMP and CAP |
 
 ## Values that checks read
 - **Priority:** Must, Should, Could.
-- **Status** (open items): open, closed, accepted, withdrawn.
+- **Status** (open items, issues included): open, closed, accepted, withdrawn.
 - **Blocks:** none, spec, build, release. An open item that blocks `spec` stops Gate 2.
 - **Component decision** (CAP): reuse, adapt, build, import, redesign, defer.
 - **Reuse scope** (CAP): project, catalogue (the new work is meant for the catalogue).

@@ -41,3 +41,6 @@ flowchart TD
 |---|---|---|---|---|
 | Multiply by the ratio | Automated | Brewer, on a calculator | The app | About a minute and the odd arithmetic slip per brew |
 | Write it on a note | Removed | Brewer | The app keeps it | No lost notes |
+
+## Transition
+Not applicable: one brewer, who asked for it; nothing to train, announce or cut over, and the calculator stays in the drawer.
