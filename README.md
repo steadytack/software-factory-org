@@ -1,9 +1,9 @@
 # Organisation A software factory
 
-Turns an idea, an existing specification or an imported project into a built, tested and audited application, assembled from the organisation's approved catalogue assets where possible. Ideas are developed with `/factory` in Claude Code. Most start as a spike: a working version in about a week, then grow, keep or stop.
+Turns an idea, an existing specification or an imported project into a built, tested and audited application, assembled from the organisation's approved catalogue assets where possible. Ideas are developed with `/factory` in Claude Code. Most start as a spike: a working version in about a week, then grow, keep or stop. Every idea, spec and app is built with the same guardrails, approach, policies, defaults and organisational context, from an approved list of technology, and all of it is improved over time as content in this repository.
 
 - **Have an idea?** [docs/for-staff.md](docs/for-staff.md): what to send and what happens next.
-- **Leading or sponsoring it?** [docs/overview-for-leaders.md](docs/overview-for-leaders.md), the factory on one page.
+- **Leading or sponsoring it?** [docs/overview-for-leaders.md](docs/overview-for-leaders.md), the factory on one page; and [docs/the-factory/](docs/the-factory/README.md), the factory assessed by its own first stage (brief, assessment, sponsor overview).
 - **A technical or AI leader?** [docs/for-technical-leaders.md](docs/for-technical-leaders.md): how it works, the controls and its known limits.
 - **Running it?** [docs/operating-model.md](docs/operating-model.md) (who does what), [factory/README.md](factory/README.md) (how it works), [SETUP.md](SETUP.md) (first time here).
 - **A word you don't know?** [docs/glossary.md](docs/glossary.md).

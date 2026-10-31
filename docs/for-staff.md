@@ -30,6 +30,9 @@ Don't worry about having all the answers. "I don't know" is a fine answer. The t
 - **Business prototype**: does real work for a team, kept simple underneath.
 - **Production app**: relied on, fully tested, supported and looked after.
 
+## Built the same way, every time
+Every app the factory builds follows the same rules, the same safety checks and the same approved technology, whichever team it's for. So apps work in a familiar way, can be supported, and get better as the factory learns from each idea.
+
 ## It already knows a lot
 The factory works from what the organisation already knows about itself: what each business does, every system we run and how they connect, and how our processes work. So you don't need to explain our systems. Say what's wrong, and the team will work out what already exists and what would change.
 

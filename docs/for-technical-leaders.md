@@ -1,6 +1,6 @@
 # The software factory, for technical leaders
 
-The factory is how Organisation A turns ideas into working apps using AI, without losing control of what gets built. An AI coding agent (Claude Code) does the work. People decide at four gates. Plain files and deterministic scripts hold the rules and the state, and check the work. This page explains how it works and why it is built that way. For the non-technical version, see [for-staff.md](for-staff.md).
+The factory is how Organisation A turns ideas into working apps using AI, without losing control of what gets built. An AI coding agent (Claude Code) does the work. People decide at four gates. Plain files and deterministic scripts hold the rules and the state, and check the work. This page explains how it works and why it is built that way. For the non-technical version, see [for-staff.md](for-staff.md). For the factory put through its own first stage (brief, assessment, overview), see [the-factory/](the-factory/README.md).
 
 ## The core idea
 **The model drafts, the scripts check, people decide.** Each layer does what it is good at:
@@ -12,6 +12,17 @@ The factory is how Organisation A turns ideas into working apps using AI, withou
 | **People** (named gate approvers) | Decide Go, Get Ready or Stop; approve the spec, the build and the release | Write the paperwork |
 
 Everything is in the repository: the stages, standards, policies, schemas and each idea's state (`ideas/<slug>/state.json`, `decisions.md`, gate files). Nothing important lives only in a chat. Any session, model or person can pick up where the last one stopped.
+
+## One way of building, improved over time
+Using AI to build faster is easy. Keeping a hundred AI-built apps consistent, safe and supportable is the hard part. Every idea, spec and app here goes through the same factory, so it shares:
+- **The same guardrails:** gates, a challenge before Gates 1 and 2, checks and audits, all run by the same scripts.
+- **The same approach:** the stage files (`factory/stages/`) the agent follows, and the same assessment and spec pack at every tier.
+- **The same policies** (`group/policies.md`, POL-nn), enforced by the scripts where they can be: data classes, approvals, secrets, imported material.
+- **The same defaults** (`group/defaults.md`, DEF-nn): hosting, login, data store, backups, locale, accessibility, testing. An idea may differ only by a recorded decision.
+- **The same context:** the business context, and the system landscape and processes as Architecture as Code, read by scope.
+- **The same technology, from an approved list:** apps start from a template in the registry (`factory/templates.json`) with its stack standard (`factory/standards/stacks/`). Reuse is from approved catalogue assets only (POL-10), with no extra frameworks without a requirement (DEF-15), only approved third-party services (DEF-11), and every new dependency vetted. Adding a template or asset is itself an approved change.
+
+**All of it is content in the repository, versioned and improved like code.** A change to a policy, default, stage, template or check is recorded in `CHANGELOG.md` with a `VERSION` bump, and each idea records the factory version it was built on. The learning loop (below) proposes those changes from evidence. So every idea benefits from what earlier ideas taught, and no app is left on a private set of rules.
 
 ## The flow
 ```
@@ -54,7 +65,7 @@ At Publish, the new app and its integrations are offered back to the AaC owners,
 
 ## Running it
 - **Engine:** Python scripts with tests (`python -m pytest factory/scripts/tests`) and a self-check (`check_factory.py`) that the registry, schemas, context, ideas and catalogue agree. A change to the factory is versioned (`VERSION`, `CHANGELOG.md`) like any other code.
-- **Templates:** `web-app` (FastAPI, SQLAlchemy and Alembic, PostgreSQL/PostGIS, React 19 with Vite and shadcn/ui), hosted in Docker at every tier.
+- **Templates (the approved technology list):** today `web-app` (FastAPI, SQLAlchemy and Alembic, PostgreSQL/PostGIS, React 19 with Vite and shadcn/ui), hosted in Docker at every tier. More are added to the registry by an approved change, never chosen ad hoc for one idea.
 - **Intake:** ideas arrive as lines in `ideas/inbox.md` or as idea cards exported from any form tool to `ideas/inbox.csv`.
 - **People:** intake triage, operators who run `/factory`, gate approvers, catalogue maintainers, and the team that takes over at tier 4 ([operating-model.md](operating-model.md)).
 - **Working economy:** short sessions, one piece of work each; wide searches go to helpers; independent steps are batched (DEF-18 to DEF-22). The aim is lower cost per idea and less drift.

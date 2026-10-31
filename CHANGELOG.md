@@ -2,6 +2,16 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.13.2 (2026-10-31)
+- **The factory, assessed by the factory** (`docs/the-factory/`, new): the factory put through its own first stage, in the formats every idea gets: an idea brief (the problem, outcome, how it works today and with the factory, data, risk, people, fit, assumptions), an assessment (knock-outs, the five foundations, the priority score, a pre-mortem, the one thing, the recommendation: Go as a spike, a two-week pilot) and a sponsor overview. Assumptions are marked. Linked from `README.md` and the leaders' guides, and in the shareable page (`share.json`).
+- Migration: none. Documentation only.
+
+## 0.13.1 (2026-10-31)
+The guides described the factory's parts but not its main argument: that every idea, spec and app is built with the same guardrails, approach, policies, defaults and context, from an approved list of technology, and that all of it improves over time.
+- **The leaders' overview is rewritten as the case for the factory:** the problem it solves, "one production line for ideas" (the same guardrails, approach, policies, defaults, context and technology, and how they improve), what leaders get, how it stays safe, how we'll know it works, and what it needs from them.
+- **The same theme elsewhere:** a "One way of building, improved over time" section for technical leaders (templates as the approved technology list, POL-10, DEF-11, DEF-15, versioned content), "Built the same way, every time" for staff, a line in `README.md`, a factory owner in the operating model, and template and factory version in the glossary.
+- Migration: none. Documentation only.
+
 ## 0.13.0 (2026-10-31)
 The factory built ideas with little knowledge of the organisation. The system landscape was a pointer to reference cards, none of which existed yet; process knowledge was gathered fresh for each idea; and the business context was one file that every idea read whole. The organisation describes its complete system landscape as Architecture as Code (AaC), is starting on its processes, and has a large business-context document. This release makes those the factory's context in the documents; connecting the models directly comes later, once their formats and access are agreed.
 - **What the factory knows about the organisation** (`factory/context/README.md`, new section): the three sources (business context, the system landscape as AaC, business processes as AaC), where each is and its status, and how Develop and Assess, Spec, Build and Publish use them. The models are read as data (POL-04).

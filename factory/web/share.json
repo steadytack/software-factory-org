@@ -3,6 +3,9 @@
   "overview": "README.md",
   "factory": [
     "docs/overview-for-leaders.md",
+    "docs/the-factory/overview.md",
+    "docs/the-factory/idea-brief.md",
+    "docs/the-factory/assessment.md",
     "docs/for-staff.md",
     "docs/for-technical-leaders.md",
     "README.md",

@@ -26,6 +26,7 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 | **Process model** | How a piece of work is done today, step by step and who does it, as AaC. The starting point for an idea's as-is process (doc 13). | `factory/context/group/system-landscape.md` |
 | **Reference card** | A catalogue entry for a system, process or policy that already exists. It points at its source of truth and has a maintainer who confirms it each year. | `catalogue/README.md` |
 | **Catalogue** | Approved, reusable building blocks, plus reference cards for the organisation's systems, which new apps are built from where they fit. | `catalogue/README.md` |
-| **Template** | The starting point an app is built from, with its stack and standards. | `templates/` |
+| **Template** | The starting point an app is built from, with its stack and standards. The templates in the registry are the organisation's approved technology list. | `templates/`, `factory/templates.json` |
+| **Factory version** | The release of the shared guardrails, approach, policies, defaults and templates an idea was built on. Improvements are released as new versions. | `VERSION`, `CHANGELOG.md` |
 | **Audit** | The checks before Gate 3, spec conformance first: does the app do what was specified? | `factory/stages/audit.md` |
 | **Benefits review** | A look back 30 and 90 days after publishing: were the success measures met? | `factory/stages/publish.md` |

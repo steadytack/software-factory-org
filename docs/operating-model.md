@@ -11,6 +11,7 @@ How Organisation A runs the factory day to day: who does what, how often, and wh
 | **Idea owner** | The person or team the idea is for: answers questions, tries the spike, owns the success measures | the submitter, or someone they name |
 | **Architecture owner** | Owns the AaC model of the system landscape: answers questions about a system, and adds new apps and integrations to the model when the factory offers them at Publish | to be named (the AaC team) |
 | **Process owner** | Owns a process model: confirms the as-is an idea starts from, and adds its to-be once the app is live | to be named, per process |
+| **Factory owner** | Owns the factory itself: the policies, defaults, stages, templates and checks every idea shares. Accepts or rejects the improvements `learned.py review` proposes, and releases them as versions | to be named (the group gate approver until then) |
 | **Catalogue maintainer** | Approves reusable assets and checks each system's reference card | the catalogue approvers in `scopes.json`, and each card's maintainer |
 | **Supporting team** | Takes over an app at tier 4: support, monitoring, backups, its retirement plan | the IT team that owns that service |
 
@@ -19,7 +20,7 @@ How Organisation A runs the factory day to day: who does what, how often, and wh
 |---|---|
 | Weekly | Triage the inbox; reply to every submitter |
 | Every two weeks | Gate 1 decision meeting: the ranked `ideas/pipeline.md`, Get Ready ideas past their review date, and spikes ending at Gate 3 |
-| Monthly | `python factory/scripts/status.py` and the cycle times to leadership; `learned.py review` for changes to the factory |
+| Monthly | `python factory/scripts/status.py` and the cycle times to leadership; `learned.py review`: the factory owner decides which proposed improvements to the shared policies, defaults, templates and approach to release |
 | Each publish | The new app, its integrations and its to-be process offered to the architecture and process owners for their models |
 | 30 and 90 days after publishing | The benefits review (`factory/stages/publish.md`) |
 
