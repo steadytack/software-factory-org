@@ -3,7 +3,7 @@
 Choose the shape of the solution, then turn it into a portable spec pack and a feasible composition. Output: `ideas/<slug>/application-definition.md` (the solution choices), `ideas/<slug>/spec/`, `ideas/<slug>/composition.json`. Ends at **Gate 2**, which approves the solution choices and the spec together.
 
 ## Before you start
-Gate 1 is approved with **Go** (`state.json`). Read the idea brief, the assessment (the ambers and the one thing become risks and assumptions here), `overview.md`, `decisions.md`, and the standards `specification-pack.md` and `requirement-ids.md`.
+Gate 1 is approved with **Go** (`state.json`), or a spike grew (`spike.result: grow`: read `spike.md`, the spike's `outcome.md` and its Gate 3 page too, and start from what it showed; a seed spike's code may be a component in doc 12). Read the idea brief, the assessment (the ambers and the one thing become risks and assumptions here), `overview.md`, `decisions.md`, and the standards `specification-pack.md` and `requirement-ids.md`.
 
 ## Solution choices
 The choices that shape everything after them are made first, in `application-definition.md`. It stays a document of its own (rather than being folded into spec docs 01, 02 and 10) because it is one small machine-readable record (`factory/schemas/application-definition.schema.json`) that the spec stubs, `check_spec.py` (tier and deployment) and the status page read; problem, outcome, users and success measures are not repeated in it: they are in the brief.

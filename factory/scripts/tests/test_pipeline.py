@@ -401,9 +401,9 @@ def test_get_ready_then_a_light_reassessment_then_go(reg, isolated):
     brief = (folder / pipeline.BRIEF).read_text(encoding="utf-8")
     with pytest.raises(lib.FactoryError, match="nothing to fix"):
         pipeline.decide(slug, "get-ready", "get ready", fix=["problem"], root=isolated)
-    state = pipeline.decide(slug, "get-ready", "get ready", fix=["data", "people"], root=isolated)
+    state = pipeline.decide(slug, "get-ready", "get ready", fix=["data", "people"], root=isolated, owner="Data team")
     assert (state["stage"], state["status"], state["gates"]["1"]["status"]) == ("develop", "paused", "get-ready")
-    assert state["assessment"]["fix"] == ["data", "people"] and "fix Data Foundations, People & Process" in state["next"]
+    assert state["assessment"]["fix"] == ["data", "people"] and "Data team fixes Data Foundations, People & Process by " in state["next"]
     assert status.collect(isolated)[0]["gates_line"] == "1:R 2:- 3:- 4:-"
     assert "Get Ready (" in pipeline.render(reg, isolated)
 

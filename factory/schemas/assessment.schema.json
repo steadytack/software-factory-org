@@ -56,6 +56,10 @@
         "recommended": { "enum": ["undecided", "go", "get-ready", "stop"] },
         "reason": { "type": "string", "minLength": 1 },
         "fix": { "type": "array", "items": { "$ref": "#/$defs/foundation" }, "uniqueItems": true, "description": "Get Ready: the foundations to fix" },
+        "route": { "enum": ["full", "spike"], "description": "Go: the full route (Spec, then Build and Audit) or a spike (a small, time-boxed build to answer the ambers; plan in spike.md)" },
+        "timebox": { "type": "number", "exclusiveMinimum": 0, "description": "Spike: the time box, person-weeks" },
+        "owner": { "type": "string", "minLength": 1, "description": "Get Ready: who fixes the named foundations" },
+        "review": { "type": "string", "format": "date", "description": "Get Ready: when it comes back to Gate 1, fixed or not" },
         "decided": { "enum": ["go", "get-ready", "stop"], "description": "The owner's decision at Gate 1" },
         "date": { "type": "string", "format": "date" },
         "reply": { "type": "string" }

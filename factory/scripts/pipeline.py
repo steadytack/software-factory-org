@@ -7,8 +7,10 @@ Usage:
   python factory/scripts/pipeline.py develop IDEA-nnn [<slug>]          make ideas/<slug>/ with the brief and assessment stubs
   python factory/scripts/pipeline.py check                   validate ideas/pipeline.json and every assessment
   python factory/scripts/pipeline.py render                  validate, then write the ranked ideas/pipeline.md
-  python factory/scripts/pipeline.py decide <slug> go|get-ready|stop --reply "..." [--reason "..."] [--fix data,risk]   Gate 1
+  python factory/scripts/pipeline.py decide <slug> go|get-ready|stop --reply "..." [--reason "..."]
+        [--route full|spike] [--timebox N] [--fix data,risk --owner "..." [--review YYYY-MM-DD]]   Gate 1
   python factory/scripts/pipeline.py reassess <slug>         after Get Ready: a light re-assessment, not a restart
+  python factory/scripts/pipeline.py spike <slug> grow|keep|stop --reply "..." [--reason "..."]   Gate 3 of a spike
 
 The register is ideas/pipeline.json (schema factory/schemas/pipeline.schema.json): every idea captured,
 and the folder it was developed into. Each developed idea's assessment is the JSON block at the top of
@@ -17,11 +19,12 @@ the five foundations rated green, amber or red, the RICE factors, the one thing,
 assistant writes those; this script does the arithmetic and the ranking, so the order is reproducible:
 score = Reach x Impact x Confidence% / Effort, ties broken by higher confidence, then lower effort, then slug.
 Data classes are checked against the data-classes table (POL-11) in every policies.md of the idea's scope:
-a class answered "no" there must be knocked out. Rules: factory/stages/develop-assess.md.
+a class answered "no" there must be knocked out. Rules: factory/stages/develop-assess.md (a spike: factory/stages/spike.md).
 """
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import re
 import sys
@@ -37,6 +40,9 @@ INBOX = "ideas/inbox.md"
 REPORT = "ideas/pipeline.md"
 ASSESSMENT = "assessment.md"
 BRIEF = "idea-brief.md"
+SPIKE = "spike.md"
+REVIEW_DAYS = 28  # a Get Ready idea comes back to Gate 1 this long after the decision unless --review says otherwise
+SPIKE_RESULTS = {"grow": "Grow", "keep": "Keep", "stop": "Stop"}
 IMPACTS = (0.25, 0.5, 1, 2, 3)
 FOUNDATIONS = {"problem": "Problem", "value": "Value", "data": "Data Foundations", "risk": "Risk", "people": "People & Process"}
 DECISIONS = {"go": "Go", "get-ready": "Get Ready", "stop": "Stop"}
@@ -465,11 +471,20 @@ def rag(a: dict) -> str:
 def decision_text(a: dict) -> str:
     d = a["decision"]
     fix = f": fix {', '.join(FOUNDATIONS[k] for k in d['fix'])}" if d.get("fix") and "get-ready" in (d.get("decided"), d["recommended"]) else ""
+    spike = " as a spike" if d.get("route") == "spike" and "go" in (d.get("decided"), d["recommended"]) else ""
     if d.get("decided"):
-        return f"{DECISIONS[d['decided']]} ({d['date']}){fix}"
+        owner = (f" ({d['owner']}, review {d['review']}{', overdue' if overdue(a) else ''})"
+                 if d["decided"] == "get-ready" and d.get("owner") else "")
+        return f"{DECISIONS[d['decided']]}{spike} ({d['date']}){fix}{owner}"
     if d["recommended"] == "undecided":
         return "being assessed"
-    return f"recommended {DECISIONS[d['recommended']]}{fix}"
+    return f"recommended {DECISIONS[d['recommended']]}{spike}{fix}"
+
+
+def overdue(a: dict, today: str | None = None) -> bool:
+    """A Get Ready idea past its review date: it should be back at Gate 1, fixed or not."""
+    d = a["decision"]
+    return d.get("decided") == "get-ready" and bool(d.get("review")) and d["review"] < (today or lib.today())
 
 
 def counts(reg: dict, rows: list[dict], root: Path | None = None) -> dict[str, int]:
@@ -480,6 +495,7 @@ def counts(reg: dict, rows: list[dict], root: Path | None = None) -> dict[str, i
         "ranked": len(ranked(rows)),
         "go": sum(1 for r in rows if decided(r) == "go"),
         "get-ready": sum(1 for r in rows if decided(r) == "get-ready"),
+        "overdue": sum(1 for r in rows if r["a"] and overdue(r["a"])),
         "stopped": sum(1 for r in rows if decided(r) == "stop"),
         "knocked-out": sum(1 for r in rows if r["a"] and r["a"].get("knockout")),
         "developing": sum(1 for r in rows if not (r["a"] and (scored(r["a"]) or r["a"].get("knockout")))),
@@ -488,7 +504,8 @@ def counts(reg: dict, rows: list[dict], root: Path | None = None) -> dict[str, i
 
 
 def line(c: dict[str, int]) -> str:
-    return (f"{c['ranked']} ranked, {c['go']} go, {c['get-ready']} getting ready, {c['stopped']} stopped, "
+    late = f" ({c['overdue']} past review)" if c.get("overdue") else ""
+    return (f"{c['ranked']} ranked, {c['go']} go, {c['get-ready']} getting ready{late}, {c['stopped']} stopped, "
             f"{c['knocked-out']} knocked out, {c['developing']} being developed, {c['captured']} captured and not yet developed")
 
 
@@ -530,6 +547,13 @@ def render(reg: dict, root: Path | None = None) -> str:
                 f"{rag(a)} | {cell(decision_text(a))} | {cell(a['one_thing'])} | {cell('; '.join(conditions(a, rules)) or '-')} |")
     else:
         lines.append("Nothing assessed yet.")
+    ready = [r for r in rows if r["a"] and r["a"]["decision"].get("decided") == "get-ready"]
+    if ready:
+        lines += ["", "## Getting ready", "", "| Idea | Fix | Owner | Review by | |", "|---|---|---|---|---|"]
+        for r in sorted(ready, key=lambda r: (r["a"]["decision"].get("review", "9"), r["slug"])):
+            d = r["a"]["decision"]
+            lines.append(f"| {cell(r['name'])} | {', '.join(FOUNDATIONS[k] for k in d['fix'])} | {cell(d.get('owner', '-'))} | "
+                         f"{d.get('review', '-')} | {'**overdue**: back to Gate 1' if overdue(r['a']) else ''} |")
     stopped = [r for r in rows if r["a"] and r["a"]["decision"].get("decided") == "stop"]
     if stopped:
         lines += ["", "## Stopped at Gate 1", "", "| Idea | Reason | Date |", "|---|---|---|"]
@@ -573,7 +597,8 @@ def bump(version: str) -> str:
 
 
 def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix: list[str] | None = None,
-           root: Path | None = None) -> dict:
+           root: Path | None = None, *, route: str | None = None, timebox: float | None = None,
+           owner: str | None = None, review: str | None = None) -> dict:
     """Record the owner's Gate 1 decision in the assessment and state.json; returns the state."""
     if decision not in DECISIONS:
         raise lib.FactoryError(f"the decision is go, get-ready or stop, not {decision!r}")
@@ -591,6 +616,20 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
         raise lib.FactoryError("a knocked-out idea can only be stopped; to overrule the knock-out, remove it and rate the idea first")
     if decision == "go" and reds:
         raise lib.FactoryError(f"a Go cannot have a red foundation ({', '.join(reds)})")
+    route = route or d.get("route") or "full"
+    if route not in ("full", "spike"):
+        raise lib.FactoryError(f"the route is full or spike, not {route!r}")
+    if decision == "go" and route == "spike":
+        import check_spec
+
+        f = check_spec.Findings()
+        check_spec.check_spike(idea, f)
+        f.done()
+        if f.blockers:
+            raise lib.FactoryError(f"a spike needs its plan ({SPIKE}): " + "; ".join(f.blockers))
+        d.update(route="spike", timebox=timebox or d.get("timebox") or 1)
+    elif decision == "go":
+        d["route"] = "full"
     if decision == "get-ready":
         fix = fix or d["fix"]
         unknown = [k for k in fix if k not in FOUNDATIONS]
@@ -600,7 +639,16 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
         green = [FOUNDATIONS[k] for k in fix if ratings(a).get(k) == "green"]
         if green:
             raise lib.FactoryError(f"{', '.join(green)} is green, so there is nothing to fix")
-        d["fix"] = fix
+        if not owner:
+            raise lib.FactoryError("Get Ready names who fixes it (--owner), so the idea does not wait on no one")
+        review = review or (dt.date.today() + dt.timedelta(days=REVIEW_DAYS)).isoformat()
+        try:
+            past = dt.date.fromisoformat(review).isoformat() < lib.today()
+        except ValueError:
+            raise lib.FactoryError(f"the review date {review!r} is not YYYY-MM-DD") from None
+        if past:
+            raise lib.FactoryError(f"the review date {review} is in the past")
+        d.update(fix=fix, owner=owner, review=review)
     if decision == "stop":
         reason = reason or (d["reason"] if d["recommended"] == "stop" else None) or (a.get("knockout") or {}).get("reason")
         if not reason:
@@ -616,12 +664,17 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
     state["assessment"] = {"decision": decision, "score": score(a["rice"]) if scored(a) else None, "period": a["period"],
                            "foundations": {k: r for k, r in ratings(a).items() if r != "unrated"}}
     if decision == "get-ready":
-        state["assessment"]["fix"] = d["fix"]
+        state["assessment"].update(fix=d["fix"], owner=d["owner"], review=d["review"])
     state["versions"]["assessment"] = a["version"]
-    if decision == "go":
+    if decision == "go" and d["route"] == "spike":
+        state["gates"]["2"] = {"status": "approved", "date": lib.today(), "reply": f"spike plan ({SPIKE}) approved with Gate 1: {reply}"}
+        state.update(stage="build", status="in-progress", route="spike", tier=1,
+                     next=f"Spike: build to {SPIKE} within {number(d['timebox'])} person-week(s), then Gate 3: grow, keep or stop (factory/stages/spike.md)")
+    elif decision == "go":
+        state.pop("route", None)
         state.update(stage="spec", status="in-progress", next="Spec: the solution choices, then the spec pack (factory/stages/spec.md)")
     elif decision == "get-ready":
-        state.update(status="paused", next=f"Get Ready: fix {names}; then pipeline.py reassess {slug} (factory/stages/develop-assess.md)")
+        state.update(status="paused", next=f"Get Ready: {d['owner']} fixes {names} by {d['review']}; then pipeline.py reassess {slug} (factory/stages/develop-assess.md)")
     else:
         state.update(status="stopped", next=f"Stopped at Gate 1: {d['reason']}")
     lib.save_state(slug, state, root)
@@ -655,6 +708,37 @@ def reassess(slug: str, root: Path | None = None) -> dict:
     return a
 
 
+def end_spike(slug: str, result: str, reply: str, reason: str | None = None, root: Path | None = None) -> dict:
+    """Gate 3 of a spike: grow it (to the full route, from Spec), keep it (as a tier 1 tool, on to Publish) or stop it."""
+    if result not in SPIKE_RESULTS:
+        raise lib.FactoryError(f"a spike ends grow, keep or stop, not {result!r}")
+    state = lib.load_state(slug, root)
+    if state.get("route") != "spike" or state["stage"] != "build":
+        raise lib.FactoryError(f"ideas/{slug} is not a spike in Build (route {state.get('route', 'full')}, stage {state['stage']})")
+    import learned
+
+    blockers = learned.gate_check(slug, root)
+    if blockers:
+        raise lib.FactoryError("the spike's Gate 3 check has blockers: " + "; ".join(blockers))
+    if result == "stop" and not reason:
+        raise lib.FactoryError("a Stop needs its reason (--reason)")
+    state["spike"] = {"result": result, "date": lib.today(), "reply": reply}
+    if result == "grow":
+        state.pop("route")
+        state["gates"]["2"] = {"status": "not-reached"}
+        state["gates"]["3"] = {"status": "not-reached"}
+        state.update(stage="spec", status="in-progress", tier=None,
+                     next="Grow: the full Spec, starting from what the spike showed (factory/stages/spec.md)")
+    elif result == "keep":
+        state["gates"]["3"] = {"status": "approved", "date": lib.today(), "reply": reply}
+        state.update(stage="publish", status="in-progress", next="Keep: publish the spike as a tier 1 tool (factory/stages/publish.md)")
+    else:
+        state["gates"]["3"] = {"status": "stopped", "date": lib.today(), "reply": reply}
+        state.update(status="stopped", next=f"Stopped after the spike: {reason}")
+    lib.save_state(slug, state, root)
+    return state
+
+
 # ---------------------------------------------------------------- command line
 def option(args: list[str], name: str) -> str | None:
     if name in args:
@@ -671,6 +755,10 @@ def main(argv: list[str]) -> int:
         reply = option(args, "--reply")
         reason = option(args, "--reason")
         fix = option(args, "--fix")
+        route = option(args, "--route")
+        timebox = option(args, "--timebox")
+        owner = option(args, "--owner")
+        review = option(args, "--review")
         source = option(args, "--source") or "single"
         reg = load()
         if args == ["capture"]:
@@ -707,9 +795,14 @@ def main(argv: list[str]) -> int:
                 print(f"  {n}. {r['slug']} ({number(s)}) {decision_text(r['a'])}")
             return 0
         if len(args) == 3 and args[0] == "decide" and reply:
-            state = decide(args[1], args[2], reply, reason, [k.strip() for k in fix.split(",") if k.strip()] if fix else None)
+            state = decide(args[1], args[2], reply, reason, [k.strip() for k in fix.split(",") if k.strip()] if fix else None,
+                           route=route, timebox=float(timebox) if timebox else None, owner=owner, review=review)
             (lib.ROOT / REPORT).write_text(render(reg), encoding="utf-8", newline="\n")
             print(f"pipeline: {args[1]} {DECISIONS[args[2]]} at Gate 1; {state['next']}")
+            return 0
+        if len(args) == 3 and args[0] == "spike" and reply:
+            state = end_spike(args[1], args[2], reply, reason)
+            print(f"pipeline: {args[1]} spike ended: {SPIKE_RESULTS[args[2]]}; {state['next']}")
             return 0
         if len(args) == 2 and args[0] == "reassess":
             a = reassess(args[1])

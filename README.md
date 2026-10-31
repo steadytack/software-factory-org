@@ -4,6 +4,7 @@ Turns an idea, an existing specification or an imported project into a built, te
 
 ```
 Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
+                   └─ Go as a spike (spike.md) ─→ Build ─gate 3→ grow (to Spec) │ keep (to Publish) │ stop
 ```
 
 ## Layout

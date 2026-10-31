@@ -1,6 +1,6 @@
 # Stage 3 (end): Audit and verification report
 
-Prove what was built against the approved spec, honestly. Output: the audit run in `app/audits/runs/`, `ideas/<slug>/verification.md`, `ideas/<slug>/outcome.md`. Ends at **Gate 3**.
+Prove what was built against the approved spec, honestly (a spike has no spec: its Gate 3 is in `spike.md`). Output: the audit run in `app/audits/runs/`, `ideas/<slug>/verification.md`, `ideas/<slug>/outcome.md`. Ends at **Gate 3**.
 
 ## Steps
 1. **Spec conformance audit** (`factory/audits/spec-conformance.md`), as written, against `spec/` (the spec is supplied; never reconstruct one). Every item gets one of the five outcomes: verified, partially verified, not verified, failed, not applicable. Include the composition check (each component and version in `composition.json` against the code) and tests expected (doc 11) against tests run.

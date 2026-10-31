@@ -4,6 +4,7 @@
 Usage:
   python factory/scripts/scaffold.py new <slug> --name "Readable name" [--kind app|factory-asset|demo]
   python factory/scripts/scaffold.py overview <slug>       the overview, filled from the assessment (end of Develop and Assess)
+  python factory/scripts/scaffold.py spike <slug>          a spike plan (Develop and Assess, when a spike is recommended)
   python factory/scripts/scaffold.py definition <slug>     the Application Definition: the solution choices (start of Spec)
   python factory/scripts/scaffold.py spec <slug>           the spec pack stubs (Spec)
   python factory/scripts/scaffold.py app <slug> <template>
@@ -157,6 +158,18 @@ def new_definition(slug: str, root: Path | None = None) -> Path:
 IMPACT_WORDS = {0.25: "minimal", 0.5: "low", 1: "medium", 2: "high", 3: "massive"}
 
 
+def new_spike(slug: str, root: Path | None = None) -> Path:
+    """The spike plan: the question, success and kill criteria, the time box, scope, data, template, afterwards."""
+    base = root or lib.ROOT
+    state = lib.load_state(slug, root)
+    path = lib.idea_dir(slug, root) / "spike.md"
+    if path.exists():
+        raise lib.FactoryError(f"ideas/{slug}/spike.md already exists")
+    template = (base / "factory/project-files/spike.md").read_text(encoding="utf-8")
+    path.write_text(fill(template, {"name": state["name"], "slug": slug}), encoding="utf-8", newline="\n")
+    return path
+
+
 def new_overview(slug: str, root: Path | None = None) -> Path:
     """The overview for sponsors and the team, with the RICE numbers, the five foundations, the one thing and the
     recommendation filled in from the assessment where it has them."""
@@ -271,8 +284,8 @@ def main(argv: list[str]) -> int:
             idea = new_idea(args[1], name, kind)
             print(f"Created {idea.relative_to(lib.ROOT).as_posix()}/ (stage develop)")
             return 0
-        if len(args) == 2 and args[0] in ("definition", "overview", "spec"):
-            made = {"definition": new_definition, "overview": new_overview, "spec": new_spec}[args[0]](args[1])
+        if len(args) == 2 and args[0] in ("definition", "overview", "spec", "spike"):
+            made = {"definition": new_definition, "overview": new_overview, "spec": new_spec, "spike": new_spike}[args[0]](args[1])
             print(f"Wrote {made.relative_to(lib.ROOT).as_posix()}")
             return 0
         if len(args) == 3 and args[0] == "app":

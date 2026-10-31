@@ -52,6 +52,7 @@ DECISIONS = {"reuse", "adapt", "build", "import", "redesign", "defer"}
 NEEDS_FR = {"RULE": "FR", "SCR": "FR", "DATA": "FR", "PERM": "FR", "INT": "FR"}
 BRIEF_HEADINGS = ["Problem", "Outcome and success measures", "How it's done today", "Data", "Risk", "People and process",
                   "Strategic fit", "Assumptions and unknowns"]
+SPIKE_HEADINGS = ["The question", "Success and kill criteria", "Time box", "In and out", "Data", "Template", "Afterwards"]
 OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
@@ -256,6 +257,20 @@ def check_brief(idea: Path, f: Findings) -> None:
             f.block(pipeline.BRIEF, f"no '## {heading}' section")
 
 
+def check_spike(idea: Path, f: Findings) -> None:
+    """A spike's plan (Gate 1, when the route is a spike): present, every section there, nothing left to fill in."""
+    path = idea / pipeline.SPIKE
+    if not path.exists():
+        f.block(pipeline.SPIKE, "missing (scaffold.py spike <slug>; see factory/stages/spike.md)")
+        return
+    text = path.read_text(encoding="utf-8")
+    if has_placeholder(text):
+        f.block(pipeline.SPIKE, "placeholder text left (<...>): the question, the criteria and the time box are decided now")
+    for heading in SPIKE_HEADINGS:
+        if not re.search(rf"(?im)^##\s+{re.escape(heading)}\s*$", text):
+            f.block(pipeline.SPIKE, f"no '## {heading}' section")
+
+
 def factory_root(idea: Path) -> Path | None:
     """The factory an idea folder sits in (ideas/<slug>), or None for this one."""
     return idea.parents[1] if idea.parent.name == "ideas" and (idea.parents[1] / "factory").is_dir() else None
@@ -282,7 +297,14 @@ def check_gate_one(idea: Path, f: Findings, root: Path | None = None) -> dict | 
         f.block(pipeline.ASSESSMENT, b)
     for w in warnings:
         f.warn(pipeline.ASSESSMENT, w)
-    if not a.get("knockout"):
+    spike = a["decision"].get("route") == "spike"
+    if spike:
+        check_spike(idea, f)
+        if "go" not in (a["decision"]["recommended"], a["decision"].get("decided")):
+            f.warn(pipeline.ASSESSMENT, "route is spike, but the recommendation is not Go")
+    if spike and not (idea / "overview.md").exists():
+        f.warn("overview.md", "missing: a spike needs none, but sponsors read it if the spike grows")
+    elif not a.get("knockout"):
         check_overview(idea, f)
     return a
 

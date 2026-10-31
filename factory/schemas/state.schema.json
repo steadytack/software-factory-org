@@ -96,7 +96,21 @@
           "propertyNames": { "enum": ["problem", "value", "data", "risk", "people"] },
           "additionalProperties": { "enum": ["green", "amber", "red"] }
         },
-        "fix": { "type": "array", "items": { "enum": ["problem", "value", "data", "risk", "people"] }, "uniqueItems": true }
+        "fix": { "type": "array", "items": { "enum": ["problem", "value", "data", "risk", "people"] }, "uniqueItems": true },
+        "owner": { "type": "string", "description": "Get Ready: who fixes the foundations" },
+        "review": { "type": "string", "format": "date", "description": "Get Ready: when it comes back to Gate 1" }
+      }
+    },
+    "route": { "enum": ["full", "spike"], "description": "Absent is full. A spike skips the spec pack and Gate 2 (its plan, spike.md, is approved at Gate 1) and ends at Gate 3 with grow, keep or stop" },
+    "spike": {
+      "type": "object",
+      "description": "How a spike ended at Gate 3 (pipeline.py spike)",
+      "required": ["result", "date", "reply"],
+      "additionalProperties": false,
+      "properties": {
+        "result": { "enum": ["grow", "keep", "stop"] },
+        "date": { "type": "string", "format": "date" },
+        "reply": { "type": "string" }
       }
     },
     "next": { "type": "string" }

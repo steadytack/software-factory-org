@@ -17,7 +17,7 @@ Discovery frameworks, used twice:
 
 ## Rules for questions
 - Ask only questions whose answer changes a meaningful decision (architecture, cost, risk, usability, delivery). Questions answered by `defaults.md`, `policies.md` or the source material are listed as answered, not asked.
-- At most one round in Develop and Assess and one in Spec (DEF-17); then recommend with explicit assumptions.
+- At most one round of the factory's questions in Develop and Assess and one in Spec (DEF-17); then recommend with explicit assumptions. When the owner wants to work an idea through, that conversation is not a round: follow it, offer options and challenges, and draft from where it lands.
 - Number questions across the round, one thing per question, 2-3 options, the recommendation marked with a reason in one clause:
 ```
 7. [Data] How long should saved plans be kept?
