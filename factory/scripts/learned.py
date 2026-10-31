@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""The learning loop: record choices that differed from a recommendation, record what each build showed about
-its assessment, and find the patterns worth changing a default, a lens or a knock-out for.
+"""The learning loop: record choices that differed from a recommendation and clarifications the owner gave that
+reach beyond one idea, record what each build showed about its assessment, recall what applies to a new idea, and
+find the patterns worth changing a default, a context file, a lens or a knock-out for.
 
 Usage:
   python factory/scripts/learned.py add --project <slug> --key <DEF-nn|key> --question "..." --recommended "..."
                                         --chosen "..." --reason "..." [--scope project]   append an observed entry
+  python factory/scripts/learned.py clarify --project <slug> --topic <kebab> --question "..." --answer "..."
+                                        --reason "..." --scope S [--assumed "..."]   append a clarification (key clarify-<topic>)
+  python factory/scripts/learned.py recall <slug> | --scope S   the entries an idea in that scope should consider
   python factory/scripts/learned.py review [--threshold 2]     candidate changes, for an approver to accept or not
   python factory/scripts/learned.py mark <key> confirmed|superseded [--scope S] [--chosen "..."]   after the approver answers
   python factory/scripts/learned.py outcome <slug>             write ideas/<slug>/outcome.md from the Gate 1 assessment
@@ -12,13 +16,16 @@ Usage:
   python factory/scripts/learned.py benefits <slug> [--published YYYY-MM-DD]   write ideas/<slug>/benefits.md at Publish
   python factory/scripts/learned.py check <slug> --review 30|90   the check for a benefits review done
 
-learned.md is a table, one row per gate answer that differed from the recommendation (status observed).
+learned.md is a table, one row per gate answer that differed from the recommendation, and one per clarification
+(key clarify-<topic>: Recommended is what the factory had assumed, or "none"; Chosen is the owner's answer). An
+idea reads only the rows its scope allows (`recall`), never another business's or brand's.
 outcome.md (schema factory/schemas/outcome.schema.json) says, at Gate 3, whether each foundation's rating,
 the effort and the one thing held; benefits.md (schema factory/schemas/benefits.schema.json) says, 30 and 90 days after
 Publish, whether the success measures were met and the reach and impact held in use. `review` groups them: the same override in `threshold` or more projects,
+a clarification scoped beyond its project (once is enough: it is the owner's own statement),
 a foundation missed in that many outcomes, effort or reach mis-estimated by half or more (the median), impact
 that did not hold or success measures missed in that many reviews, or the same lesson repeated. Each is a candidate, never a change: the factory changes a default only when an approver
-says yes (then `mark ... confirmed` and edit defaults.md, a lens or the knock-out rules). Rules:
+says yes (then `mark ... confirmed` and edit defaults.md, a context file, a lens or the knock-out rules). Rules:
 factory/context/README.md and the gate protocol in the factory skill.
 """
 
@@ -34,13 +41,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import factory_lib as lib  # noqa: E402
 import pipeline  # noqa: E402
+import scopes  # noqa: E402
 
 LEARNED = "factory/context/learned.md"
 OUTCOME = "outcome.md"
 COLUMNS = ["Date", "Project", "Key", "Question", "Recommended", "Chosen", "Reason", "Scope", "Status"]
 STATUSES = ("observed", "confirmed", "superseded")
 KEY = re.compile(r"^(DEF-\d{2}|[a-z][a-z0-9-]*)$")
-SCOPE = re.compile(r"^(project|type|global|brand:[a-z][a-z0-9-]*|business:[a-z][a-z0-9-]*)$")
+SCOPE = re.compile(r"^(project|type|global|type:[a-z][a-z0-9-]*|brand:[a-z][a-z0-9-]*|business:[a-z][a-z0-9-]*)$")
+CLARIFY = "clarify-"  # the key prefix of a clarification
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 BLOCK = re.compile(r"\A\s*```json outcome\s*\n(.*?)\n```", re.S)
 BENEFITS = "benefits.md"
@@ -95,7 +104,7 @@ def entry_problems(e: dict) -> list[str]:
     if e.get("key") and not KEY.match(e["key"]):
         found.append(f"key {e['key']!r} must be DEF-nn or a short kebab-case key")
     if e.get("scope") and not SCOPE.match(e["scope"]):
-        found.append(f"scope {e['scope']!r} must be project, type, global, brand:<x> or business:<b>")
+        found.append(f"scope {e['scope']!r} must be project, type, type:<kind>, global, brand:<x> or business:<b>")
     if e.get("status") and e["status"] not in STATUSES:
         found.append(f"status {e['status']!r} must be {', '.join(STATUSES)}")
     return found
@@ -129,6 +138,40 @@ def add(project: str, key: str, question: str, recommended: str, chosen: str, re
         raise lib.FactoryError("; ".join(bad))
     write(entries + [e], root)
     return e
+
+
+def clarify(project: str, topic: str, question: str, answer: str, reason: str, scope: str,
+            assumed: str = "none", root: Path | None = None) -> dict:
+    """A clarification the owner gave, at any stage, that may reach beyond this idea. One only for this idea
+    stays in its decisions.md; recorded here with scope project, it is never recalled for another idea."""
+    return add(project, CLARIFY + topic, question, assumed, answer, reason, scope, root)
+
+
+def recall(scope: dict, slug: str | None = None, root: Path | None = None) -> list[dict]:
+    """The entries an idea in `scope` should consider, not superseded: its own project's, the global and
+    app-type ones, and those of its business and the brands it may use. Never another business's or brand's."""
+    entries, _bad = read(root)
+    seen = scopes.visible(scope, scopes.registry(root))
+
+    def applies(e: dict) -> bool:
+        s = e["scope"]
+        if s == "project":
+            return e["project"] == slug
+        return s in ("global", "type") or s.startswith("type:") or s in seen
+
+    return [e for e in entries if e["status"] != "superseded" and applies(e)]
+
+
+def layer(scope: str) -> str:
+    """Where a clarification with this scope is written if an approver says yes."""
+    kind, _, name = scope.partition(":")
+    if kind == "business":
+        return f"factory/context/businesses/{name}/"
+    if kind == "brand":
+        return f"factory/context/brands/{name}/"
+    if kind == "type":
+        return "factory/context/group/defaults.md (" + (f"{name} apps" if name else "that kind of app") + ")"
+    return "factory/context/group/"
 
 
 def mark(key: str, status: str, scope: str | None = None, chosen: str | None = None, root: Path | None = None) -> int:
@@ -372,14 +415,22 @@ def review(root: Path | None = None, threshold: int = 2) -> list[str]:
     entries, _bad = read(root)
     found = []
     groups: dict[tuple[str, str, str], list[dict]] = {}
+    clarified: dict[tuple[str, str, str], list[dict]] = {}
     for e in entries:
-        if e["status"] == "observed":
+        if e["status"] == "observed" and e["key"].startswith(CLARIFY):
+            if e["scope"] != "project":
+                clarified.setdefault((e["key"], e["scope"], pipeline.norm(e["chosen"])), []).append(e)
+        elif e["status"] == "observed":
             groups.setdefault((e["key"], e["scope"], pipeline.norm(e["chosen"])), []).append(e)
     for (key, scope, _), es in sorted(groups.items()):
         projects = sorted({e["project"] for e in es})
         if len(projects) >= threshold:
             found.append(f"Promote to a default? {key} ({scope}): recommended {es[-1]['recommended']!r}, "
                          f"chosen {es[-1]['chosen']!r} in {len(projects)} projects ({', '.join(projects)})")
+    for (key, scope, _), es in sorted(clarified.items()):
+        projects = sorted({e["project"] for e in es})
+        found.append(f"Write into {layer(scope)}? {key} ({scope}): {es[-1]['question']}: {es[-1]['chosen']!r} "
+                     f"(said in {', '.join(projects)})")
     done = [r for r in outcomes(root) if r["o"]]
     for k, lens in LENS.items():
         missed = sorted(r["slug"] for r in done if r["o"]["foundations"][k]["held"] == "no")
@@ -424,7 +475,8 @@ def main(argv: list[str]) -> int:
     args = argv[1:]
     try:
         opts = {name: pipeline.option(args, f"--{name}") for name in
-                ("project", "key", "question", "recommended", "chosen", "reason", "scope", "threshold", "published", "review")}
+                ("project", "key", "question", "recommended", "chosen", "reason", "scope", "threshold", "published", "review",
+                  "topic", "answer", "assumed")}
         if args == ["add"]:
             need = ("project", "key", "question", "recommended", "chosen", "reason")
             missing = [f"--{n}" for n in need if not opts[n]]
@@ -432,6 +484,23 @@ def main(argv: list[str]) -> int:
                 raise lib.FactoryError(f"add needs {', '.join(missing)}")
             e = add(*(opts[n] for n in need), scope=opts["scope"] or "project")
             print(f"learned: observed {e['key']} for {e['project']} ({e['scope']})")
+            return 0
+        if args == ["clarify"]:
+            need = ("project", "topic", "question", "answer", "reason", "scope")
+            missing = [f"--{n}" for n in need if not opts[n]]
+            if missing:
+                raise lib.FactoryError(f"clarify needs {', '.join(missing)}")
+            e = clarify(*(opts[n] for n in need), assumed=opts["assumed"] or "none")
+            print(f"learned: clarification {e['key']} for {e['project']} ({e['scope']})")
+            return 0
+        if args[:1] == ["recall"] and (len(args) == 2 or len(args) == 1 and opts["scope"]):
+            slug = args[1] if len(args) == 2 else None
+            scope = scopes.idea_scope(lib.load_state(slug)) if slug else scopes.parse(opts["scope"], scopes.registry())
+            found = recall(scope, slug)
+            print(f"learned: {len(found)} entr{'y' if len(found) == 1 else 'ies'} to consider"
+                  + "".join(f"\n  {e['date']} {e['project']} {e['key']} ({e['scope']}, {e['status']}): {e['question']}: "
+                            f"{e['chosen']!r}" + ("" if e["key"].startswith(CLARIFY) else f" (recommended {e['recommended']!r})")
+                            + f"; {e['reason']}" for e in found))
             return 0
         if args == ["review"]:
             found = review(threshold=int(opts["threshold"] or 2))

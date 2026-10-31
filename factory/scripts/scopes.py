@@ -86,7 +86,8 @@ def entry_scope(entry: dict) -> str:
 
 def context_files(scope: dict, root: Path | None = None, slug: str | None = None) -> list[Path]:
     """Policies first (every layer; a lower layer may only tighten), then the idea's decisions, then the
-    most specific layer's context down to the group's, then learned.md."""
+    most specific layer's context down to the group's. Not learned.md, which holds every scope's rows:
+    `learned.py recall` gives the ones the idea may read."""
     context = (root or lib.ROOT) / "factory" / "context"
     layers = [context / "brands" / b for b in scope["brands"]]
     layers += [context / "businesses" / scope["business"]] if scope["business"] else []
@@ -101,7 +102,6 @@ def context_files(scope: dict, root: Path | None = None, slug: str | None = None
     for folder in layers + group_layer:
         files += md(folder)
     files += [context / name for name in GROUP_FILES if (context / name).exists()]
-    files += [context / "learned.md"] if (context / "learned.md").exists() else []
     return files
 
 

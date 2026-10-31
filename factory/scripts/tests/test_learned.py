@@ -141,6 +141,62 @@ def test_the_same_override_in_two_projects_is_a_candidate(isolated):
     assert learned.review(isolated) == []  # answered: no longer a candidate
 
 
+# ---------------------------------------------------------------- clarifications
+def clarified(root, project, scope, topic="users", answer="Field staff on shared tablets"):
+    return learned.clarify(project, topic, "Who uses it", answer, "said mid-build", scope, root=root)
+
+
+def test_a_clarification_beyond_its_project_is_a_candidate_at_once(isolated):
+    e = clarified(isolated, "shift-swap", "business:retail")
+    assert (e["key"], e["recommended"], e["chosen"], e["status"]) == ("clarify-users", "none", "Field staff on shared tablets", "observed")
+    clarified(isolated, "rota-board", "project", topic="colours", answer="Green")  # only that idea's: never a candidate
+    clarified(isolated, "rota-board", "type:field-app", topic="offline", answer="Must work offline")
+    assert learned.review(isolated) == [
+        "Write into factory/context/group/defaults.md (field-app apps)? clarify-offline (type:field-app): Who uses it: "
+        "'Must work offline' (said in rota-board)",
+        "Write into factory/context/businesses/retail/? clarify-users (business:retail): Who uses it: "
+        "'Field staff on shared tablets' (said in shift-swap)",
+    ]
+    learned.mark("clarify-users", "confirmed", root=isolated)
+    assert len(learned.review(isolated)) == 1  # answered: no longer a candidate
+    with pytest.raises(lib.FactoryError, match="scope 'type:Field'"):
+        clarified(isolated, "p", "type:Field")
+
+
+def test_recall_gives_an_idea_only_what_its_scope_allows(isolated):
+    from test_scopes import REGISTRY
+    (isolated / "factory/context/scopes.json").write_text(json.dumps(REGISTRY), encoding="utf-8")
+    clarified(isolated, "shift-swap", "business:retail")
+    clarified(isolated, "trade-quotes", "business:trade", topic="pricing", answer="Net of VAT")
+    clarified(isolated, "pro-site", "brand:pro", topic="tone", answer="Plain")
+    clarified(isolated, "shop-site", "brand:shopfront", topic="tone", answer="Friendly")
+    clarified(isolated, "rota-board", "type:field-app", topic="offline", answer="Must work offline")
+    clarified(isolated, "rota-board", "project", topic="colours", answer="Green")
+    entry(isolated, "invoices", scope="global")
+    retail = {"business": "retail", "brands": ["shopfront"]}
+    keys = lambda found: [(e["project"], e["key"]) for e in found]  # noqa: E731
+    assert keys(learned.recall(retail, "new-idea", isolated)) == [
+        ("shift-swap", "clarify-users"), ("shop-site", "clarify-tone"), ("rota-board", "clarify-offline"), ("invoices", "DEF-01")]
+    assert ("rota-board", "clarify-colours") in keys(learned.recall(retail, "rota-board", isolated))  # its own
+    trade = keys(learned.recall({"business": "trade", "brands": []}, None, isolated))
+    assert ("trade-quotes", "clarify-pricing") in trade and ("pro-site", "clarify-tone") in trade
+    assert ("shift-swap", "clarify-users") not in trade and ("shop-site", "clarify-tone") not in trade
+    learned.mark("clarify-offline", "superseded", root=isolated)
+    assert ("rota-board", "clarify-offline") not in keys(learned.recall(retail, None, isolated))
+
+
+def test_clarify_and_recall_on_the_command_line(isolated, py):
+    script = str(isolated / "factory/scripts/learned.py")
+    args = ["--project", "shift-swap", "--topic", "users", "--question", "Who uses it", "--answer", "Field staff",
+            "--reason", "said at Gate 2", "--scope", "global"]
+    out = run([py, script, "clarify", *args], isolated)
+    assert out.returncode == 0 and "clarification clarify-users for shift-swap (global)" in out.stdout
+    assert run([py, script, "clarify", "--project", "p"], isolated).returncode == 1
+    out = run([py, script, "recall", "--scope", "group"], isolated)
+    assert out.returncode == 0 and "1 entry to consider" in out.stdout and "clarify-users (global, observed): Who uses it: 'Field staff'" in out.stdout
+    assert "Write into factory/context/group/?" in run([py, script, "review"], isolated).stdout
+
+
 def test_outcomes_turn_into_candidates_across_builds(reg, isolated):
     lesson = {"kind": "lens", "ref": "data-and-integrations", "lesson": "ask whether the export is complete"}
     for idea, actual in (("Shift swap board", 8.0), ("Rota planner", 10.0)):

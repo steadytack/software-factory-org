@@ -56,8 +56,8 @@ def test_context_is_read_policies_first_then_most_specific_layer_first(tmp_path)
         "factory/context/policies.md", "factory/context/group/policies.md", "factory/context/businesses/retail/policies.md",
         "ideas/demo/decisions.md",
         "factory/context/brands/shopfront/brand.md", "factory/context/businesses/retail/business-context.md",
-        "factory/context/group/business-context.md", "factory/context/about-me.md", "factory/context/learned.md",
-    ]
+        "factory/context/group/business-context.md", "factory/context/about-me.md",
+    ]  # learned.md is not read whole: `learned.py recall` gives only the rows the idea's scope allows
 
 
 def test_publish_settings_default_to_the_single_owner_and_a_business_overrides_the_group():
