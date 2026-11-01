@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "IDEA-001",
+      "title": "Plan cost calculator for field service scheduling",
+      "idea": "Plan cost calculator for field service scheduling: load a sample plan, set rates and aversion weights, see the total £ cost by term and compare alternative plans side by side",
+      "source": "single",
+      "added": "2026-11-01",
+      "slug": "plan-cost-calculator"
+    }
+  ],
+  "updated": "2026-11-01"
+}

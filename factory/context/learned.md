@@ -10,3 +10,4 @@ Appended at each gate when the approver chooses differently from a recommendatio
 
 | Date | Project | Key | Question | Recommended | Chosen | Reason | Scope | Status |
 |---|---|---|---|---|---|---|---|---|
+| 2026-11-01 | plan-cost-calculator | rice-impact | Gate 1 decision 2: is a scheduler decision pending and dependent on this (sets Impact)? | A: yes, Impact 1 | B: not yet, keep Impact 0.5 | Owner did not confirm a pending scheduler decision | project | observed |
