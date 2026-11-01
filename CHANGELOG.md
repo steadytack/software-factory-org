@@ -2,6 +2,12 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.14.1 (2026-11-01)
+The `web-app` template's `backend/poetry.lock` was out of date with its `pyproject.toml` (1.1.0 added `import-linter` without relocking), so `docker compose up --build` on any app scaffolded from it failed at `poetry install`. Verify missed it because its backend part installs from `requirements-dev.txt`. Found by the first pilot spike (`plan-cost-calculator`, D-015).
+- **Lock regenerated** with poetry 2 in `python:3.12-slim`: adds `import-linter` 2.15 and its dependencies `grimp`, `markdown-it-py`, `mdurl` and `rich`; no existing version changes (`typing-extensions` loses its dev-only marker, as import-linter needs it).
+- **Verify checks the lock:** the template's backend part runs `poetry check --lock` first, so a `pyproject.toml` change without a relock fails verify.
+- Migration: an app scaffolded from `web-app` before this either has relocked already or needs `poetry lock` (see the template's README, "Dependencies").
+
 ## 0.14.0 (2026-11-01)
 The leaders' guide said the factory doesn't replace projects for major systems, without saying what it does for them. A large specification (a scheduling and routing engine with a dozen integrations) showed the real limits: the approved technology, personal data and live systems of record.
 - **Integrations by tier (DEF-24, new):** tiers 1 to 3 connect to stand-ins (a fake built from the other system's schema or a recorded exchange, filled with synthetic data, or that system's test environment); a live connection to a production system of record is tier 4. Each INT says which it uses, behind the adapter the live connection will use. In `tiers.md`, `spec.md` step 7 and `testing.md`.
