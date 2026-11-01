@@ -28,6 +28,8 @@ GIT_ENV = {
 def SKIP(directory: str, names: list[str]) -> set[str]:
     """Skip build output everywhere, and the generated app/ inside each idea (but not src/app of a template)."""
     skipped = set(_SKIP_NAMES(directory, names))
+    if Path(directory) == REAL_ROOT / "ideas":  # real ideas would leak into tests that expect an empty pipeline
+        skipped |= set(names) - {"README.md"}
     if Path(directory).parent.name == "ideas" and "app" in names:
         skipped.add("app")
     if Path(directory).parent.name == "sources":  # imported originals are local-only and large
@@ -49,6 +51,9 @@ def repo(tmp_path: Path) -> Path:
             shutil.copytree(REAL_ROOT / name, root / name, ignore=SKIP)
     for name in ("README.md", "CLAUDE.md", "VERSION", "CHANGELOG.md"):
         shutil.copy(REAL_ROOT / name, root / name)
+    learned = root / "factory" / "context" / "learned.md"  # the real ideas' entries go with them
+    lines = learned.read_text(encoding="utf-8").splitlines(keepends=True)
+    learned.write_text("".join(line for line in lines if not line.startswith("| 2")), encoding="utf-8")
     return root
 
 

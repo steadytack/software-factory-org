@@ -2,6 +2,11 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.14.3 (2026-11-01)
+The first real idea (`plan-cost-calculator`) leaked into the factory's tests: the `repo` fixture copied the real `ideas/` folder and `learned.md`, so 7 tests that expect an empty pipeline failed (the work-in-progress count, the ranking, the learned entries).
+- **The `repo` fixture starts empty:** it copies only `ideas/README.md` and drops the real ideas' rows from its copy of `factory/context/learned.md`. The real ideas are still checked by `check_factory.py` and by the test over real spec packs. Now 292 pass and 1 skips (that test, until an idea has a spec pack).
+- Migration: none. Tests only.
+
 ## 0.14.2 (2026-11-01)
 Small frictions the first real idea (`ideas/plan-cost-calculator`, a spike) ran into, from capture to a running build.
 - **`-h` and `--help` print the usage:** every script in `factory/scripts/` that reads its own arguments prints its usage and exits without writing anything. Before, `pipeline.py add -h` registered an idea titled "-h". Test: `test_help.py`.
