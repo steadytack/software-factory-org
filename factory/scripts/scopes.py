@@ -45,6 +45,8 @@ def problems(reg: dict, root: Path | None = None) -> list[str]:
 
 def idea_scope(state: dict) -> dict:
     scope = state.get("scope") or {}
+    if not isinstance(scope, dict):
+        raise lib.FactoryError(f"scope in state.json is {scope!r}: an object {{business, brands}}, or omitted for the group")
     return {"business": scope.get("business"), "brands": list(scope.get("brands", []))}
 
 
@@ -123,6 +125,9 @@ def who(root: Path | None = None) -> str:
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     args = argv[1:]
     try:
         if len(args) == 2 and args[0] == "context":

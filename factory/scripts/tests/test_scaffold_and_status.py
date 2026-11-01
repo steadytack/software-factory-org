@@ -5,8 +5,10 @@ import re
 import shutil
 
 import factory_lib as lib
+import pipeline
 import pytest
 import scaffold
+import scopes
 import status
 from conftest import REAL_ROOT, run
 
@@ -76,6 +78,21 @@ def test_status_lists_ideas_and_flags_broken_state(repo, py):
     out = run([py, str(repo / "factory/scripts/status.py"), "--write"], repo)
     assert out.returncode == 0 and "| alpha | app | develop |" in out.stdout
     assert re.search(r"\| alpha \|", (repo / "ideas/README.md").read_text(encoding="utf-8"))
+
+
+def test_a_scope_that_is_not_an_object_is_a_problem_not_a_crash(repo, py):
+    scaffold.new_idea("alpha", "Alpha", root=repo)
+    path = repo / "ideas/alpha/state.json"
+    path.write_text(json.dumps({**json.loads(path.read_text(encoding="utf-8")), "scope": "group"}), encoding="utf-8")
+    assert pipeline.idea_scope({"scope": "group"}, {"entries": []}, "alpha") == "group"
+    with pytest.raises(lib.FactoryError, match="an object"):
+        scopes.idea_scope({"scope": "group"})
+    out = run([py, str(repo / "factory/scripts/status.py")], repo)
+    assert out.returncode == 0 and "invalid state.json: scope" in out.stdout
+    checked = run([py, str(repo / "factory/scripts/check_factory.py")], repo)
+    assert checked.returncode == 1 and "Traceback" not in checked.stderr and "ideas/alpha/state.json: scope" in checked.stdout
+    context = run([py, str(repo / "factory/scripts/scopes.py"), "context", "alpha"], repo)
+    assert context.returncode == 1 and "an object" in context.stderr
 
 
 def test_status_with_no_ideas(repo, py):

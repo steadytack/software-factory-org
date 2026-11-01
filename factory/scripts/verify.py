@@ -26,6 +26,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 COPY_EXCLUDES = ["node_modules", ".venv", "dist", ".astro", "__pycache__", ".git", ".pytest_cache", ".ruff_cache", ".env", "backups"]  # never copy secrets into a check
 TAIL_LINES = int(os.environ.get("VERIFY_TAIL", "14"))
+TEST_SUMMARY = re.compile(r"\b\d+ (passed|failed|errors?)\b")  # pytest's, vitest's and Playwright's summary lines
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 
 class VerifyError(Exception):
@@ -167,17 +169,26 @@ def verify_merged(component: str, path: Path, package: str, namespaces: list[str
     return [PartResult(component, f"merged ({', '.join(['base', *namespaces])})", result.ok, result.output)]
 
 
+def run_summaries(output: str) -> list[str]:
+    """Each test run's pass/fail line, so its count shows however much output (a build, say) comes after it."""
+    return [ln.strip() for ln in ANSI.sub("", output).splitlines() if TEST_SUMMARY.search(ln)]
+
+
 def summarise(results: list[PartResult]) -> str:
     lines = []
     for r in results:
+        tests = "".join(f"\n    tests: {s}" for s in run_summaries(r.output))
         tail = "\n".join(f"    {ln}" for ln in r.output.splitlines()[-TAIL_LINES:])
-        lines.append(f"{'OK    ' if r.ok else 'FAILED'} {r.component}: {r.part}\n{tail}")
+        lines.append(f"{'OK    ' if r.ok else 'FAILED'} {r.component}: {r.part}{tests}\n{tail}")
     ok = all(r.ok for r in results)
     lines.append(f"verify: {'OK' if ok else 'FAILED'} ({sum(r.ok for r in results)} of {len(results)} parts)")
     return "\n".join(lines)
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     rest = list(argv[1:])
 
     def option(name: str) -> str | None:

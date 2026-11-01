@@ -113,6 +113,9 @@ def table(rows: list[dict]) -> str:
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     rows = collect()
     out = table(rows) if rows else "(no ideas yet)"
     print(out)

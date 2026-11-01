@@ -2,6 +2,16 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.14.2 (2026-11-01)
+Small frictions the first real idea (`ideas/plan-cost-calculator`, a spike) ran into, from capture to a running build.
+- **`-h` and `--help` print the usage:** every script in `factory/scripts/` that reads its own arguments prints its usage and exits without writing anything. Before, `pipeline.py add -h` registered an idea titled "-h". Test: `test_help.py`.
+- **The `scope` shape:** `develop-assess.md` step 1 says `scope` in `state.json` is an object, `{"business": ..., "brands": [...]}`, omitted for the group, never a string. A string scope is reported as a problem by `status.py`, `check_factory.py` and `scopes.py context` instead of a crash (`AttributeError`).
+- **`verify.py` shows every test count:** each part's report starts with its test runs' pass/fail lines (pytest's, vitest's, Playwright's), so a count that scrolled out of the short tail (DEF-19) still shows: a frontend's vitest count behind its build output, say.
+- **Tests first for a new module** (`testing.md`, `build.md` step 5): write a minimal stub first, so the first run fails on the AC's assertion and not on the import; where a stub is not practical, accept the import error and note it in `NOTES.md`.
+- **A spike's success test must be able to fail** (`light.md` Plan, the `plan.md` stub, the Gate 1 row of `challenge.md`): it is judged on evidence the build does not tune to, held-out cases or a judgement recorded blind or before the build. At the first Gate 1 the challenger found a draft that scored weights on the comparisons they were tuned on.
+- **Recommendations are unconditional** (the gate protocol in the skill, Gate 1 in `develop-assess.md`): never "A if X"; when a recommendation turns on a fact only the owner knows, ask for the fact. A conditional recommendation made the first Gate 1's answer look like an override in `learned.md` when it wasn't.
+- Migration: none. An idea with a string `scope` drops it (the group) or writes it as an object.
+
 ## 0.14.1 (2026-11-01)
 The `web-app` template's `backend/poetry.lock` was out of date with its `pyproject.toml` (1.1.0 added `import-linter` without relocking), so `docker compose up --build` on any app scaffolded from it failed at `poetry install`. Verify missed it because its backend part installs from `requirements-dev.txt`. Found by the first pilot spike (`plan-cost-calculator`, D-015).
 - **Lock regenerated** with poetry 2 in `python:3.12-slim`: adds `import-linter` 2.15 and its dependencies `grimp`, `markdown-it-py`, `mdurl` and `rich`; no existing version changes (`typing-extensions` loses its dev-only marker, as import-linter needs it).

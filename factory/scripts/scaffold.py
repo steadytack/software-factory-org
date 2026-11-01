@@ -280,6 +280,9 @@ def new_app(slug: str, template: str, root: Path | None = None) -> Path:
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     args = argv[1:]
     try:
         if len(args) >= 2 and args[0] == "new":

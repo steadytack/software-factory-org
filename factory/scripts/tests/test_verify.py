@@ -24,6 +24,16 @@ def test_the_summary_reports_each_part_and_the_total():
     assert "OK     a: p" in text and "FAILED b: q" in text and "verify: FAILED (1 of 2 parts)" in text
 
 
+def test_each_test_runs_pass_fail_line_shows_above_the_tail():
+    backend = "== python -m pytest -q\n........\n8 passed, 1 warning in 2.31s"
+    frontend = ("== npx vitest run\n \x1b[32m✓\x1b[39m src/a.test.ts (3 tests)\n Test Files  2 passed (2)\n      Tests  \x1b[32m5 passed\x1b[39m (5)\n"
+                "== npm run build\n" + "\n".join(f"dist/asset-{n}.js" for n in range(40)))
+    text = verify.summarise([verify.PartResult("web", "backend", True, backend), verify.PartResult("web", "frontend", True, frontend)])
+    assert "tests: 8 passed, 1 warning in 2.31s" in text
+    assert "tests: Tests  5 passed (5)" in text and "tests: Test Files  2 passed (2)" in text
+    assert "dist/asset-0.js" not in text  # the tail stays short
+
+
 def test_verify_without_arguments_prints_the_usage(py):
     assert run([py, str(REAL_ROOT / "factory/scripts/verify.py")], REAL_ROOT).returncode == 2
 

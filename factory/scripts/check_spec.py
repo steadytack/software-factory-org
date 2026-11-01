@@ -854,6 +854,9 @@ def run(arg: str, assessment_only: bool = False) -> tuple[Findings, str | None, 
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     rest = list(argv[1:])
     targets: list[str] = []
     if "--impact" in rest:

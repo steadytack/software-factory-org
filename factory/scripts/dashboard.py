@@ -322,6 +322,9 @@ def make_server(root: Path, port: int) -> ThreadingHTTPServer:
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     if "--write" in argv:
         i = argv.index("--write")
         target = Path(argv[i + 1]) if i + 1 < len(argv) and not argv[i + 1].startswith("--") else lib.ROOT / "ideas" / "dashboard.html"

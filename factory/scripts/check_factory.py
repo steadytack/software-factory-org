@@ -260,7 +260,10 @@ def check_ideas(root: Path, errors: list[str]) -> None:
         errors += [f"{rel}: {p}" for p in lib.validate("state", state, root)]
         if state.get("slug") != folder.name:
             errors.append(f"{rel}: slug {state.get('slug')!r} does not match the folder")
-        errors += [f"{rel}: scope names {u}, not in factory/context/scopes.json" for u in scopes.unknown(scopes.idea_scope(state), reg)]
+        try:
+            errors += [f"{rel}: scope names {u}, not in factory/context/scopes.json" for u in scopes.unknown(scopes.idea_scope(state), reg)]
+        except lib.FactoryError:
+            pass  # the schema check above reports it
     try:
         errors += pipeline.problems(pipeline.load(root), root)
     except ValueError as exc:
@@ -395,6 +398,9 @@ def run(root: Path, fix: bool = False, warnings: list[str] | None = None) -> tup
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     root = Path(argv[argv.index("--root") + 1]).resolve() if "--root" in argv else lib.ROOT
     warnings: list[str] = []
     errors, fixed = run(root, fix="--fix" in argv, warnings=warnings)
