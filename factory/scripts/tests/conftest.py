@@ -14,10 +14,7 @@ import pytest
 
 REAL_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REAL_ROOT / "factory" / "scripts"))
-import factory_lib as lib  # noqa: E402
 
-# The templates the scenario A fixture (fixtures/brew-ratio) selects: CAT-001 and its runner-up CAT-002.
-BREW_RATIO_TEMPLATES = ("single-page-html", "static-site")
 _SKIP_NAMES = shutil.ignore_patterns(
     "node_modules", "dist", ".astro", "test-results", "playwright-report", ".venv",
     "__pycache__", ".pytest_cache", ".ruff_cache", "backups", ".git",
@@ -36,13 +33,6 @@ def SKIP(directory: str, names: list[str]) -> set[str]:
     if Path(directory).parent.name == "sources":  # imported originals are local-only and large
         skipped |= {"original", "clone"} & set(names)
     return skipped
-
-
-def needs_templates(*names: str):
-    """Skip where these templates are not ready. An organisation's factory instance has only the templates it
-    chose (and their catalogue entries), so a test built on another template does not apply there."""
-    missing = [n for n in names if n not in lib.ready_templates(REAL_ROOT)]
-    return pytest.mark.skipif(bool(missing), reason=f"needs the {', '.join(missing)} template(s), not in this factory")
 
 
 def run(args: list[str], cwd: Path, **kwargs) -> subprocess.CompletedProcess:

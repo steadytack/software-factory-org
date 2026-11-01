@@ -13,7 +13,7 @@
   "brand": {"value": "unbranded", "state": "accepted", "default": "DEF-09"},
   "design_system": {"value": "the template's built-in styles", "state": "accepted", "default": "DEF-09"},
   "interaction_style": {"value": "a single form with a live result", "state": "accepted"},
-  "template": {"value": "single-page-html", "state": "accepted", "reason": "one page, no server; runner-up static-site is heavier and needs a build"},
+  "template": {"value": "web-app", "state": "accepted", "reason": "the only approved template; heavier than one page needs, but it serves the calculator and keeps the history"},
   "lenses": {
     "active": ["business-value", "users-and-workflows", "data-and-integrations", "ux-and-accessibility"],
     "skipped": [
@@ -24,8 +24,7 @@
     ]
   },
   "candidate_assets": [
-    {"id": "CAT-001", "fit": "a single offline page with safe local storage and file export", "limitations": "no shared data"},
-    {"id": "CAT-002", "fit": "would work as a one-page site", "limitations": "needs a build step and Node for a single page"}
+    {"id": "CAT-006", "fit": "a web app with storage and file export", "limitations": "heavier than one page needs"}
   ],
   "sources": [{"kind": "idea", "ref": "idea-brief.md"}],
   "approvals": [{"gate": 2, "date": "2026-10-19", "reply": "test fixture, not a real approval", "version": "1.0"}]
@@ -52,7 +51,7 @@ Recipes in the browser's storage; nothing personal. No login, no outside systems
 Not applicable: nothing runs; the export is the backup.
 
 ## Template and candidate catalogue assets
-`single-page-html` (CAT-001). Runner-up `static-site` (CAT-002).
+`web-app` (CAT-006). No runner-up: it is the only approved template.
 
 ## Lenses
 See the definition block.

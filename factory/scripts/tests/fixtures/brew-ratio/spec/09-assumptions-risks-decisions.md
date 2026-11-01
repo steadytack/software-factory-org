@@ -23,7 +23,7 @@ None.
 ## Decisions
 | DEC | Decision | Rationale | Rejected alternatives | Date | Decided by |
 |---|---|---|---|---|---|
-| DEC-001 | Build on `single-page-html` | One page, no server, offline by design | `static-site`: needs a build for one page | 2026-10-19 | owner at Gate 1 |
+| DEC-001 | Build on `web-app` | The only approved template, with storage and export | None: no other approved template | 2026-10-19 | owner at Gate 1 |
 
 ## Change requests
 None.

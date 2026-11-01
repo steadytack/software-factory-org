@@ -14,7 +14,7 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 | **Gate** | A decision point where a named person approves, changes or stops the work. There are four: invest (1), the spec (2), the build and its audit (3), and publishing (4). | `factory/README.md` |
 | **Go / Go as a spike / Get Ready / Stop** | The four answers at Gate 1. "Get Ready" means fix the named foundations first, then look again on a set date. | `factory/stages/develop-assess.md` |
 | **Tier** | How mature a build is: 1 Spike, 2 Exploration prototype, 3 Business prototype, 4 Production app. It is chosen for each idea, and moving up a tier is a decision. | `factory/standards/tiers.md` |
-| **Spike / light route** | Tier 1: a small, time-boxed build (about a week) that answers one question, with a one-page plan instead of a spec. It ends with grow, keep or stop. | `factory/stages/light.md` |
+| **Spike / light route** | Tier 1: a small, time-boxed build that answers one question, with a one-page plan instead of a spec. It ends with grow, keep or stop. | `factory/stages/light.md` |
 | **Spec pack** | The documents that specify an app at tiers 2 to 4: requirements, user experience, data, security, stories, the delivery plan and so on. It scales with the tier. | `factory/standards/specification-pack.md` |
 | **Data classes** | The kinds of information (Public, Internal, Confidential, Personal and so on) and whether each may be used in the factory, and on what conditions. | `factory/context/group/policies.md` (POL-11) |
 | **Protection level A–D** | How well an app is protected. It follows the data the app holds and who can reach it, not its tier: A is the builder only, B is Internal data or staff, C is Confidential or personal data, D is anyone outside the organisation. | `factory/standards/security.md` |
@@ -24,9 +24,9 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 | **Architecture as Code (AaC)** | The organisation's system landscape, and increasingly its processes, described as code and kept up to date by their owners. It is the factory's source of truth for what exists. | `factory/context/group/system-landscape.md` |
 | **System landscape** | Every system the organisation runs, who owns it, the data it holds and how systems connect. | `factory/context/group/system-landscape.md` |
 | **Process model** | How a piece of work is done today, step by step and who does it, as AaC. The starting point for an idea's as-is process (doc 13). | `factory/context/group/system-landscape.md` |
-| **Reference card** | A catalogue entry for a system, process or policy that already exists. It points at its source of truth and has a maintainer who confirms it each year. | `catalogue/README.md` |
+| **Reference card** | A catalogue entry for a system, process or policy that already exists. It points at its source of truth and has a maintainer who confirms it at set intervals. | `catalogue/README.md` |
 | **Catalogue** | Approved, reusable building blocks, plus reference cards for the organisation's systems, which new apps are built from where they fit. | `catalogue/README.md` |
 | **Template** | The starting point an app is built from, with its stack and standards. The templates in the registry are the organisation's approved technology list. | `templates/`, `factory/templates.json` |
 | **Factory version** | The release of the shared guardrails, approach, policies, defaults and templates an idea was built on. Improvements are released as new versions. | `VERSION`, `CHANGELOG.md` |
 | **Audit** | The checks before Gate 3, spec conformance first: does the app do what was specified? | `factory/stages/audit.md` |
-| **Benefits review** | A look back 30 and 90 days after publishing: were the success measures met? | `factory/stages/publish.md` |
+| **Benefits review** | A look back at set points after publishing: were the success measures met? | `factory/stages/publish.md` |

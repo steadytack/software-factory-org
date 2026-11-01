@@ -9,7 +9,7 @@ A single web page that works out coffee and water for a brew from a ratio, in ei
 - Calculate water from coffee (FR-001) and coffee from water (FR-002), by RULE-001.
 - Save recipes (FR-003); export and import them (FR-004).
 
-Success: OBJ-001. Tier 3; simple deployment, one HTML file, no server. Built on the `single-page-html` template (CAT-001, see 12). Main risk: the browser clears its storage (RISK-001). One epic (EPIC-001). Next: Gate 2.
+Success: OBJ-001. Tier 3; simple deployment, one HTML file, no server. Built on the `web-app` template (CAT-006, see 12). Main risk: the browser clears its storage (RISK-001). One epic (EPIC-001). Next: Gate 2.
 
 ## Glossary
 | Term | Meaning |

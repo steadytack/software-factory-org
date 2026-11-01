@@ -12,11 +12,11 @@ One AI-assisted production line that takes any staff idea from a five-question i
 - **Ideas are judged unevenly.** There is no common way to compare ideas, so investment follows whoever asks loudest rather than value *(assumed)*.
 
 ## Outcome and success measures
-Good ideas get a fast, fair decision. Most are tried as a one-week spike, and the ones that work grow into supported apps, all built one way. Success measures:
-- **Days from idea to decision (Gate 1):** a median of 14 days or fewer.
+Good ideas get a fast, fair decision. Most are tried as a small, time-boxed spike, and the ones that work grow into supported apps, all built one way. Success measures (the targets are the organisation's to set):
+- **Time from idea to decision (Gate 1):** falling, and within the organisation's target.
 - **Spikes within their time box:** at least 3 in 4.
-- **Ideas that reach a working spike or app:** a measure that rises each quarter.
-- **Benefits delivered:** published apps meet their own success measures at the 90-day review in at least half of cases.
+- **Ideas that reach a working spike or app:** a number that keeps rising.
+- **Benefits delivered:** published apps meet their own success measures at their benefits reviews in at least half of cases.
 - **Consistency:** every app built on an approved template, with every gate recorded. Exceptions are counted, never hidden.
 
 The factory reports the first two itself (`status.py`), and the benefits reviews report the fourth. Baselines for today are not yet measured *(assumed)*.
@@ -26,12 +26,12 @@ An idea reaches IT through a manager, a ticket or a project request. It is weigh
 
 **With the factory**, it works like this:
 1. Anyone sends an idea card.
-2. The factory drafts a brief and an assessment within days.
+2. The factory drafts a brief and an assessment.
 3. A named approver decides: go, go as a spike, get ready, or stop.
-4. A spike is built in about a week.
+4. A spike is built within its time box.
 5. It grows, is kept as it is, or stops.
 
-Ideas that grow are specified, built epic by epic with tests, audited against their spec, and published on approval. They are reviewed after 30 and 90 days.
+Ideas that grow are specified, built epic by epic with tests, audited against their spec, and published on approval. They are reviewed after release against their success measures.
 
 ## Data
 The factory's data is what it knows about the organisation:
@@ -47,19 +47,19 @@ The main risks, and the human judgement each needs:
 - **The agent gets something wrong.** Independent challenge, deterministic checks, audits and four human gates exist to catch it. None of them is enough alone.
 - **Gates become a rubber stamp or a bottleneck.** Approvers must actually read the one-page gate summaries. A work-in-progress limit of 3 ideas per operator protects their capacity.
 - **Prototypes quietly become production.** Moving up a size is always a gate decision, and only production apps (tier 4) are handed to a supporting team.
-- **Sensitive data leaks into a build.** The data-class policy is enforced by the scripts, and each app is protected for the data it holds and who can reach it, from one-week spikes to production apps.
+- **Sensitive data leaks into a build.** The data-class policy is enforced by the scripts, and each app is protected for the data it holds and who can reach it, from spikes to production apps.
 
 ## People and process
 - **Owner:** the factory owner (the group gate approver until named), who also approves changes to the factory itself.
 - **Users:** staff who send ideas, operators in IT who run the factory, gate approvers, architecture and process owners, and the teams that support production apps.
-- **How it fits:** a weekly triage, a Gate 1 meeting every two weeks and a monthly report (`docs/operating-model.md`).
+- **How it fits:** regular triage, a Gate 1 decision meeting and a report to leadership, at a cadence the organisation sets (`docs/operating-model.md`).
 - **Today:** one person is operator and approver. Operators and approvers are still to be named.
 
 ## Strategic fit
 It turns AI from individual experiments into an organisational capability, with consistency, safety and evidence built in. It reduces shadow IT, makes small improvements worth doing, and keeps the system landscape complete by offering every new app back to its architecture models.
 
 ## Assumptions and unknowns
-- How many ideas arrive each month once it is open to staff *(assumed: 2 a month at first)*. If far more arrive, operators and approvers become the limit sooner.
-- Whether a one-week spike suits most ideas *(assumed)*. The only template today, `web-app`, is heavy for a spike. A lighter template would make the fast route faster.
+- How many ideas arrive once it is open to staff *(assumed: a few at first)*. If far more arrive, operators and approvers become the limit sooner.
+- Whether a short, time-boxed spike suits most ideas *(assumed)*. The only template today, `web-app`, is heavy for a spike. A lighter template would make the fast route faster.
 - No idea has been through the factory end to end yet. The first pilot gives the first real cycle times.
 - The formats of the Architecture as Code models and how the factory gets access to them, which decide how soon the factory reads them directly.

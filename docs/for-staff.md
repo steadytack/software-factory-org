@@ -16,13 +16,29 @@ Fill in the **idea card**: five short questions, in your own words.
 
 Don't worry about having all the answers. "I don't know" is a fine answer. The team will work out the rest with you.
 
+**Describe information, never paste it.** Write "customer names and addresses from the CRM", not the names and addresses themselves. Never put personal details, customer records, prices, passwords or anything confidential in the card. The organisation's rules on information decide what the factory may use, and the team checks that for you.
+
+### An example card
+| Question | Answer |
+|---|---|
+| What's the problem? | Swapping a shift means messaging the rota manager, who edits the spreadsheet by hand. Swaps get lost and shifts go uncovered. |
+| Who does it affect? | Shop-floor staff at each store (about 40 per store) and their rota managers. |
+| How is it done today? | Staff text the manager. The manager checks the rota spreadsheet, asks the other person, then edits it. |
+| What would better look like? | Staff agree swaps between themselves, the manager approves with one click, and no shift goes uncovered. |
+| What information does it use? | The rota, kept in a shared spreadsheet, and staff names from the HR system. |
+
 ## What happens next
-| Step | What happens | Roughly how long |
-|---|---|---|
-| **1. Assess** | The team writes your idea up as a one-page brief and checks it: is the problem real, is it worth it, is the data there, what could go wrong? | Days |
-| **2. Decide** | A named person decides: **go**, **try it small first**, **get ready** (fix something first, then look again) or **stop**. You hear why. | At the decision meeting |
-| **3. Try it** | Most ideas start as a **spike**: a small working version built in about a week, to see if the approach works. | About a week |
-| **4. Grow it** | If the spike works, it can grow into something people use, and later into a supported app. Each step up is a decision, never an accident. | Weeks, depending on size |
+| Step | What happens |
+|---|---|
+| **1. Assess** | The team writes your idea up as a one-page brief and checks it: is the problem real, is it worth it, is the data there, what could go wrong? |
+| **2. Decide** | At the next decision meeting a named person decides: **go**, **try it small first**, **get ready** (fix something first, then look again) or **stop**. |
+| **3. Try it** | Most ideas start as a **spike**: a small working version, built quickly to see if the approach works. |
+| **4. Grow it** | If the spike works, it can grow into something people use, and later into a supported app. Each step up is a decision, never an accident. |
+
+## What you get back
+- **A reply to every idea card.** No idea disappears.
+- **A short, plain overview of your idea:** the problem, what it would change, and how it was assessed.
+- **The decision and why.** If it's "get ready", you hear what has to be fixed and when it will be looked at again. If it's "stop", you hear what would change the answer.
 
 ## The four sizes of app
 - **Spike**: a quick try to answer one question. It may be thrown away.

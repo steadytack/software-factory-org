@@ -8,7 +8,7 @@ import check_spec
 import factory_lib as lib
 import pytest
 import scaffold
-from conftest import BREW_RATIO_TEMPLATES, REAL_ROOT, needs_templates, run
+from conftest import REAL_ROOT, run
 
 FIXTURE = Path(__file__).parent / "fixtures" / "brew-ratio"
 
@@ -16,9 +16,6 @@ FIXTURE = Path(__file__).parent / "fixtures" / "brew-ratio"
 @pytest.fixture
 def pack(tmp_path) -> Path:
     """A copy of the scenario A pack (a small standalone app), which passes."""
-    needs = needs_templates(*BREW_RATIO_TEMPLATES)
-    if needs.args[0]:
-        pytest.skip(needs.kwargs["reason"])
     dest = tmp_path / "brew-ratio"
     shutil.copytree(FIXTURE, dest, ignore=shutil.ignore_patterns("traceability.md"))
     return dest
@@ -101,12 +98,12 @@ def test_an_idea_without_a_definition_is_a_blocker(pack):
         ("01-overview.md", "(FR-003)", "(FR-099)", "mentions FR-099, which is not defined"),
         ("02-product-definition.md", "| JRN-002 | Keep", "| JRN-001 | Keep", "duplicate ID JRN-001"),
         ("README.md", "[01-overview.md](01-overview.md)", "[01-overview.md](01-overwiew.md)", "broken link to 01-overwiew.md"),
-        ("10-architecture-and-deployment.md", "| CAT-001 1.0.0 | Browser |", "| home-made | Browser |", "must be a catalogue asset (CAT-nnn), custom, or external"),
+        ("10-architecture-and-deployment.md", "| CAT-006 1.1.0 | Browser |", "| home-made | Browser |", "must be a catalogue asset (CAT-nnn), custom, or external"),
         ("11-delivery-plan.md", "| FR-001, FR-002, FR-003, FR-004 | US-001, US-002, US-003, US-004 | CMP-001 |", "| - | - | CMP-001 |", "EPIC-001 delivers no FR or story"),
-        ("12-component-selection-and-gaps.md", "| CAT-001 1.0.0 | reuse |", "| CAT-001 1.0.0 | borrow |", "decision must be one of"),
-        ("12-component-selection-and-gaps.md", "| CAT-001 1.0.0 | reuse |", "| - | reuse |", "reuse needs the selected catalogue asset"),
+        ("12-component-selection-and-gaps.md", "| CAT-006 1.1.0 | reuse |", "| CAT-006 1.1.0 | borrow |", "decision must be one of"),
+        ("12-component-selection-and-gaps.md", "| CAT-006 1.1.0 | reuse |", "| - | reuse |", "reuse needs the selected catalogue asset"),
         ("12-component-selection-and-gaps.md", "| FR-001, FR-002, FR-003, FR-004, NFR-001 |", "| - |", "CAP-001 supports no requirement"),
-        ("12-component-selection-and-gaps.md", "| CAT-001 1.0.0 | reuse | Has storage", "| CAT-999 1.0.0 | reuse | Has storage", "refers to CAT-999, which is not in the catalogue"),
+        ("12-component-selection-and-gaps.md", "| CAT-006 1.1.0 | reuse | Has storage", "| CAT-999 1.0.0 | reuse | Has storage", "refers to CAT-999, which is not in the catalogue"),
     ],
 )
 def test_each_blocker(pack, doc, old, new, fragment):
@@ -145,11 +142,11 @@ def test_an_open_question_that_blocks_the_spec_stops_gate_2(pack):
 
 def test_a_selected_asset_that_is_not_approved_is_blocked(pack, monkeypatch):
     real = check_spec.load_catalogue()
-    real["CAT-001"] = {**real["CAT-001"], "status": "imported"}
+    real["CAT-006"] = {**real["CAT-006"], "status": "imported"}
     monkeypatch.setattr(check_spec, "load_catalogue", lambda: real)
-    assert blocked(findings(pack), "CAT-001 is imported, not approved for reuse")
-    real["CAT-001"]["status"] = "deprecated"
-    assert blocked(findings(pack), "CAT-001 is deprecated in the catalogue")
+    assert blocked(findings(pack), "CAT-006 is imported, not approved for reuse")
+    real["CAT-006"]["status"] = "deprecated"
+    assert blocked(findings(pack), "CAT-006 is deprecated in the catalogue")
 
 
 # ---------------------------------------------------------------- warnings, not blockers
@@ -183,11 +180,11 @@ def test_a_could_requirement_without_a_story_is_only_a_warning(pack):
     [
         ("05-non-functional-requirements.md", "| Every FR with the network off | TEST-004 |", "| | |", "NFR-001 has no threshold"),
         ("10-architecture-and-deployment.md", "Deployment category: simple", "Deployment category: hosted", "differs from the Application Definition (simple)"),
-        ("12-component-selection-and-gaps.md", "| CAT-001 1.0.0 | reuse |", "| CAT-001 0.9.0 | reuse |", "version 0.9.0 differs from the catalogue (1.0.0)"),
+        ("12-component-selection-and-gaps.md", "| CAT-006 1.1.0 | reuse |", "| CAT-006 0.9.0 | reuse |", "version 0.9.0 differs from the catalogue (1.1.0)"),
         ("01-overview.md", "Next: Gate 2.", "Next: <the next gate>.", "placeholder text left"),
         ("02-product-definition.md", "| Two weeks of brews without reaching for a calculator |", "| |", "OBJ-001 has no success measure"),
         ("09-assumptions-risks-decisions.md", "| open | owner | none |", "| open | | none |", "ASM-001 has no owner"),
-        ("10-architecture-and-deployment.md", "| CAT-001 1.0.0 | Browser |", "| external (a browser) | Browser |", "external component not yet in the catalogue"),
+        ("10-architecture-and-deployment.md", "| CAT-006 1.1.0 | Browser |", "| external (a browser) | Browser |", "external component not yet in the catalogue"),
     ],
 )
 def test_each_warning(pack, doc, old, new, fragment):

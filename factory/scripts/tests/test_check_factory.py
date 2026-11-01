@@ -1,9 +1,8 @@
 """check_factory.py: the registry, schemas, context, ideas and catalogue must agree."""
 
 import json
-import shutil
 
-from conftest import REAL_ROOT, needs_templates, run
+from conftest import REAL_ROOT, run
 
 
 def check(repo, py, *extra):
@@ -35,20 +34,6 @@ def write_entry(repo, data, name=None):
 def test_the_real_factory_is_consistent(py):
     result = run([py, str(REAL_ROOT / "factory/scripts/check_factory.py")], REAL_ROOT)
     assert result.returncode == 0, result.stdout
-
-
-@needs_templates("single-page-html", "static-site", "streamlit-app")
-def test_registry_problems_are_reported(repo, py):
-    def change(data):
-        ready = [t for t in data["templates"] if t["status"] == "ready"]
-        del ready[0]["version"]
-        ready[1]["deployment"] = ["cloud"]
-        ready[2]["verify"] = []
-    edit_registry(repo, change)
-    out = check(repo, py).stdout
-    assert "missing field 'version'" in out
-    assert "deployment ['cloud'] not in" in out
-    assert "'verify' must be a non-empty list" in out
 
 
 def deprecate(repo, name="old-tool"):
@@ -125,25 +110,6 @@ def test_a_removed_template_name_in_current_docs_is_reported(repo, py):
     deprecate(repo)
     (repo / "factory/standards/extra.md").write_text("Use old-tool for this.", encoding="utf-8")
     assert "factory/standards/extra.md: mentions the removed template 'old-tool'" in check(repo, py).stdout
-
-
-@needs_templates("agent")
-def test_module_manifests_are_checked(repo, py):
-    path = repo / "templates/agent/module.json"
-    man = json.loads(path.read_text(encoding="utf-8"))
-    man["modules"]["tools"]["paths"][0]["from"] = "src/agent_app/nowhere"
-    man["modules"]["agent"]["needs"].append("ghost")
-    path.write_text(json.dumps(man), encoding="utf-8")
-    out = check(repo, py).stdout
-    assert "src/agent_app/nowhere does not exist" in out and "needs unknown module ghost" in out
-
-
-@needs_templates("agent")
-def test_a_missing_workflow_and_stack_file_are_reported(repo, py):
-    (repo / ".github/workflows/agent.yml").unlink()
-    shutil.move(repo / "factory/standards/stacks/agent.md", repo / "factory/standards/agent-stack.md")
-    out = check(repo, py).stdout
-    assert ".github/workflows/agent.yml: missing" in out and "stacks/agent.md: missing" in out
 
 
 def test_a_share_path_that_matches_no_file_is_reported(repo, py):

@@ -8,7 +8,7 @@ from pathlib import Path
 import catalogue
 import factory_lib as lib
 import pytest
-from conftest import needs_templates, run
+from conftest import run
 
 
 def write(root: Path, rel: str, text: str) -> None:
@@ -45,15 +45,6 @@ def entries_by_name(entries):
 
 
 # ---------------------------------------------------------------- search
-@needs_templates("etl-pipeline")
-def test_search_ranks_by_fit_and_shows_approved_only(repo):
-    results = catalogue.search(["pipeline", "scheduled"], root=repo)
-    assert results and results[0][1]["name"] == "etl-pipeline"
-    assert all(e["status"] == "approved" for _s, e in results)
-    assert catalogue.search(["nothing-matches-this"], root=repo) == []
-
-
-@needs_templates("web-app")
 def test_search_weighs_tags_above_words_in_the_purpose(repo):
     entry = catalogue.get("CAT-006", repo)
     assert catalogue.score(entry, ["postgis"]) > catalogue.score(entry, ["application"])
@@ -180,8 +171,6 @@ def test_reject_records_the_reason(repo, hostile):
 
 def test_the_command_line(repo, hostile, py):
     script = str(repo / "factory/scripts/catalogue.py")
-    if "streamlit-app" in lib.ready_templates(repo):  # an instance has only the templates it chose
-        assert run([py, script, "search", "dashboard"], repo).stdout.count("streamlit-app") == 1
     out = run([py, script, "import", str(hostile)], repo)
     sid = re.search(r"Recorded (SRC-\d{3})", out.stdout).group(1)
     assert out.returncode == 0 and f"What can I reuse from {sid}?" in out.stdout

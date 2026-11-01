@@ -26,7 +26,7 @@ Using AI to build faster is easy. Keeping a hundred AI-built apps consistent, sa
 
 ## The flow
 ```
-Fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, about a week ─gate 3→ grow │ keep │ stop
+Fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, time-boxed ─gate 3→ grow │ keep │ stop
 Full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
 ```
 
@@ -40,12 +40,15 @@ Full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ 
 ## The controls that make it safe to scale
 - **Independent challenge.** Before Gates 1 and 2, a fresh context (a subagent that never saw the drafting conversation) argues against the ratings, the score and the spec. Every challenge must be answered `changed` or `kept` before the gate, and the checker blocks an unanswered one. This stops the agent marking its own homework.
 - **Policy as data.** The data classes (POL-11) say which kinds of information may be used and on what conditions, and the scripts enforce them. A class the policy forbids is a knock-out. One allowed "by approval" needs a recorded approver before a Go.
-- **Protection follows the data, not the size.** Levels A–D are set by what an app holds and who can reach it, so a one-week spike on real Internal data is protected like any other app holding Internal data.
+- **Protection follows the data, not the size.** Levels A–D are set by what an app holds and who can reach it, so a short spike on real Internal data is protected like any other app holding Internal data.
 - **Tiers are explicit.** Spike, exploration prototype, business prototype, production. Raising a tier is a change request back through a gate. This is the answer to "won't this create hundreds of unsupported shadow apps?"
 - **Reuse through a governed catalogue.** Apps are built from approved templates and catalogue assets (POL-10: only `approved` assets are reused). Imported code and documents are treated as untrusted data: inspected and scanned, never executed (POL-04).
 - **Architecture rules are linted, not just written down.** The `web-app` template enforces layer boundaries (import-linter, eslint), complexity limits (ruff) and vetted dependencies. AI tools sometimes invent package names, so every new dependency is checked against its registry.
 - **Context isolation.** `scopes.py` gives each idea only the context its business and brand allow, so one business's context never reaches another's idea.
 - **Honest reporting.** Checks are reported exactly as run; anything that didn't run says "not run" (POL-03).
+
+## What goes to the AI provider
+The agent runs on a model hosted by its provider, so what is in a session (the idea's files, the context it reads, the code it writes) is sent to that provider. The data-class policy (POL-11) applies to the conversation as much as to the files: only the classes it allows may enter a session, which is why staff describe information on the idea card rather than paste it. The provider is a third-party service approved under DEF-11, and its retention and training terms are part of that approval. An app that itself calls a model at run time follows `factory/standards/ai-features.md` (the data it sends, prompt injection, output handling).
 
 ## It knows the organisation
 An AI agent is only as good as the context it is given. Every idea, prototype and app here is developed against three sources of organisational knowledge:
@@ -58,10 +61,22 @@ At Publish, the new app and its integrations are offered back to the AaC owners,
 **Status:** the AaC landscape exists and the process models are being started. For now the factory reads the model an idea touches and cites it. Connecting the models directly is planned: a sync that keeps the catalogue's reference cards up to date from the models, and then checks against them at each gate.
 
 ## It learns, under control
-`learned.py` records every gate answer that differed from the recommendation, and every clarification that applies beyond one idea. It also records whether the Gate 1 assessment held (`outcome.md`) and whether the benefits arrived 30 and 90 days after publishing (`benefits.md`). `learned.py review` turns repeated patterns into *candidate* changes to the defaults or the assessment rules. An approver accepts or rejects each one, and nothing changes by itself.
+`learned.py` records every gate answer that differed from the recommendation, and every clarification that applies beyond one idea. It also records whether the Gate 1 assessment held (`outcome.md`) and whether the benefits arrived, at set reviews after publishing (`benefits.md`). `learned.py review` turns repeated patterns into *candidate* changes to the defaults or the assessment rules. An approver accepts or rejects each one, and nothing changes by itself.
 
 ## Measuring it
-`status.py` and the dashboard report cycle times from dates the factory already records: the median days from capture to Gate 1 and from Gate 1 to Gate 3, and how many spikes stayed within their time box. `dashboard.py --write` builds a single shareable page. Before writing, it checks the documents for secrets, personal emails and machine paths.
+`status.py` and the dashboard report cycle times from dates the factory already records: the median time from capture to Gate 1 and from Gate 1 to Gate 3, and how many spikes stayed within their time box. `dashboard.py --write` builds a single shareable page. Before writing, it checks the documents for secrets, personal emails and machine paths.
+
+## Measuring cost
+The cost per idea is not known yet. The pilot measures it beside the cycle times: the AI usage for each idea, and the operator's and approvers' time at each stage and gate. Those figures replace the estimates in [the factory's own assessment](the-factory/assessment.md).
+
+## The adoption path
+1. **Pilot:** one small idea on Internal data to the end of its spike. This gives the first real cycle times and cost.
+2. **Name the roles:** operators, gate approvers, architecture and process owners, the factory owner ([operating-model.md](operating-model.md)).
+3. **Bring in the context:** the business context by scope, and the AaC sources listed with their owners and data classes.
+4. **Open to staff:** idea cards from any form tool, with the work-in-progress limit growing with the operators.
+5. **Connect the AaC models:** reference cards kept up to date from the models, then checks against them at each gate.
+
+Each step resolves one of the known limits below.
 
 ## Running it
 - **Engine:** Python scripts with tests (`python -m pytest factory/scripts/tests`) and a self-check (`check_factory.py`) that the registry, schemas, context, ideas and catalogue agree. A change to the factory is versioned (`VERSION`, `CHANGELOG.md`) like any other code.
@@ -73,7 +88,7 @@ At Publish, the new app and its integrations are offered back to the AaC owners,
 ## Known limits, said plainly
 - **No idea has been through it end to end yet.** The first pilot will produce the first real cycle times.
 - **The AaC models aren't connected yet.** Until they are, using them depends on the operator reading the right model, not on a check.
-- **One template.** `web-app` brings a database, auth and backups. That is heavy for a one-week spike. A lighter template for spikes would make the fast route faster.
+- **One template.** `web-app` brings a database, auth and backups. That is heavy for a short, time-boxed spike. A lighter template for spikes would make the fast route faster.
 - **People are the throughput limit.** The agent drafts quickly, but gates and audits need human review. The work-in-progress limit (DEF-23, 3 ideas per operator) protects that capacity, and it grows as operators are added.
 - **The agent can be wrong.** That is why challenge, deterministic checks, audits and gates exist. None of them makes the agent's output trustworthy on its own. Together they make errors visible before anything is relied on.
 

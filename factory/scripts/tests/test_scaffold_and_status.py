@@ -8,7 +8,7 @@ import factory_lib as lib
 import pytest
 import scaffold
 import status
-from conftest import REAL_ROOT, needs_templates, run
+from conftest import REAL_ROOT, run
 
 
 def test_a_new_idea_has_its_files_and_a_valid_state(repo):
@@ -37,31 +37,6 @@ def test_an_existing_idea_is_not_overwritten(repo):
         scaffold.new_idea("tide-times", "Again", root=repo)
 
 
-@needs_templates("static-site")
-def test_an_app_is_copied_without_build_output_or_factory_files(repo):
-    (repo / "templates/static-site/node_modules/x").mkdir(parents=True)
-    (repo / "templates/static-site/node_modules/x/a.js").write_text("1", encoding="utf-8")
-    (repo / "templates/static-site/.env").write_text("SECRET=1", encoding="utf-8")
-    scaffold.new_idea("notes", "Notes", root=repo)
-    app = scaffold.new_app("notes", "static-site", root=repo)
-    assert (app / "package.json").exists() and (app / ".env.example").exists()
-    assert not (app / "node_modules").exists() and not (app / ".env").exists()
-    assert (app / "NOTES.md").exists() and (app / "standards/PRINCIPLES.md").exists()
-    assert (app / "standards/ai-features.md").exists()
-    assert (app / "STANDARDS.md").read_text(encoding="utf-8") == (repo / "factory/standards/stacks/static-site.md").read_text(encoding="utf-8")
-    assert (app / ".git").exists() or shutil.which("git") is None
-    assert lib.load_state("notes", repo)["template"] == "static-site"
-    with pytest.raises(lib.FactoryError, match="not empty"):
-        scaffold.new_app("notes", "static-site", root=repo)
-
-
-@needs_templates("etl-pipeline")
-def test_an_app_leaves_out_the_module_manifest(repo):
-    scaffold.new_idea("pipe", "Pipe", root=repo)
-    app = scaffold.new_app("pipe", "etl-pipeline", root=repo)
-    assert not (app / "module.json").exists() and (app / "pyproject.toml").exists()
-
-
 def test_an_unknown_or_removed_template_is_refused(repo):
     reg = repo / "factory/templates.json"
     data = json.loads(reg.read_text(encoding="utf-8"))
@@ -84,9 +59,7 @@ def test_the_command_line(repo, py):
     script = str(repo / "factory/scripts/scaffold.py")
     assert run([py, script, "new", "my-idea", "--name", "My idea"], repo).returncode == 0
     assert run([py, script, "new", "my-idea", "--name", "Again"], repo).returncode == 1
-    ready = lib.ready_templates(repo)  # an instance has only the templates it chose
-    template = "single-page-html" if "single-page-html" in ready else sorted(ready)[0]
-    assert run([py, script, "app", "my-idea", template], repo).returncode == 0
+    assert run([py, script, "app", "my-idea", "web-app"], repo).returncode == 0
     assert (repo / "ideas/my-idea/app/README.md").exists()
     assert run([py, script], repo).returncode == 2
 

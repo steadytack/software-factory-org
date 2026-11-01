@@ -2,6 +2,21 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.13.4 (2026-11-01)
+The factory's tests skipped 70 cases here (216 passed), nearly all because they were written for templates this factory does not have. Now 277 pass and 1 skips (the check over real ideas, which waits for the first idea).
+- **The scenario fixture uses `web-app`:** `fixtures/brew-ratio` now selects `web-app` (CAT-006 1.1.0) instead of `single-page-html` and `static-site`, so the tests built on it (the Gate 2 spec check and the publish dry run: 61 cases) run here.
+- **Removed:** the 8 tests that need templates this factory doesn't have (`agent`, `etl-pipeline`, `static-site`, `single-page-html`, `streamlit-app`), and the `needs_templates` guard they used. A test for a template comes back with that template.
+- Migration: none. Tests only.
+
+## 0.13.3 (2026-10-31)
+The guides promised timeframes (a spike in about a week, a decision within two weeks, a weekly triage) that no idea has yet shown, and left gaps a launch would hit.
+- **No timeframes in the guides:** `docs/`, `README.md`, the diagrams in `factory/README.md` and the skill say "time-boxed" and "prompt" instead of a number of days or weeks. The operating model's cadences and targets are "to be set" by the organisation and measured by the factory. In the factory's own assessment and overview, reach and effort are "to be estimated" and the score waits for the pilot. The factory's rules keep their own settings: a spike's time box is agreed in its plan, and the benefits review dates are set by `learned.py`.
+- **Staff:** describe information on the idea card, never paste it (POL-11 in plain words); a worked example card; what you get back (a reply, the overview, the decision and why).
+- **Leaders:** "What it isn't" (not for major or core systems, not confidential or personal data first, not AI left to itself), and the decision asked as a pilot with success and stop criteria, as in the factory's own assessment.
+- **Technical leaders:** what goes to the AI provider (POL-11 covers the conversation; the provider is approved under DEF-11), measuring cost per idea in the pilot, and the adoption path from pilot to connected AaC models.
+- **Operating model:** replying to submitters at each step, choosing the pilot idea, and onboarding an operator.
+- Migration: none. Documentation only.
+
 ## 0.13.2 (2026-10-31)
 - **The factory, assessed by the factory** (`docs/the-factory/`, new): the factory put through its own first stage, in the formats every idea gets: an idea brief (the problem, outcome, how it works today and with the factory, data, risk, people, fit, assumptions), an assessment (knock-outs, the five foundations, the priority score, a pre-mortem, the one thing, the recommendation: Go as a spike, a two-week pilot) and a sponsor overview. Assumptions are marked. Linked from `README.md` and the leaders' guides, and in the shareable page (`share.json`).
 - Migration: none. Documentation only.

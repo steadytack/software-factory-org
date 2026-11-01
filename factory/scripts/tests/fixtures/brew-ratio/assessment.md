@@ -18,7 +18,7 @@
     "confidence": {"value": 80, "reason": "A good argument from the brief; the habit change is assumed"},
     "effort": {"value": 0.5, "reason": "One page on a ready template"}
   },
-  "template": "single-page-html",
+  "template": "web-app",
   "assets": [],
   "one_thing": "Whether recipes kept in one browser are safe enough, or export and import are needed from the start",
   "decision": {"recommended": "go", "reason": "Every foundation is green or amber, and the effort is small", "fix": [], "decided": "go", "date": "2026-10-19", "reply": "test fixture, not a real decision"},

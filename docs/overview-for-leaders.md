@@ -1,6 +1,6 @@
 # The software factory in one page
 
-**Every good idea in the organisation, turned into a working app in weeks, not months. Built one consistent way, safely, and better with every idea.**
+**Every good idea in the organisation, turned into a working app quickly. Built one consistent way, safely, and better with every idea.**
 
 ## The problem it solves
 Every organisation has more good ideas than IT can build. Most wait in a queue or are never raised. The rest get built in a spreadsheet, a stand-alone tool or a one-off project, each in its own way, with its own technology and its own idea of what is safe. AI makes building faster, but on its own it makes this worse: more apps, built faster, each one different.
@@ -20,12 +20,17 @@ Every organisation has more good ideas than IT can build. Most wait in a queue o
 **And all of it improves over time.** Each idea feeds back what it taught us: where the assessment was wrong, which defaults people kept overriding, whether the benefits arrived. Those lessons become proposed improvements to the policies, defaults, templates and approach. An approver accepts or rejects each one, and the next idea starts from the better version. Every change is versioned, like any other software.
 
 ## What leaders get
-- **Speed:** most ideas start as a spike, a working version in about a week, instead of a project.
-- **Cheaper to be wrong:** a spike that fails costs a week, and what it taught us is kept.
+- **Speed:** most ideas start as a spike, a small working version built quickly, instead of a project.
+- **Cheaper to be wrong:** a spike that fails costs little, and what it taught us is kept.
 - **Consistency at scale:** a hundred apps built one way can be supported, secured and changed. A hundred apps built a hundred ways can't.
 - **No shadow IT:** apps come in four sizes (spike, exploration prototype, business prototype, production app), and moving up a size is always a decision. Nothing quietly becomes something people rely on.
 - **Reuse:** each new app makes the catalogue richer for the next.
-- **Evidence:** every idea is assessed before money is spent, and every published app is reviewed after 30 and 90 days against its success measures.
+- **Evidence:** every idea is assessed before money is spent, and every published app is reviewed after release against its own success measures.
+
+## What it isn't
+- **It doesn't replace projects for major or core systems.** Large changes to the systems the organisation runs on still go through IT's normal delivery. The factory takes the ideas that would otherwise never be built, or get built badly.
+- **It doesn't start with confidential or personal data.** Ideas that need it wait until the controls for that data have been proven in a pilot, and then need approval, or made-up test data.
+- **It isn't AI left to itself.** People decide at every gate, and the tools check the AI's work.
 
 ## How it stays safe
 1. People decide at four gates. AI does the work between them.
@@ -35,10 +40,17 @@ Every organisation has more good ideas than IT can build. Most wait in a queue o
 5. Every app is audited against its spec before release, and results are reported exactly as run.
 
 ## How we'll know it works
-`status.py` and the factory's dashboard report the cycle times: the median days from idea to decision and from decision to a finished build, and how many spikes ended within their time box. Benefits reviews show whether the apps delivered what they promised.
+The factory reports its own cycle times (how long ideas take from submission to decision and from decision to a finished build) and how many spikes finished within their time box. Benefits reviews after release show whether the apps delivered what they promised.
+
+## The decision asked: a pilot
+Run one small, real, low-risk idea (Internal data only) through the factory to a working spike, within a time box agreed up front.
+- **Success:** the idea reaches its decision promptly, the spike is built within its time box, and the sponsor and the idea's owner agree it answered its question.
+- **Stop:** the pilot can't finish within its time box, or the decisions take more effort than building the spike did.
+
+The pilot commits one operator and one approver for its time box. Opening the factory to all staff is the next decision, made with the pilot's results. The full case is in [the factory, assessed by the factory](the-factory/overview.md).
 
 ## What it needs from you
-- **Sponsorship** to open it to staff, starting with a pilot.
+- **Sponsorship** for the pilot, and then for opening the factory to staff.
 - **Named people:** operators, gate approvers, and owners for the architecture and process models ([operating model](operating-model.md)).
 - **Ideas:** encourage teams to send them in. Small ones are welcome.
 

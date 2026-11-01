@@ -1,6 +1,6 @@
 # Organisation A software factory
 
-Turns an idea, an existing specification or an imported project into a built, tested and audited application, assembled from the organisation's approved catalogue assets where possible. Ideas are developed with `/factory` in Claude Code. Most start as a spike: a working version in about a week, then grow, keep or stop. Every idea, spec and app is built with the same guardrails, approach, policies, defaults and organisational context, from an approved list of technology, and all of it is improved over time as content in this repository.
+Turns an idea, an existing specification or an imported project into a built, tested and audited application, assembled from the organisation's approved catalogue assets where possible. Ideas are developed with `/factory` in Claude Code. Most start as a spike: a small, time-boxed working version, then grow, keep or stop. Every idea, spec and app is built with the same guardrails, approach, policies, defaults and organisational context, from an approved list of technology, and all of it is improved over time as content in this repository.
 
 - **Have an idea?** [docs/for-staff.md](docs/for-staff.md): what to send and what happens next.
 - **Leading or sponsoring it?** [docs/overview-for-leaders.md](docs/overview-for-leaders.md), the factory on one page; and [docs/the-factory/](docs/the-factory/README.md), the factory assessed by its own first stage (brief, assessment, sponsor overview).
@@ -9,7 +9,7 @@ Turns an idea, an existing specification or an imported project into a built, te
 - **A word you don't know?** [docs/glossary.md](docs/glossary.md).
 
 ```
-The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, about a week ─gate 3→ grow │ keep │ stop
+The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, time-boxed ─gate 3→ grow │ keep │ stop
 The full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
                                   (a spike that grows joins the full route at Spec, at the tier the owner names)
 

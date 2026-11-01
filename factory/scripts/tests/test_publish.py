@@ -6,9 +6,9 @@ from pathlib import Path
 
 import publish
 import pytest
-from conftest import BREW_RATIO_TEMPLATES, git_commit_all, needs_templates, run
+from conftest import git_commit_all, run
 
-pytestmark = [pytest.mark.skipif(shutil.which("git") is None, reason="needs git"), needs_templates(*BREW_RATIO_TEMPLATES)]
+pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
 FIXTURE = Path(__file__).parent / "fixtures" / "brew-ratio"
 
 
