@@ -37,6 +37,33 @@ Full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ 
 | **Build and Audit** | The app, epic by epic with tests, from an approved template | `verify.py` runs the template's checks in clean containers; the spec-conformance audit is mandatory before Gate 3 |
 | **Publish** | A dry-run report, then the repository | `publish.py`: secrets and licence scan, SBOM at the higher protection levels, and a repository is created only on a typed confirmation |
 
+## From SDLC to ADLC
+A traditional software development lifecycle (SDLC) is linear: people hand work between stages, and the knowledge of how to build sits in their heads. An agentic development lifecycle (ADLC) keeps the same goal and the same phases, but agents do the drafting and building from a shared context, every step leaves an artifact, and checks run as code. "ADLC" isn't a settled standard (some use it for the lifecycle of building AI agents), so here it means exactly this.
+
+| ADLC step | In the factory today | Status |
+|---|---|---|
+| **Capture intent** | The idea card, `idea.md` and the idea brief | In place |
+| **Requirements and design with an agent** | Develop and Assess, then the spec pack: drafted by the agent, decided by people | In place |
+| **Agent builds with context and tools** | Build, from the context layers (business, landscape, processes, policies, defaults), approved templates and components | In place |
+| **Executable gates and agentic review** | `check_spec.py`, `check_factory.py` and `verify.py`, the challenge, independent tests and audits, then a person at each gate | In place, with a person at every gate |
+| **Continuous evals** | Tests and evals at build and audit (`factory/standards/testing.md`, `ai-features.md`) | Partial: not re-run after release |
+| **Production signals create new intent** | Benefits reviews and `learned.py` turn results into lessons and proposed changes | Gap: incidents and live metrics don't yet raise ideas |
+
+**The artifact chain is the audit trail.** Each step leaves a file in the idea's folder, committed to git, so anyone can trace an app back to the intent it came from:
+
+| Link | In the factory |
+|---|---|
+| Intent (what to build) | `idea.md`, `idea-brief.md`, `assessment.md` |
+| Spec (design and approach) | `application-definition.md` and the spec pack in `spec/`, with `traceability.md` |
+| Plan (implementation plan) | `plan.md` for a spike; doc 12 and the delivery plan at tiers 2 to 4 |
+| Code and tests (the diff) | The app, its tests and `verification.md` |
+| Review record (approval and deploy) | `gates/gate-N.md`, `decisions.md`, the audits and `publish-report.md` |
+| Production signal (incidents and metrics) | `benefits.md` today; incidents and metrics are the gap above |
+
+**Institutional knowledge becomes code:** the policies, defaults, standards and stage files are versioned files the agent follows and the scripts check, not habits.
+
+**Where the factory deliberately differs.** Some ADLC descriptions keep human judgement only for critical code. The factory keeps a person at all four gates for now, as **proportional human review** that starts at full: once the pilot shows the executable checks catch what they should, low-risk work (a spike at protection A on synthetic data, say) could pass some gates on the checks alone. That is a decision for the factory owner, with evidence.
+
 ## The controls that make it safe to scale
 - **Independent challenge.** Before Gates 1 and 2, a fresh context (a subagent that never saw the drafting conversation) argues against the ratings, the score and the spec. Every challenge must be answered `changed` or `kept` before the gate, and the checker blocks an unanswered one. This stops the agent marking its own homework.
 - **Policy as data.** The data classes (POL-11) say which kinds of information may be used and on what conditions, and the scripts enforce them. A class the policy forbids is a knock-out. One allowed "by approval" needs a recorded approver before a Go.
@@ -75,12 +102,16 @@ The cost per idea is not known yet. The pilot measures it beside the cycle times
 3. **Bring in the context:** the business context by scope, and the AaC sources listed with their owners and data classes.
 4. **Open to staff:** idea cards from any form tool, with the work-in-progress limit growing with the operators.
 5. **Connect the AaC models:** reference cards kept up to date from the models, then checks against them at each gate.
+6. **Close the ADLC loop:** continuous evals (tests and evals re-run on every change and on a schedule after release), production signals (incidents and alerts from tier 4 apps arriving in the inbox as ideas or change requests, tagged with their source), and gates set by risk once the evidence supports it.
 
 Each step resolves one of the known limits below.
 
 ## Running it
 - **Engine:** Python scripts with tests (`python -m pytest factory/scripts/tests`) and a self-check (`check_factory.py`) that the registry, schemas, context, ideas and catalogue agree. A change to the factory is versioned (`VERSION`, `CHANGELOG.md`) like any other code.
 - **Templates (the approved technology list):** today `web-app` (FastAPI, SQLAlchemy and Alembic, PostgreSQL/PostGIS, React 19 with Vite and shadcn/ui), hosted in Docker at every tier. More are added to the registry by an approved change, never chosen ad hoc for one idea.
+- **Components, joined together:** beside the templates, the catalogue holds components (modules, integration adapters, stand-ins, design assets, recipes) that an app joins to its template and to each other. Spec records the composition (`composition.json`, doc 12) and its gaps; each component's own tests run in the merged tree (`factory/standards/testing.md`).
+- **Growing the list:** each "none fits" template and each gap a component could have filled is recorded as a decision and raised with the factory owner as demand. Backfill comes first from what the organisation already runs and supports: its stacks (the system landscape shows which) become templates, and its existing libraries and code are imported as components (`catalogue.py import --component`), inspected, tested and approved like any other asset (POL-04, POL-10). So IT is not asked to support something new. At Publish, each app's reusable parts are offered back to the catalogue as a gate decision. The first idea that needs a template or component pays for it, and every later idea reuses it.
+- **Integrations below production:** tiers 1 to 3 connect to stand-ins: fakes built from the other system's schema or a recorded exchange and filled with synthetic data, or that system's test environment where one exists (DEF-24). Each stand-in sits behind the adapter the live connection will use, and tier 3 contract tests check it against the real schema. A live connection to a production system of record comes at tier 4.
 - **Intake:** ideas arrive as lines in `ideas/inbox.md` or as idea cards exported from any form tool to `ideas/inbox.csv`.
 - **People:** intake triage, operators who run `/factory`, gate approvers, catalogue maintainers, and the team that takes over at tier 4 ([operating-model.md](operating-model.md)).
 - **Working economy:** short sessions, one piece of work each; wide searches go to helpers; independent steps are batched (DEF-18 to DEF-22). The aim is lower cost per idea and less drift.
@@ -88,7 +119,8 @@ Each step resolves one of the known limits below.
 ## Known limits, said plainly
 - **No idea has been through it end to end yet.** The first pilot will produce the first real cycle times.
 - **The AaC models aren't connected yet.** Until they are, using them depends on the operator reading the right model, not on a check.
-- **One template.** `web-app` brings a database, auth and backups. That is heavy for a short, time-boxed spike. A lighter template for spikes would make the fast route faster.
+- **One template.** `web-app` brings a database, auth and backups. That is heavy for a short, time-boxed spike, and it doesn't cover work such as optimisation solvers, data pipelines or agents. A lighter template for spikes would make the fast route faster; the others come with the ideas that need them.
+- **Large programmes.** A programme such as a scheduling and routing engine with a dozen integrations comes in as several ideas, and the factory de-risks it with spikes on synthetic data and stand-in integrations. It doesn't deliver the whole programme until the templates and data controls for it are approved.
 - **People are the throughput limit.** The agent drafts quickly, but gates and audits need human review. The work-in-progress limit (DEF-23, 3 ideas per operator) protects that capacity, and it grows as operators are added.
 - **The agent can be wrong.** That is why challenge, deterministic checks, audits and gates exist. None of them makes the agent's output trustworthy on its own. Together they make errors visible before anything is relied on.
 

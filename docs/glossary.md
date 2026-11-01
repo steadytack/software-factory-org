@@ -4,6 +4,9 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 
 | Term | Means | Where |
 |---|---|---|
+| **ADLC (agentic development lifecycle)** | Building software with agents doing the drafting and building from a shared context, every step leaving an artifact, and checks running as code; people decide at the gates. The factory is our ADLC. The term isn't a settled standard. | `docs/for-technical-leaders.md` |
+| **Intent** | What someone wants built and why, captured before any design: in the factory, the idea card and brief. | `ideas/<slug>/idea.md`, `idea-brief.md` |
+| **Artifact chain** | The files each step leaves (intent, spec, plan, code and tests, review record, production signal), committed in order, so an app can be traced back to its intent. It is the audit trail. | `ideas/<slug>/` |
 | **Idea card** | Five questions anyone can answer to put an idea in. | `factory/project-files/idea-card.md` |
 | **Idea brief** | A one- to two-page write-up of the idea that the factory drafts from the card, with every assumption marked. | `factory/project-files/idea-brief.md` |
 | **Assessment** | The check on the brief that comes before any decision: knock-outs, the five foundations, a RICE score and the one thing. | `factory/stages/develop-assess.md` |
@@ -15,6 +18,8 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 | **Go / Go as a spike / Get Ready / Stop** | The four answers at Gate 1. "Get Ready" means fix the named foundations first, then look again on a set date. | `factory/stages/develop-assess.md` |
 | **Tier** | How mature a build is: 1 Spike, 2 Exploration prototype, 3 Business prototype, 4 Production app. It is chosen for each idea, and moving up a tier is a decision. | `factory/standards/tiers.md` |
 | **Spike / light route** | Tier 1: a small, time-boxed build that answers one question, with a one-page plan instead of a spec. It ends with grow, keep or stop. | `factory/stages/light.md` |
+| **Stand-in** | A fake of another system that a prototype connects to instead of the real one: built from that system's published schema, filled with made-up data, and swapped for the live connection when the app becomes a production app. | `factory/context/group/defaults.md` (DEF-24) |
+| **Synthetic data** | Made-up records that look like the real thing, used to build and test without real people's or customers' information. | `factory/context/group/policies.md` (POL-11) |
 | **Spec pack** | The documents that specify an app at tiers 2 to 4: requirements, user experience, data, security, stories, the delivery plan and so on. It scales with the tier. | `factory/standards/specification-pack.md` |
 | **Data classes** | The kinds of information (Public, Internal, Confidential, Personal and so on) and whether each may be used in the factory, and on what conditions. | `factory/context/group/policies.md` (POL-11) |
 | **Protection level A–D** | How well an app is protected. It follows the data the app holds and who can reach it, not its tier: A is the builder only, B is Internal data or staff, C is Confidential or personal data, D is anyone outside the organisation. | `factory/standards/security.md` |
@@ -28,5 +33,9 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 | **Catalogue** | Approved, reusable building blocks, plus reference cards for the organisation's systems, which new apps are built from where they fit. | `catalogue/README.md` |
 | **Template** | The starting point an app is built from, with its stack and standards. The templates in the registry are the organisation's approved technology list. | `templates/`, `factory/templates.json` |
 | **Factory version** | The release of the shared guardrails, approach, policies, defaults and templates an idea was built on. Improvements are released as new versions. | `VERSION`, `CHANGELOG.md` |
+| **Executable gate** | A check that runs as code before a person decides, such as the spec check or the clean-container tests. It reports; the person at the gate decides. | `factory/scripts/check_spec.py`, `verify.py` |
+| **Continuous evals** | Tests and evaluations that re-run on every change, and after release, to prove each version still does what it should. Today they run at build and audit. | `factory/standards/testing.md` |
+| **Production signal** | Evidence from a live app (an incident, an alert, a metric, a benefits review) that becomes a new idea or change. Today it comes from benefits reviews. | `factory/stages/publish.md` |
+| **Proportional human review** | People review in proportion to risk. Today every gate has a person; low-risk work may later pass some gates on executable checks alone. | `docs/for-technical-leaders.md` |
 | **Audit** | The checks before Gate 3, spec conformance first: does the app do what was specified? | `factory/stages/audit.md` |
 | **Benefits review** | A look back at set points after publishing: were the success measures met? | `factory/stages/publish.md` |

@@ -15,5 +15,6 @@ There is no default tier (DEF-01): it is chosen for each idea, with a reason.
 
 ## Rules
 - **Moving up a tier is a gate decision, never drift.** A spike grows at its Gate 3 to the tier the owner names (`pipeline.py light <slug> grow --tier 2|3|4`). A tier 2 or 3 app is raised by a change request (`stages/changes.md`, "Raising the tier") that lists what the higher tier adds and returns to Gate 2. A prototype that people have come to rely on is the signal to raise one, not a reason to skip it.
+- **Integrations follow the tier** (DEF-24): tiers 1 to 3 connect to stand-ins (a fake built from the other system's schema, with synthetic data, or that system's test environment); a live connection to a production system of record is tier 4.
 - **A tier never lowers protection.** Every policy, and the protection level its data and users need, applies at every tier.
 - **Hosted in Docker at every tier** (DEF-02), so a build runs the same way from a spike to production.

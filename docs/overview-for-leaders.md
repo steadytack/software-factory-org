@@ -15,7 +15,7 @@ Every organisation has more good ideas than IT can build. Most wait in a queue o
 | **Policies** | Our data, security and approval rules are applied every time, by the tools, not from memory. |
 | **Defaults** | Our standing choices (hosting, login, backups, accessibility, testing) are built in, so they don't depend on who builds the app. |
 | **Context** | Every idea is developed knowing our business, our systems and our processes (described as Architecture as Code). It builds on what exists instead of duplicating it. |
-| **Technology** | Picked from a short list the organisation has approved: chosen templates and approved building blocks, not whatever a builder or an AI happens to prefer. |
+| **Technology** | Picked from what the organisation has approved: templates to start from and a library of components (modules, integrations, design assets) that join with them and with each other to make new apps, not whatever a builder or an AI happens to prefer. The library grows with demand, starting from technology and code IT already runs and supports, and every app can give parts back to it. |
 
 **And all of it improves over time.** Each idea feeds back what it taught us: where the assessment was wrong, which defaults people kept overriding, whether the benefits arrived. Those lessons become proposed improvements to the policies, defaults, templates and approach. An approver accepts or rejects each one, and the next idea starts from the better version. Every change is versioned, like any other software.
 
@@ -24,12 +24,12 @@ Every organisation has more good ideas than IT can build. Most wait in a queue o
 - **Cheaper to be wrong:** a spike that fails costs little, and what it taught us is kept.
 - **Consistency at scale:** a hundred apps built one way can be supported, secured and changed. A hundred apps built a hundred ways can't.
 - **No shadow IT:** apps come in four sizes (spike, exploration prototype, business prototype, production app), and moving up a size is always a decision. Nothing quietly becomes something people rely on.
-- **Reuse:** each new app makes the catalogue richer for the next.
+- **Reuse:** new apps are joined together from approved templates and components, and each app can give its reusable parts back, so the next one starts further ahead.
 - **Evidence:** every idea is assessed before money is spent, and every published app is reviewed after release against its own success measures.
 
 ## What it isn't
-- **It doesn't replace projects for major or core systems.** Large changes to the systems the organisation runs on still go through IT's normal delivery. The factory takes the ideas that would otherwise never be built, or get built badly.
-- **It doesn't start with confidential or personal data.** Ideas that need it wait until the controls for that data have been proven in a pilot, and then need approval, or made-up test data.
+- **It doesn't deliver a large programme on its own, yet.** A large programme comes in as several ideas, and the factory answers the riskiest questions first, as spikes on made-up data: will the approach work, does the product fit, what will it cost? That turns a build-or-buy paper from a weighted guess into evidence. The delivery itself still runs as a project until the factory has the approved technology and data controls for it, and each project that adds them makes the next one easier.
+- **It doesn't start with confidential or personal data, or live systems.** Prototypes are built and tested on made-up data, against stand-ins for the systems they connect to. Real personal or confidential data needs approval once its controls have been proven, and a live connection to a system of record comes with the production app.
 - **It isn't AI left to itself.** People decide at every gate, and the tools check the AI's work.
 
 ## How it stays safe

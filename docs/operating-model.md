@@ -52,5 +52,15 @@ The first idea proves the factory, so choose one that can succeed and be measure
 2. Run a first idea alongside an experienced operator, from capture to Gate 1.
 3. Add them to `group.operators` in `factory/context/scopes.json`. This raises the work-in-progress limit by 3 (DEF-23).
 
+## Growing the approved technology
+The approved technology is templates to start from and a library of components that join with them and with each other. Both start small and grow with demand:
+- Each "none fits" template at Spec, and each gap a component could have filled, is recorded as a decision and raised with the factory owner.
+- Backfill comes first from what the organisation already runs and supports: its stacks, as the system landscape shows them, become templates, and its existing libraries and code are imported as components. So the factory doesn't add something new to support.
+- Each app's reusable parts are offered back to the catalogue at Publish, as a gate decision.
+- The factory owner decides which templates to add, with the architect who owns that technology; a template is an approved change to the registry, with its stack standard, skeleton and tests, released as a factory version. Catalogue maintainers take components through the catalogue's lifecycle, and only approved ones are reused (POL-10).
+
+## Large programmes
+A large programme comes in as several ideas, not one. Its open questions (does the approach work, does a product fit, what will it cost) become spikes on synthetic data with stand-in integrations (DEF-24), and their results go into the programme's business case. Its delivery runs as a project with IT until the factory has the approved templates and data controls it needs.
+
 ## When an app leaves the factory
 An app stays the factory's responsibility through tier 3. To be relied on, it is raised to tier 4 (`factory/stages/changes.md`, "Raising the tier") and the supporting team accepts it at Gate 4: a named owner, support, monitoring, tested recovery and a retirement plan (`factory/standards/tiers.md`). An app no one will support stays at tier 3, or is retired.

@@ -2,6 +2,16 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.14.0 (2026-11-01)
+The leaders' guide said the factory doesn't replace projects for major systems, without saying what it does for them. A large specification (a scheduling and routing engine with a dozen integrations) showed the real limits: the approved technology, personal data and live systems of record.
+- **Integrations by tier (DEF-24, new):** tiers 1 to 3 connect to stand-ins (a fake built from the other system's schema or a recorded exchange, filled with synthetic data, or that system's test environment); a live connection to a production system of record is tier 4. Each INT says which it uses, behind the adapter the live connection will use. In `tiers.md`, `spec.md` step 7 and `testing.md`.
+- **Growing the approved technology, templates and components:** the guides describe the approved technology as templates plus a library of components joined with them and with each other. A "none fits" template at Spec, and a gap an approved component could have filled, is recorded as a DEC and raised with the factory owner as demand. Backfill comes first from what the organisation already runs: its stacks as templates, its libraries and code imported as components (`catalogue.py import --component`). In `spec.md` step 6, the operating model and the guides.
+- **Publish offers reusable parts back** (`publish.md` step 8, new; the benefits review is now step 9): the app's reusable parts are listed in `decisions.md`, and each one approved at Gate 4 is imported to the catalogue and goes through its lifecycle.
+- **Large programmes:** come in as several ideas, de-risked by spikes on synthetic data and stand-ins; the delivery runs as a project until the templates and data controls exist. The leaders' "What it isn't" is reworded to say so, and the technical leaders' known limits name it.
+- **From SDLC to ADLC** (technical leaders' guide, new section): the factory mapped to the agentic development lifecycle, step by step and link by link of the artifact chain, with where it differs (a person at every gate, as proportional human review) and the gaps (continuous evals after release, production signals raising ideas), which become step 6 of the adoption path.
+- **Glossary:** stand-in, synthetic data, ADLC, intent, artifact chain, executable gate, continuous evals, production signal, proportional human review.
+- Migration: none. Existing ideas have no live integrations; an INT in a new spec pack states live or stand-in.
+
 ## 0.13.4 (2026-11-01)
 The factory's tests skipped 70 cases here (216 passed), nearly all because they were written for templates this factory does not have. Now 277 pass and 1 skips (the check over real ideas, which waits for the first idea).
 - **The scenario fixture uses `web-app`:** `fixtures/brew-ratio` now selects `web-app` (CAT-006 1.1.0) instead of `single-page-html` and `static-site`, so the tests built on it (the Gate 2 spec check and the publish dry run: 61 cases) run here.

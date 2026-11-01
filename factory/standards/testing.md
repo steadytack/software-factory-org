@@ -19,7 +19,7 @@ Code and tests written by the same author in one pass tend to agree with each ot
 ## Where tests run
 - Every check runs in a **clean container** from the template's `verify` parts in `factory/templates.json` (`factory/scripts/verify.py`), never against a running stack or database (POL-05).
 - The real stack is run before the audit for anything with a server, and the result recorded.
-- External services are exercised only when a test says so; otherwise they are mocked, and the report says which.
+- External services are exercised only when a test says so; otherwise they are mocked, and the report says which. Below tier 4 the app itself runs against stand-ins for the systems it integrates with (DEF-24).
 
 ## How results are reported (POL-03)
 Each verification report states: the commands or suites run, the environment and versions, pass/fail/skip counts, the tests **not run** and why, static and security checks done, known failures, whether the app was started clean, and whether integrations were real or mocked. Passing tests are evidence, not proof of conformance.
