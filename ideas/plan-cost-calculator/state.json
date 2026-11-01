@@ -7,7 +7,7 @@
   "status": "in-progress",
   "factory_version": "0.14.0",
   "updated": "2026-11-01",
-  "template": null,
+  "template": "web-app",
   "tier": 1,
   "versions": {
     "assessment": "0.1",
