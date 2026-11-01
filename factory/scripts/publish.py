@@ -265,6 +265,9 @@ def record_app(slug: str, repo: str, url: str, root: Path | None = None) -> None
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     args = argv[1:]
     flags = {a for a in args if a.startswith("--")}
     rest = [a for a in args if not a.startswith("--")]

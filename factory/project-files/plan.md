@@ -6,7 +6,7 @@ A spike (tier 1, the light route) builds the smallest thing that answers one que
 <The ambers or the one thing this answers, each as a question with the answer that would settle it.>
 
 ## Success and kill criteria
-<What result means grow or keep, and what result means stop. Decide this now, before anything is built.>
+<What result means grow or keep, and what result means stop. Decide this now, before anything is built. Judge it on evidence the build does not tune to (held-out cases, or a judgement recorded blind or before the build), so the test can fail: say which.>
 
 ## Time box
 <Person-weeks (1 by default) and the date it ends. When the time is up, the spike stops and goes to Gate 3 with what it has.>

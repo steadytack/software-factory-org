@@ -453,6 +453,7 @@ def knockout_problems(ko: dict, slug: str, base: Path, reg: dict) -> list[str]:
 def idea_scope(state: dict, reg: dict, slug: str) -> str:
     """The scope string of an idea: its state's scope, else its register entry's, else the register's."""
     sc = state.get("scope") or {}
+    sc = sc if isinstance(sc, dict) else {}  # an invalid scope is the state's problem, reported by status and check_factory
     if sc.get("brands"):
         return f"brand:{sc['brands'][0]}"
     if sc.get("business"):
@@ -903,6 +904,9 @@ def option(args: list[str], name: str) -> str | None:
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     args = argv[1:]
     try:
         reply = option(args, "--reply")

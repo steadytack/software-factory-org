@@ -472,6 +472,9 @@ def review(root: Path | None = None, threshold: int = 2) -> list[str]:
 
 # ---------------------------------------------------------------- command line
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     args = argv[1:]
     try:
         opts = {name: pipeline.option(args, f"--{name}") for name in

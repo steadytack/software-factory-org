@@ -828,6 +828,9 @@ def line(entry: dict) -> str:
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     args = argv[1:]
 
     def option(name: str) -> str | None:

@@ -300,6 +300,9 @@ def import_source(file: Path, slug: str, root: Path, version: str | None = None,
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv[1:] or "--help" in argv[1:]:
+        print(__doc__)
+        return 0
     rest = list(argv[1:])
     version = None
     if "--version" in rest:
