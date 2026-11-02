@@ -5,6 +5,7 @@ Usage:
   python factory/scripts/scaffold.py new <slug> --name "Readable name" [--kind app|factory-asset|demo]
   python factory/scripts/scaffold.py overview <slug>       the overview, filled from the assessment (end of Develop and Assess)
   python factory/scripts/scaffold.py plan <slug>           a spike's plan (the light route; Develop and Assess)
+  python factory/scripts/scaffold.py roadmap <slug>        a project or programme's roadmap, epic by epic (Develop and Assess)
   python factory/scripts/scaffold.py definition <slug>     the Application Definition: the solution choices (start of Spec)
   python factory/scripts/scaffold.py spec <slug>           the spec pack stubs (Spec)
   python factory/scripts/scaffold.py app <slug> <template>
@@ -173,6 +174,18 @@ def new_plan(slug: str, root: Path | None = None) -> Path:
     return path
 
 
+def new_roadmap(slug: str, root: Path | None = None) -> Path:
+    """A project or programme's roadmap: the end state, how it builds out, the epics (spikes among them), what starts now."""
+    base = root or lib.ROOT
+    state = lib.load_state(slug, root)
+    path = lib.idea_dir(slug, root) / "roadmap.md"
+    if path.exists():
+        raise lib.FactoryError(f"ideas/{slug}/roadmap.md already exists")
+    template = (base / "factory/project-files/roadmap.md").read_text(encoding="utf-8")
+    path.write_text(fill(template, {"name": state["name"], "slug": slug}), encoding="utf-8", newline="\n")
+    return path
+
+
 def new_overview(slug: str, root: Path | None = None) -> Path:
     """The overview for sponsors and the team, with the RICE numbers, the five foundations, the one thing and the
     recommendation filled in from the assessment where it has them."""
@@ -291,8 +304,9 @@ def main(argv: list[str]) -> int:
             idea = new_idea(args[1], name, kind)
             print(f"Created {idea.relative_to(lib.ROOT).as_posix()}/ (stage develop)")
             return 0
-        if len(args) == 2 and args[0] in ("definition", "overview", "spec", "plan"):
-            made = {"definition": new_definition, "overview": new_overview, "spec": new_spec, "plan": new_plan}[args[0]](args[1])
+        if len(args) == 2 and args[0] in ("definition", "overview", "spec", "plan", "roadmap"):
+            made = {"definition": new_definition, "overview": new_overview, "spec": new_spec, "plan": new_plan,
+                    "roadmap": new_roadmap}[args[0]](args[1])
             print(f"Wrote {made.relative_to(lib.ROOT).as_posix()}")
             return 0
         if len(args) == 3 and args[0] == "app":

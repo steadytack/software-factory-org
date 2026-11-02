@@ -313,7 +313,7 @@ def test_a_knocked_out_idea_can_only_be_stopped(reg, isolated):
     edit_assessment(isolated, slug, lambda a: a.update(knockout={"rule": "paid-service", "ref": "DEF-11", "reason": "needs a paid map API"}))
     assert blocked(gate_findings(isolated, slug), "a knocked-out idea can only be stopped")
     with pytest.raises(lib.FactoryError, match="Gate 1 check has blockers"):
-        pipeline.decide(slug, "go", "go", root=isolated)
+        pipeline.decide(slug, "go", "go", by="steadytack", root=isolated)
 
 
 def test_an_unknown_data_class_is_a_problem(reg, classes):
@@ -337,7 +337,7 @@ def test_a_class_allowed_only_by_approval_needs_it_before_a_go(reg, classes):
     f = gate_findings(classes, slug)
     assert f.blockers == [] and any("allows only by approval" in w for w in f.warnings)
     with pytest.raises(lib.FactoryError, match="needs the approval POL-11 asks for Confidential"):
-        pipeline.decide(slug, "go", "go", root=classes)
+        pipeline.decide(slug, "go", "go", by="steadytack", root=classes)
     with pytest.raises(lib.FactoryError, match="does not ask for approval for Internal"):
         pipeline.approve_data(slug, "Internal", "steadytack", "yes", root=classes)
     with pytest.raises(lib.FactoryError, match="not a class this idea needs"):
@@ -347,7 +347,7 @@ def test_a_class_allowed_only_by_approval_needs_it_before_a_go(reg, classes):
                                     "reply": "yes: the builders' quotes only, for the prototype"}]
     assert f"Confidential: approved by steadytack ({lib.today()})" in pipeline.render(reg, classes)
     assert not any("allows only by approval" in w for w in gate_findings(classes, slug).warnings)
-    assert pipeline.decide(slug, "go", "go", root=classes)["stage"] == "spec"
+    assert pipeline.decide(slug, "go", "go", by="steadytack", root=classes)["stage"] == "spec"
 
 
 def test_only_an_approver_for_the_scope_may_approve_data(reg, classes):
@@ -404,7 +404,7 @@ def test_knock_outs_that_resolve(reg, isolated):
 # ---------------------------------------------------------------- Gate 1: Go, Get Ready, Stop
 def test_go_moves_the_idea_to_spec(reg, isolated):
     slug = developed(isolated, reg, "Shift swap board", classes=(), people="amber")
-    state = pipeline.decide(slug, "go", "approve", root=isolated)
+    state = pipeline.decide(slug, "go", "approve", by="steadytack", root=isolated)
     assert (state["stage"], state["status"]) == ("spec", "in-progress")
     assert state["gates"]["1"]["status"] == "approved" and state["gates"]["1"]["reply"] == "approve"
     assert state["assessment"] == {"decision": "go", "score": 16.0, "period": "per month",
@@ -416,20 +416,20 @@ def test_go_moves_the_idea_to_spec(reg, isolated):
     rows = {r["slug"]: r for r in status.collect(isolated)}
     assert rows[slug]["gates_line"] == "1:A 2:- 3:- 4:-"
     with pytest.raises(lib.FactoryError, match="not waiting for its investment decision"):
-        pipeline.decide(slug, "stop", "stop", reason="changed our minds", root=isolated)
+        pipeline.decide(slug, "stop", "stop", reason="changed our minds", by="steadytack", root=isolated)
 
 
 def test_go_is_refused_with_a_red_foundation(reg, isolated):
     slug = developed(isolated, reg, "An idea", classes=(), data="red", recommended="get-ready", fix=["data"])
     with pytest.raises(lib.FactoryError, match="cannot have a red foundation"):
-        pipeline.decide(slug, "go", "go", root=isolated)
+        pipeline.decide(slug, "go", "go", by="steadytack", root=isolated)
 
 
 def test_stop_closes_the_idea_with_its_reason(reg, isolated):
     slug = developed(isolated, reg, "An idea", classes=())
     with pytest.raises(lib.FactoryError, match="needs its reason"):
-        pipeline.decide(slug, "stop", "stop", root=isolated)
-    state = pipeline.decide(slug, "stop", "stop", reason="the rota system will do this next year", root=isolated)
+        pipeline.decide(slug, "stop", "stop", by="steadytack", root=isolated)
+    state = pipeline.decide(slug, "stop", "stop", reason="the rota system will do this next year", by="steadytack", root=isolated)
     assert state["status"] == "stopped" and state["gates"]["1"]["status"] == "stopped"
     assert state["next"] == "Stopped at Gate 1: the rota system will do this next year"
     report = pipeline.render(reg, isolated)
@@ -443,8 +443,8 @@ def test_get_ready_then_a_light_reassessment_then_go(reg, isolated):
     folder = lib.idea_dir(slug, isolated)
     brief = (folder / pipeline.BRIEF).read_text(encoding="utf-8")
     with pytest.raises(lib.FactoryError, match="nothing to fix"):
-        pipeline.decide(slug, "get-ready", "get ready", fix=["problem"], root=isolated)
-    state = pipeline.decide(slug, "get-ready", "get ready", fix=["data", "people"], root=isolated, owner="Data team")
+        pipeline.decide(slug, "get-ready", "get ready", fix=["problem"], by="steadytack", root=isolated)
+    state = pipeline.decide(slug, "get-ready", "get ready", fix=["data", "people"], by="steadytack", root=isolated, owner="Data team")
     assert (state["stage"], state["status"], state["gates"]["1"]["status"]) == ("develop", "paused", "get-ready")
     assert state["assessment"]["fix"] == ["data", "people"] and "Data team fixes Data Foundations, People & Process by " in state["next"]
     assert status.collect(isolated)[0]["gates_line"] == "1:R 2:- 3:- 4:-"
@@ -470,7 +470,7 @@ def test_get_ready_then_a_light_reassessment_then_go(reg, isolated):
     assert blocked(gate_findings(isolated, slug), "People & Process was to be fixed but has not been re-assessed")
     edit_assessment(isolated, slug, lambda a: rerate(a, "the rota manager agreed to own it"))
     assert gate_findings(isolated, slug).blockers == []
-    state = pipeline.decide(slug, "go", "go", root=isolated)
+    state = pipeline.decide(slug, "go", "go", by="steadytack", root=isolated)
     assert state["stage"] == "spec" and state["gates"]["1"]["version"] == "0.2"
 
 
@@ -512,7 +512,7 @@ def test_the_command_line(isolated, py):
     assert "| 1 | [Shift swap board](shift-swap-board/assessment.md) | 16 | 40 per month | 2 | 80% | 4 |" in report
     assert "Problem G Value G Data G Risk G People G" in report
     assert "- IDEA-002 Route planner" in report
-    out = run([py, script, "decide", "shift-swap-board", "go", "--reply", "go"], repo)
+    out = run([py, script, "decide", "shift-swap-board", "go", "--by", "steadytack", "--reply", "go"], repo)
     assert out.returncode == 1 and "Gate 1 check has blockers" in out.stderr
     assert run([py, script, "reassess", "shift-swap-board"], repo).returncode == 1
     assert run([py, script], repo).returncode == 2
@@ -525,7 +525,7 @@ def test_status_and_check_factory_read_the_pipeline(reg, isolated):
     assert pipeline.summary(isolated).startswith("Pipeline: 1 ranked, 0 go, 0 getting ready, 0 stopped, 0 knocked out, 0 being developed, 1 captured")
     errors, _ = check_factory.run(isolated)
     assert not [e for e in errors if "pipeline" in e or "assessment" in e]
-    pipeline.decide(slug, "go", "go", root=isolated)
+    pipeline.decide(slug, "go", "go", by="steadytack", root=isolated)
     edit_assessment(isolated, slug, lambda a: a["rice"]["impact"].update(value=7))
     errors, _ = check_factory.run(isolated)
     assert any(e.startswith(f"ideas/{slug}/assessment.md: impact must be one of") for e in errors)

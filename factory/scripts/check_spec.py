@@ -54,6 +54,7 @@ NEEDS_FR = {"RULE": "FR", "SCR": "FR", "DATA": "FR", "PERM": "FR", "INT": "FR"}
 BRIEF_HEADINGS = ["Problem", "Outcome and success measures", "How it's done today", "Data", "Risk", "People and process",
                   "Strategic fit", "Assumptions and unknowns"]
 PLAN_HEADINGS = ["The question", "Success and kill criteria", "Time box", "In and out", "Data and protection", "Template", "Afterwards"]
+ROADMAP_HEADINGS = ["The end state", "How it builds out", "Epics", "Starts now", "Outside the factory", "Risks to the roadmap"]
 OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes", "transition")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
@@ -288,6 +289,44 @@ def check_plan(idea: Path, f: Findings) -> None:
             f.block(pipeline.PLAN, f"no '## {heading}' section")
 
 
+def check_roadmap(idea: Path, f: Findings, a: dict) -> None:
+    """A project or programme's roadmap (Gate 1): every section, no placeholder, and an epics table that holds together:
+    valid kinds, dependencies on epics that exist, something to start, and spikes for the open questions."""
+    path = idea / pipeline.ROADMAP
+    if not path.exists():
+        f.block(pipeline.ROADMAP, f"missing: a {a['scale']} needs its roadmap (scaffold.py roadmap <slug>; see factory/stages/roadmap.md)")
+        return
+    text = path.read_text(encoding="utf-8")
+    if has_placeholder(text):
+        f.block(pipeline.ROADMAP, "placeholder text left (<...>): the end state, the epics and what starts now are decided at Gate 1")
+    for heading in ROADMAP_HEADINGS:
+        if not re.search(rf"(?im)^##\s+{re.escape(heading)}\s*$", text):
+            f.block(pipeline.ROADMAP, f"no '## {heading}' section")
+    epics = pipeline.roadmap_epics(idea)
+    if len(epics) < 2:
+        f.block(pipeline.ROADMAP, "the Epics table needs at least two epics (E1, E2...): one epic is an app, not a roadmap")
+        return
+    ids = [e["id"] for e in epics]
+    for e in epics:
+        if ids.count(e["id"]) > 1:
+            f.block(pipeline.ROADMAP, f"{e['id']} is in the Epics table twice")
+        if e["kind"] not in pipeline.EPIC_KINDS:
+            f.block(pipeline.ROADMAP, f"{e['id']}: kind is {', '.join(pipeline.EPIC_KINDS)}, not {e['kind'] or 'empty'}")
+        for d in e["depends"]:
+            if d not in ids or ids.index(d) >= ids.index(e["id"]):
+                f.block(pipeline.ROADMAP, f"{e['id']} depends on {d}, which is not an earlier epic")
+        if e["kind"] == "spike" and e["tier"] not in ("1", ""):
+            f.warn(pipeline.ROADMAP, f"{e['id']} is a spike, so tier 1, not {e['tier']}")
+        if not e["after"]:
+            f.warn(pipeline.ROADMAP, f"{e['id']} has no decision after it")
+    if not any(not e["depends"] and e["kind"] != "project" for e in epics):
+        f.block(pipeline.ROADMAP, "no epic can start: at least one spike or build depends on nothing")
+    ambers = [k for k, r in pipeline.ratings(a).items() if r == "amber"]
+    if ambers and not any(e["kind"] == "spike" for e in epics):
+        f.warn(pipeline.ROADMAP, f"{', '.join(pipeline.FOUNDATIONS[k] for k in ambers)} amber, but no spike epic: "
+                                 "the open questions are usually answered by spikes early in the plan")
+
+
 def check_premortem(idea: Path, f: Findings) -> None:
     """The assessment's pre-mortem (Gate 1): the likeliest reasons the idea fails, written before the decision."""
     text = re.sub(r"```.*?```", "", (idea / pipeline.ASSESSMENT).read_text(encoding="utf-8"), flags=re.S)
@@ -393,6 +432,8 @@ def check_gate_one(idea: Path, f: Findings, root: Path | None = None) -> dict | 
         f.block(pipeline.ASSESSMENT, b)
     for w in warnings:
         f.warn(pipeline.ASSESSMENT, w)
+    if a.get("scale", "app") != "app":
+        check_roadmap(idea, f, a)
     light = a["decision"].get("route") == "light"
     if light:
         check_plan(idea, f)

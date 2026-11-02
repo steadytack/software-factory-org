@@ -18,7 +18,7 @@ def entry(root, project, chosen="Tier 3", key="DEF-01", scope="type", recommende
 def built(root, reg, idea: str, **kw) -> str:
     """An idea that was a Go at Gate 1, as it would be at the end of Build and Audit."""
     slug = developed(root, reg, idea, classes=(), **kw)
-    pipeline.decide(slug, "go", "approve", root=root)
+    pipeline.decide(slug, "go", "approve", by="steadytack", root=root)
     return slug
 
 
@@ -89,7 +89,7 @@ def test_an_outcome_is_written_only_after_a_go(reg, isolated):
     slug = developed(isolated, reg, "Shift swap board", classes=())
     with pytest.raises(lib.FactoryError, match="was not a Go"):
         learned.new_outcome(slug, isolated)
-    pipeline.decide(slug, "go", "approve", root=isolated)
+    pipeline.decide(slug, "go", "approve", by="steadytack", root=isolated)
     learned.new_outcome(slug, isolated)
     o, bad = learned.read_outcome(lib.idea_dir(slug, isolated), isolated)
     assert bad == [] and o["assessment_version"] == "0.1" and o["effort"]["estimated"] == 4

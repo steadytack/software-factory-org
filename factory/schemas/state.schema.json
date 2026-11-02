@@ -20,7 +20,10 @@
         "brands": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }, "uniqueItems": true }
       }
     },
-    "stage": { "enum": ["develop", "spec", "build", "publish", "done"] },
+    "owner": { "type": "string", "minLength": 1, "description": "Who develops the idea (Develop and Assess is theirs); its gate decisions are signed off by an approver other than them" },
+    "parent": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "An epic: the project or programme whose roadmap it belongs to (ideas/<parent>/roadmap.md)" },
+    "epic": { "type": "string", "pattern": "^E\\d+$", "description": "An epic: its ID in the parent's roadmap" },
+    "stage": { "enum": ["develop", "roadmap", "spec", "build", "publish", "done"], "description": "roadmap: a project or programme whose roadmap is approved; its epics go through the factory as ideas of their own" },
     "status": { "enum": ["in-progress", "awaiting-approval", "paused", "interrupted", "done", "stopped"] },
     "factory_version": { "type": "string" },
     "updated": { "type": "string", "format": "date" },
@@ -54,7 +57,9 @@
             "date": { "type": "string", "format": "date" },
             "reply": { "type": "string" },
             "file": { "type": "string" },
-            "version": { "type": "string" }
+            "version": { "type": "string" },
+            "by": { "type": "string", "description": "Who signed the decision off: a gate approver for the idea's scope" },
+            "note": { "type": "string", "description": "A sign-off to note, such as by the idea's owner when no one else could" }
           }
         }
       }
@@ -101,7 +106,7 @@
         "review": { "type": "string", "format": "date", "description": "Get Ready: when it comes back to Gate 1" }
       }
     },
-    "route": { "enum": ["full", "light"], "description": "Absent is full (tier 2, 3 or 4). The light route (a spike, tier 1) skips the spec pack and Gate 2 (its plan, plan.md, is approved at Gate 1) and ends at Gate 3 with grow, keep or stop" },
+    "route": { "enum": ["full", "light", "roadmap"], "description": "Absent is full (tier 2, 3 or 4). The roadmap route (a project or programme) approves its build-out over time; each epic is an idea of its own. The light route (a spike, tier 1) skips the spec pack and Gate 2 (its plan, plan.md, is approved at Gate 1) and ends at Gate 3 with grow, keep or stop" },
     "light": {
       "type": "object",
       "description": "How the light route ended at Gate 3 (pipeline.py light)",
@@ -111,7 +116,9 @@
         "result": { "enum": ["grow", "keep", "stop"] },
         "to_tier": { "enum": [2, 3, 4], "description": "Grow: the tier it grew to" },
         "date": { "type": "string", "format": "date" },
-        "reply": { "type": "string" }
+        "reply": { "type": "string" },
+        "by": { "type": "string" },
+        "note": { "type": "string" }
       }
     },
     "next": { "type": "string" }

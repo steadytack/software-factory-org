@@ -14,9 +14,14 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 | **The five foundations** | Problem, Value, Data, Risk, and People and Process, each rated green, amber (a question to answer) or red (fix it first). | `factory/stages/develop-assess.md` |
 | **RICE** | A score for ranking ideas: Reach × Impact × Confidence ÷ Effort. Higher means more value for the effort. | `factory/stages/develop-assess.md` |
 | **The one thing** | The single most important thing to know or fix before investing. | `factory/stages/develop-assess.md` |
+| **Idea owner** | The person developing an idea. Develop and Assess is theirs: anyone can use the factory to develop and harden their own idea. | `docs/operating-model.md` |
+| **Sign-off** | A gate decision made by a named gate approver for the idea's scope, never by the idea's own owner (who may only withdraw it). Recorded with who signed. | `factory/stages/develop-assess.md` |
 | **Gate** | A decision point where a named person approves, changes or stops the work. There are four: invest (1), the spec (2), the build and its audit (3), and publishing (4). | `factory/README.md` |
 | **Go / Go as a spike / Get Ready / Stop** | The four answers at Gate 1. "Get Ready" means fix the named foundations first, then look again on a set date. | `factory/stages/develop-assess.md` |
 | **Tier** | How mature a build is: 1 Spike, 2 Exploration prototype, 3 Business prototype, 4 Production app. It is chosen for each idea, and moving up a tier is a decision. | `factory/standards/tiers.md` |
+| **Scale** | Whether an idea is one app, a project (several releases or apps toward one outcome) or a programme (several projects, or a major system). | `factory/stages/roadmap.md` |
+| **Roadmap** | For a project or programme: the overall plan of how it builds out over time, from the end state back to the first step, epic by epic, with a decision after each. Gate 1 approves it as the direction. | `factory/stages/roadmap.md` |
+| **Epic (in a roadmap)** | One step of a roadmap: a spike that answers a question, a build that delivers a release, or a project delivered outside the factory. Each spike or build goes through the factory as an idea of its own. | `factory/stages/roadmap.md` |
 | **Spike / light route** | Tier 1: a small, time-boxed build that answers one question, with a one-page plan instead of a spec. It ends with grow, keep or stop. | `factory/stages/light.md` |
 | **Stand-in** | A fake of another system that a prototype connects to instead of the real one: built from that system's published schema, filled with made-up data, and swapped for the live connection when the app becomes a production app. | `factory/context/group/defaults.md` (DEF-24) |
 | **Synthetic data** | Made-up records that look like the real thing, used to build and test without real people's or customers' information. | `factory/context/group/policies.md` (POL-11) |

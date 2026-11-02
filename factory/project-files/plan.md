@@ -1,6 +1,6 @@
 # {name}: spike plan
 
-A spike (tier 1, the light route) builds the smallest thing that answers one question, instead of writing a spec. This plan is approved with Gate 1, the build is time-boxed, and it ends at Gate 3 with **grow** (to the tier the owner names), **keep** or **stop**. Rules: `factory/stages/light.md`.
+A spike (tier 1, the light route) builds the smallest thing that answers one question, instead of writing a spec. This plan is approved with Gate 1, the build is time-boxed, and it ends at Gate 3 with **grow** (to the tier the approver names), **keep** or **stop**. Rules: `factory/stages/light.md`.
 
 ## The question
 <The ambers or the one thing this answers, each as a question with the answer that would settle it.>

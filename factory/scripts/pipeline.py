@@ -5,14 +5,18 @@ Usage:
   python factory/scripts/pipeline.py capture                 add every line of ideas/inbox.md (made if missing) and every
                                                              row of ideas/inbox.csv (the idea card) not yet captured
   python factory/scripts/pipeline.py add "<idea>" [--source document]   add one idea
-  python factory/scripts/pipeline.py develop IDEA-nnn [<slug>]          make ideas/<slug>/ with the brief and assessment stubs
+  python factory/scripts/pipeline.py develop IDEA-nnn [<slug>] [--owner "<name>"]   make ideas/<slug>/ with the brief and
+                                                             assessment stubs; the owner is the person developing it
   python factory/scripts/pipeline.py check                   validate ideas/pipeline.json and every assessment
   python factory/scripts/pipeline.py render                  validate, then write the ranked ideas/pipeline.md
-  python factory/scripts/pipeline.py decide <slug> go|get-ready|stop --reply "..." [--reason "..."]
-        [--route full|light [--timebox N]] [--fix data,risk --owner "..." [--review YYYY-MM-DD]]   Gate 1
+  python factory/scripts/pipeline.py decide <slug> go|get-ready|stop --by <approver> --reply "..." [--reason "..."]
+        [--route full|light|roadmap [--timebox N]] [--fix data,risk --owner "..." [--review YYYY-MM-DD]]   Gate 1, signed
+        off by a gate approver for the idea's scope (scopes.json); the idea's owner may only stop (withdraw) it
+  python factory/scripts/pipeline.py epic <parent> E<n> [<slug>] [--owner "<name>"]   start an epic of an approved
+                                                             roadmap (a project or programme) as an idea of its own
   python factory/scripts/pipeline.py reassess <slug>         after Get Ready: a light re-assessment, not a restart
   python factory/scripts/pipeline.py approve-data <slug> <class> --by <approver> --reply "..."   POL-11: a class allowed only by approval
-  python factory/scripts/pipeline.py light <slug> grow|keep|stop --reply "..." [--tier 2|3|4] [--reason "..."]
+  python factory/scripts/pipeline.py light <slug> grow|keep|stop --by <approver> --reply "..." [--tier 2|3|4] [--reason "..."]
                                                              Gate 3 of the light route (a spike); grow names the tier
 
 The register is ideas/pipeline.json (schema factory/schemas/pipeline.schema.json): every idea captured,
@@ -22,7 +26,8 @@ the five foundations rated green, amber or red, the RICE factors, the one thing,
 assistant writes those; this script does the arithmetic and the ranking, so the order is reproducible:
 score = Reach x Impact x Confidence% / Effort, ties broken by higher confidence, then lower effort, then slug.
 Data classes are checked against the data-classes table (POL-11) in every policies.md of the idea's scope:
-a class answered "no" there must be knocked out. Rules: factory/stages/develop-assess.md (the light route: factory/stages/light.md).
+a class answered "no" there must be knocked out. Rules: factory/stages/develop-assess.md (the light route: factory/stages/light.md;
+a project or programme's roadmap: factory/stages/roadmap.md).
 """
 
 from __future__ import annotations
@@ -50,6 +55,10 @@ REPORT = "ideas/pipeline.md"
 ASSESSMENT = "assessment.md"
 BRIEF = "idea-brief.md"
 PLAN = "plan.md"  # a spike's plan (the light route)
+ROADMAP = "roadmap.md"  # a project or programme's build-out over time, epic by epic
+SCALES = {"app": "App", "project": "Project", "programme": "Programme"}
+EPIC_KINDS = ("spike", "build", "project")  # project: delivered outside the factory, by a project with IT
+EPIC_ROW = re.compile(r"^\|\s*(E\d+)\s*\|(.*)\|\s*$")
 REVIEW_DAYS = 28  # a Get Ready idea comes back to Gate 1 this long after the decision unless --review says otherwise
 LIGHT_RESULTS = {"grow": "Grow", "keep": "Keep", "stop": "Stop"}
 
@@ -184,8 +193,9 @@ def find(reg: dict, ref: str) -> dict:
 
 
 # ---------------------------------------------------------------- develop
-def develop(reg: dict, ref: str, slug: str | None = None, root: Path | None = None) -> Path:
-    """Make the idea's folder, with the idea in idea.md and the brief and assessment stubs, and link it in the register."""
+def develop(reg: dict, ref: str, slug: str | None = None, root: Path | None = None, owner: str | None = None) -> Path:
+    """Make the idea's folder, with the idea in idea.md and the brief and assessment stubs, and link it in the register.
+    The owner is the person developing it (Develop and Assess is theirs; Gate 1 is signed off by someone else)."""
     e = find(reg, ref)
     if e.get("slug"):
         raise lib.FactoryError(f"{ref} was already developed into ideas/{e['slug']}")
@@ -195,9 +205,14 @@ def develop(reg: dict, ref: str, slug: str | None = None, root: Path | None = No
     idea = scaffold.new_idea(slug, e["title"], idea=e["idea"], root=root)
     with (idea / "idea.md").open("a", encoding="utf-8", newline="\n") as fh:
         fh.write(f"\nCaptured as {ref} in `{REGISTER}` on {e['added']} ({e['source']}).\n")
-    if scope != scopes.GROUP:
+    if scope != scopes.GROUP or owner or e.get("parent"):
         state = lib.load_state(slug, root)
-        state["scope"] = parsed
+        if scope != scopes.GROUP:
+            state["scope"] = parsed
+        if owner:
+            state["owner"] = owner
+        if e.get("parent"):
+            state.update(parent=e["parent"], epic=e["epic"])
         lib.save_state(slug, state, root)
     e["slug"] = slug
     return idea
@@ -414,6 +429,11 @@ def assessment_problems(a: dict, slug: str, root: Path | None = None, *, complet
     reds = [FOUNDATIONS[k] for k, r in ratings(a).items() if r == "red"]
     if "go" in chosen and reds:
         out.append(f"a Go cannot have a red foundation ({', '.join(reds)}): fix it, or Get Ready")
+    larger = a.get("scale", "app") != "app"
+    if larger and "go" in chosen and d.get("route", "roadmap") != "roadmap":
+        out.append(f"a {a['scale']} goes ahead on its roadmap (decision/route roadmap, {ROADMAP}); its spikes are epics in it")
+    if not larger and d.get("route") == "roadmap":
+        out.append("the roadmap route is for a project or programme (scale); an app goes the full or the light route")
     if "get-ready" in chosen:
         if not d["fix"]:
             out.append("Get Ready names the foundations to fix (decision/fix)")
@@ -538,7 +558,7 @@ def rag(a: dict) -> str:
 def decision_text(a: dict) -> str:
     d = a["decision"]
     fix = f": fix {', '.join(FOUNDATIONS[k] for k in d['fix'])}" if d.get("fix") and "get-ready" in (d.get("decided"), d["recommended"]) else ""
-    light = " as a spike" if d.get("route") == "light" and "go" in (d.get("decided"), d["recommended"]) else ""
+    light = {"light": " as a spike", "roadmap": " on its roadmap"}.get(d.get("route"), "") if "go" in (d.get("decided"), d["recommended"]) else ""
     if d.get("decided"):
         owner = (f" ({d['owner']}, review {d['review']}{', overdue' if overdue(a) else ''})"
                  if d["decided"] == "get-ready" and d.get("owner") else "")
@@ -554,7 +574,7 @@ def overdue(a: dict, today: str | None = None) -> bool:
     return d.get("decided") == "get-ready" and bool(d.get("review")) and d["review"] < (today or lib.today())
 
 
-IN_FLIGHT = ("spec", "build", "publish")
+IN_FLIGHT = ("spec", "build", "publish")  # a roadmap is not in flight itself: its epics are, each as an idea
 WIP_DEFAULT = "DEF-23"
 # The defaults file: an instance keeps its group defaults in group/ (check_factory.py CONTEXT_FILES).
 DEFAULTS = ("factory/context/group/defaults.md", "factory/context/defaults.md")
@@ -639,7 +659,7 @@ def render(reg: dict, root: Path | None = None) -> str:
         "Foundations: Problem, Value, Data Foundations, Risk, People & Process, each G green, A amber, R red. "
         "Impact is 0.25 minimal, 0.5 low, 1 medium, 2 high, 3 massive; Confidence is a percentage; Effort is rough person-weeks. "
         "Score = Reach x Impact x Confidence / Effort.", "",
-        f"Updated {reg.get('updated', lib.today())}: {line(c)}. The owner decides Go, Get Ready or Stop at Gate 1, idea by idea.", "",
+        f"Updated {reg.get('updated', lib.today())}: {line(c)}. A gate approver signs off Go, Get Ready or Stop at Gate 1, idea by idea.", "",
     ]
     limit = wip_limit(root)
     if limit is not None:
@@ -666,6 +686,19 @@ def render(reg: dict, root: Path | None = None) -> str:
             d = r["a"]["decision"]
             lines.append(f"| {cell(r['name'])} | {', '.join(FOUNDATIONS[k] for k in d['fix'])} | {cell(d.get('owner', '-'))} | "
                          f"{d.get('review', '-')} | {'**overdue**: back to Gate 1' if overdue(r['a']) else ''} |")
+    roadmaps = [r for r in rows if r["state"].get("route") == "roadmap"]
+    if roadmaps:
+        lines += ["", "## Roadmaps", "", "Each epic goes through the factory as an idea of its own; a project epic is delivered outside it.", "",
+                  "| Roadmap | Epic | Kind | Depends on | Idea | Where it is |", "|---|---|---|---|---|---|"]
+        for r in roadmaps:
+            started = epic_ideas(reg, r["slug"])
+            for e in roadmap_epics(lib.idea_dir(r["slug"], root)):
+                x = started.get(e["id"], {})
+                child = next((c for c in rows if x.get("slug") and c["slug"] == x["slug"]), None)
+                where = (f"{child['state'].get('stage')}, {child['state'].get('status')}" if child else
+                         "outside the factory" if e["kind"] == "project" else "not started")
+                lines.append(f"| [{cell(r['name'])}]({r['slug']}/{ROADMAP}) | {e['id']} {cell(e['name'])} | {e['kind']} | "
+                             f"{', '.join(e['depends']) or '-'} | {('`ideas/' + x['slug'] + '/`') if x.get('slug') else '-'} | {where} |")
     due = reviews_due(root)
     if due:
         names = {r["slug"]: r["name"] for r in rows}
@@ -698,6 +731,101 @@ def render(reg: dict, root: Path | None = None) -> str:
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------- roadmaps (a project or programme)
+def roadmap_epics(idea: Path) -> list[dict]:
+    """The epics in roadmap.md's '## Epics' table, in order: {id, name, kind, does, tier, depends, after}."""
+    path = idea / ROADMAP
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8")
+    section = re.search(r"(?ims)^##\s+Epics\s*$(.*?)(?=^##\s|\Z)", text)
+    epics = []
+    for row in (section.group(1) if section else "").splitlines():
+        m = EPIC_ROW.match(row.strip())
+        if not m:
+            continue
+        cells = [c.strip() for c in m.group(2).split("|")] + [""] * 6
+        depends = [x for x in re.split(r"[,\s]+", cells[4]) if re.fullmatch(r"E\d+", x)]
+        epics.append({"id": m.group(1), "name": cells[0], "kind": cells[1].lower(), "does": cells[2], "tier": cells[3],
+                      "depends": depends, "after": cells[5]})
+    return epics
+
+
+def epic_ideas(reg: dict, parent: str) -> dict[str, dict]:
+    """{epic id: register entry} for the epics of a roadmap already started as ideas."""
+    return {e["epic"]: e for e in reg["entries"] if e.get("parent") == parent and e.get("epic")}
+
+
+def epic_finished(state: dict) -> bool:
+    """An epic is finished at its Gate 3: a spike's result (grow, keep or stop), or a build past its audit; or stopped."""
+    gate3 = state.get("gates", {}).get("3", {}).get("status")
+    return bool(state.get("light")) or gate3 in ("approved", "stopped") or state.get("status") == "stopped"
+
+
+def start_epic(reg: dict, parent: str, epic: str, slug: str | None = None, root: Path | None = None,
+               owner: str | None = None) -> Path:
+    """Start an epic of an approved roadmap as an idea of its own, linked to its parent, at Develop and Assess."""
+    state = lib.load_state(parent, root)
+    if state.get("route") != "roadmap" or state["stage"] != "roadmap":
+        raise lib.FactoryError(f"ideas/{parent} has no approved roadmap (route {state.get('route', 'full')}, stage {state['stage']}): "
+                               "its Gate 1 approves the roadmap first")
+    epics = {e["id"]: e for e in roadmap_epics(lib.idea_dir(parent, root))}
+    if epic not in epics:
+        raise lib.FactoryError(f"{epic} is not an epic in ideas/{parent}/{ROADMAP} ({', '.join(epics) or 'none'})")
+    e = epics[epic]
+    if e["kind"] == "project":
+        raise lib.FactoryError(f"{epic} is delivered outside the factory (kind project): record its progress in {ROADMAP}")
+    started = epic_ideas(reg, parent)
+    if epic in started:
+        raise lib.FactoryError(f"{epic} was already started as {started[epic]['id']}"
+                               + (f" (ideas/{started[epic]['slug']})" if started[epic].get("slug") else ""))
+    for x in e["depends"]:
+        dep = lib.load_state(started[x]["slug"], root) if started.get(x, {}).get("slug") else None
+        if dep is None or not epic_finished(dep):
+            raise lib.FactoryError(f"{epic} depends on {x}, which has not finished (its Gate 3)")
+        if dep.get("status") == "stopped":
+            raise lib.FactoryError(f"{epic} depends on {x}, which stopped: revise the roadmap before going on (factory/stages/roadmap.md)")
+    entry = {"id": next_id(reg), "title": f"{state['name']}: {e['name']}", "idea": e["does"] or e["name"], "source": "epic",
+             "added": lib.today(), "parent": parent, "epic": epic}
+    parent_entry = next((x for x in reg["entries"] if x.get("slug") == parent), {})
+    if parent_entry.get("scope"):
+        entry["scope"] = parent_entry["scope"]
+    reg["entries"].append(entry)
+    idea = develop(reg, entry["id"], slug or slugify(f"{parent}-{epic}"), root, owner=owner or state.get("owner"))
+    if state.get("scope"):
+        child = lib.load_state(idea.name, root)
+        child["scope"] = state["scope"]
+        lib.save_state(idea.name, child, root)
+    kind = ("a spike: Go as a spike with its plan (factory/stages/light.md)" if e["kind"] == "spike"
+            else f"a build at tier {e['tier'] or '(to choose)'}")
+    with (idea / "idea.md").open("a", encoding="utf-8", newline="\n") as fh:
+        fh.write(f"\nEpic {epic} of the roadmap in `ideas/{parent}/{ROADMAP}`, {kind}. Its brief may cite the parent's "
+                 f"`ideas/{parent}/{BRIEF}` for what does not change; its own Gate 1 is signed off like any idea's.\n")
+    return idea
+
+
+# ---------------------------------------------------------------- sign-off
+def sign_off(slug: str, state: dict, by: str | None, decision: str, root: Path | None = None) -> str | None:
+    """Who signs off a gate decision. Go, Get Ready, grow and keep: a gate approver for the idea's scope, other than the
+    idea's owner unless no one else can. Stop: an approver, or the owner withdrawing the idea. Returns a note or None."""
+    if not by or not by.strip():
+        raise lib.FactoryError("a gate decision is signed off by name (--by <approver>): Develop and Assess is the owner's, "
+                               "the decision to go further is an approver's")
+    people = approvers(idea_scope(state, load(root), slug), root)
+    owner = state.get("owner")
+    if decision == "stop" and by == owner:
+        return None
+    if people and by not in people:
+        raise lib.FactoryError(f"{by} is not a gate approver for this idea's scope (scopes.json: {', '.join(people)})"
+                               + ("; its owner may only stop (withdraw) it" if by == owner else ""))
+    if by == owner and decision != "stop":
+        others = [x for x in people if x != owner]
+        if others:
+            raise lib.FactoryError(f"{by} owns this idea, so cannot sign it off; ask {', '.join(others)}")
+        return f"{by} owns this idea and is its only approver: signed off by its owner (name a second approver in scopes.json)"
+    return None
+
+
 # ---------------------------------------------------------------- Gate 1
 def gate_check(slug: str, root: Path | None = None) -> list[str]:
     """The Gate 1 blockers (check_spec.py --assessment)."""
@@ -716,13 +844,14 @@ def bump(version: str) -> str:
 
 def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix: list[str] | None = None,
            root: Path | None = None, *, route: str | None = None, timebox: float | None = None,
-           owner: str | None = None, review: str | None = None) -> dict:
-    """Record the owner's Gate 1 decision in the assessment and state.json; returns the state."""
+           owner: str | None = None, review: str | None = None, by: str | None = None) -> dict:
+    """Record the Gate 1 decision, signed off by an approver (`by`), in the assessment and state.json; returns the state."""
     if decision not in DECISIONS:
         raise lib.FactoryError(f"the decision is go, get-ready or stop, not {decision!r}")
     state = lib.load_state(slug, root)
     if state["stage"] != "develop" or gate_one(state) in ("approved", "stopped"):
         raise lib.FactoryError(f"ideas/{slug} is not waiting for its investment decision (stage {state['stage']}, gate 1 {gate_one(state)})")
+    note = sign_off(slug, state, by, decision, root)
     blockers = gate_check(slug, root)
     if blockers:
         raise lib.FactoryError("the Gate 1 check has blockers: " + "; ".join(blockers))
@@ -739,10 +868,16 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
         if waiting:
             raise lib.FactoryError(f"a Go needs the approval POL-11 asks for {', '.join(waiting)} first "
                                    f"(pipeline.py approve-data {slug} <class> --by <approver> --reply \"...\")")
-    route = route or d.get("route") or "full"
-    if route not in ("full", "light"):
-        raise lib.FactoryError(f"the route is full or light, not {route!r}")
-    if decision == "go" and route == "light":
+    larger = a.get("scale", "app") != "app"
+    route = route or d.get("route") or ("roadmap" if larger else "full")
+    if route not in ("full", "light", "roadmap"):
+        raise lib.FactoryError(f"the route is full, light or roadmap, not {route!r}")
+    if decision == "go" and larger != (route == "roadmap"):
+        raise lib.FactoryError(f"a {a['scale']} goes ahead on its roadmap (--route roadmap), each epic as an idea of its own"
+                               if larger else "the roadmap route is for a project or programme (assessment scale)")
+    if decision == "go" and route == "roadmap":
+        d["route"] = "roadmap"
+    elif decision == "go" and route == "light":
         import check_spec
 
         f = check_spec.Findings()
@@ -777,10 +912,12 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
         if not reason:
             raise lib.FactoryError("a Stop needs its reason (--reason)")
         d["reason"] = reason
-    d.update(decided=decision, date=lib.today(), reply=reply)
+    d.update(decided=decision, date=lib.today(), reply=reply, by=by)
     write_assessment(idea, a)
     names = ", ".join(FOUNDATIONS[k] for k in d["fix"])
-    gate = {"status": GATE_STATUS[decision], "date": lib.today(), "reply": reply, "version": a["version"]}
+    gate = {"status": GATE_STATUS[decision], "date": lib.today(), "reply": reply, "version": a["version"], "by": by}
+    if note:
+        gate["note"] = note
     if (idea / "gates" / "gate-1.md").exists():
         gate["file"] = "gates/gate-1.md"
     state["gates"]["1"] = gate
@@ -789,7 +926,12 @@ def decide(slug: str, decision: str, reply: str, reason: str | None = None, fix:
     if decision == "get-ready":
         state["assessment"].update(fix=d["fix"], owner=d["owner"], review=d["review"])
     state["versions"]["assessment"] = a["version"]
-    if decision == "go" and d["route"] == "light":
+    if decision == "go" and d["route"] == "roadmap":
+        first = [e["id"] for e in roadmap_epics(idea) if not e["depends"] and e["kind"] != "project"]
+        state.update(stage="roadmap", status="in-progress", route="roadmap",
+                     next=f"Roadmap approved: start {', '.join(first) or 'the first epic'} with pipeline.py epic {slug} <E>, "
+                          "each an idea of its own (factory/stages/roadmap.md)")
+    elif decision == "go" and d["route"] == "light":
         state["gates"]["2"] = {"status": "approved", "date": lib.today(), "reply": f"plan ({PLAN}) approved with Gate 1: {reply}"}
         state.update(stage="build", status="in-progress", route="light", tier=1,
                      next=f"Build the spike to {PLAN} within {number(d['timebox'])} person-week(s), "
@@ -858,8 +1000,8 @@ def reassess(slug: str, root: Path | None = None) -> dict:
 
 
 def end_light(slug: str, result: str, reply: str, reason: str | None = None, root: Path | None = None,
-              tier: int | None = None) -> dict:
-    """Gate 3 of the light route (a spike): grow it to the full route at the tier the owner names (from Spec), keep it
+              tier: int | None = None, by: str | None = None) -> dict:
+    """Gate 3 of the light route (a spike): grow it to the full route at the tier the approver names (from Spec), keep it
     (as it is, on to Publish) or stop it."""
     if result not in LIGHT_RESULTS:
         raise lib.FactoryError(f"the light route ends grow, keep or stop, not {result!r}")
@@ -873,9 +1015,12 @@ def end_light(slug: str, result: str, reply: str, reason: str | None = None, roo
         raise lib.FactoryError("the Gate 3 check has blockers: " + "; ".join(blockers))
     if result == "stop" and not reason:
         raise lib.FactoryError("a Stop needs its reason (--reason)")
+    note = sign_off(slug, state, by, result, root)
     if result == "grow" and tier not in (2, 3, 4):
         raise lib.FactoryError(f"grow names the tier it grows to (--tier 2, 3 or 4; there is no default), not {tier!r}")
-    state["light"] = {"result": result, "date": lib.today(), "reply": reply}
+    state["light"] = {"result": result, "date": lib.today(), "reply": reply, "by": by}
+    if note:
+        state["light"]["note"] = note
     if result == "grow":
         state["light"]["to_tier"] = tier
         state.pop("route")
@@ -884,10 +1029,10 @@ def end_light(slug: str, result: str, reply: str, reason: str | None = None, roo
         state.update(stage="spec", status="in-progress", tier=tier,
                      next=f"Grow to tier {tier}: Spec, starting from what the spike showed (factory/stages/spec.md)")
     elif result == "keep":
-        state["gates"]["3"] = {"status": "approved", "date": lib.today(), "reply": reply}
+        state["gates"]["3"] = {"status": "approved", "date": lib.today(), "reply": reply, "by": by}
         state.update(stage="publish", status="in-progress", next="Keep: publish the spike as it is (factory/stages/publish.md)")
     else:
-        state["gates"]["3"] = {"status": "stopped", "date": lib.today(), "reply": reply}
+        state["gates"]["3"] = {"status": "stopped", "date": lib.today(), "reply": reply, "by": by}
         state.update(status="stopped", next=f"Stopped after the spike: {reason}")
     lib.save_state(slug, state, root)
     return state
@@ -934,7 +1079,7 @@ def main(argv: list[str]) -> int:
             print(f"pipeline: captured {entry['id']} {entry['title']}")
             return 0
         if args and args[0] == "develop" and len(args) in (2, 3):
-            idea = develop(reg, args[1], args[2] if len(args) == 3 else None)
+            idea = develop(reg, args[1], args[2] if len(args) == 3 else None, owner=owner)
             save(reg)
             print(f"pipeline: {args[1]} developing in {idea.relative_to(lib.ROOT).as_posix()}/ (write {BRIEF}, then {ASSESSMENT})")
             return 0
@@ -953,18 +1098,26 @@ def main(argv: list[str]) -> int:
             for n, r, s in ranked(rows)[:5]:
                 print(f"  {n}. {r['slug']} ({number(s)}) {decision_text(r['a'])}")
             return 0
+        if args and args[0] == "epic" and len(args) in (3, 4):
+            idea = start_epic(reg, args[1], args[2], args[3] if len(args) == 4 else None, owner=owner)
+            save(reg)
+            (lib.ROOT / REPORT).write_text(render(reg), encoding="utf-8", newline="\n")
+            print(f"pipeline: {args[2]} of {args[1]} developing in {idea.relative_to(lib.ROOT).as_posix()}/ (write {BRIEF}, then {ASSESSMENT})")
+            return 0
         if len(args) == 3 and args[0] == "decide" and reply:
             state = decide(args[1], args[2], reply, reason, [k.strip() for k in fix.split(",") if k.strip()] if fix else None,
-                           route=route, timebox=float(timebox) if timebox else None, owner=owner, review=review)
+                           route=route, timebox=float(timebox) if timebox else None, owner=owner, review=review, by=by)
             (lib.ROOT / REPORT).write_text(render(reg), encoding="utf-8", newline="\n")
-            print(f"pipeline: {args[1]} {DECISIONS[args[2]]} at Gate 1; {state['next']}")
+            print(f"pipeline: {args[1]} {DECISIONS[args[2]]} at Gate 1, signed off by {by}; {state['next']}")
+            if state["gates"]["1"].get("note"):
+                print(f"pipeline: note: {state['gates']['1']['note']}")
             limit, flying = wip_limit(), len(in_flight(assessed_ideas()))
             if args[2] == "go" and limit is not None and flying > limit:
                 print(f"pipeline: {flying} ideas are now in flight, over the {WIP_DEFAULT} limit of {limit}: "
                       "say so to the owner, and finish or pause one before the next starts")
             return 0
         if len(args) == 3 and args[0] == "light" and reply:
-            state = end_light(args[1], args[2], reply, reason, tier=int(tier) if tier else None)
+            state = end_light(args[1], args[2], reply, reason, tier=int(tier) if tier else None, by=by)
             print(f"pipeline: {args[1]} light route: {LIGHT_RESULTS[args[2]]}; {state['next']}")
             return 0
         if len(args) == 3 and args[0] == "approve-data" and by and reply:

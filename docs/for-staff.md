@@ -5,7 +5,13 @@ Organisation A has a quick, safe way to turn an idea into a working app, built w
 ## What you can ask for
 Anything that would save time, cut errors or make a job easier: a form that replaces a spreadsheet, a tool that matches invoices to orders, a board for swapping shifts, a dashboard of something you count by hand today. Small is good. Small ideas get built fastest.
 
-## How to send it
+## Two ways in
+- **Develop it yourself** with the factory (`/factory` and your idea, in plain words). It works the idea through with you: asks what would make it fail, suggests other ways to get there, writes it up as a brief, assesses it and has it challenged. Go round as many times as you like until the idea is as strong as you can make it, then ask for sign-off. Ask the factory team to set you up.
+- **Send an idea card** and the team develops it with you.
+
+Either way, nothing goes further without **sign-off** from a named approver, who isn't you.
+
+## How to send an idea card
 Fill in the **idea card**: five short questions, in your own words.
 
 1. **What's the problem?** What goes wrong or takes too long today?
@@ -30,10 +36,12 @@ Don't worry about having all the answers. "I don't know" is a fine answer. The t
 ## What happens next
 | Step | What happens |
 |---|---|
-| **1. Assess** | The team writes your idea up as a one-page brief and checks it: is the problem real, is it worth it, is the data there, what could go wrong? |
-| **2. Decide** | At the next decision meeting a named person decides: **go**, **try it small first**, **get ready** (fix something first, then look again) or **stop**. |
+| **1. Develop and assess** | You (with the factory) or the team write your idea up as a one-page brief and check it: is the problem real, is it worth it, is the data there, what could go wrong? |
+| **2. Sign-off** | A named approver, not you, decides: **go**, **try it small first**, **get ready** (fix something first, then look again) or **stop**. From here the factory team builds it, with you trying what they build. |
 | **3. Try it** | Most ideas start as a **spike**: a small working version, built quickly to see if the approach works. |
 | **4. Grow it** | If the spike works, it can grow into something people use, and later into a supported app. Each step up is a decision, never an accident. |
+
+**A bigger idea**, one that is really a project or a programme, gets a **roadmap**: the plan for how it builds out over time, step by step. The first steps are usually small tries (spikes) that answer the big questions, and each step after them is signed off on its own.
 
 ## What you get back
 - **A reply to every idea card.** No idea disappears.

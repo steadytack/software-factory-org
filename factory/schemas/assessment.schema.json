@@ -10,6 +10,7 @@
     "schema_version": { "const": 1 },
     "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
     "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+    "scale": { "enum": ["app", "project", "programme"], "description": "Absent is app. A project or programme is built out over time on its roadmap (roadmap.md), epic by epic, each epic an idea of its own" },
     "period": { "type": "string", "minLength": 1, "description": "The period Reach is counted over (per month, per quarter...)" },
     "data_classes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "data_approvals": {
@@ -71,11 +72,12 @@
         "recommended": { "enum": ["undecided", "go", "get-ready", "stop"] },
         "reason": { "type": "string", "minLength": 1 },
         "fix": { "type": "array", "items": { "$ref": "#/$defs/foundation" }, "uniqueItems": true, "description": "Get Ready: the foundations to fix" },
-        "route": { "enum": ["full", "light"], "description": "Go: the full route (Spec, then Build and Audit, tier 2, 3 or 4) or the light route (a spike, tier 1; plan in plan.md)" },
+        "route": { "enum": ["full", "light", "roadmap"], "description": "Go: the full route (Spec, then Build and Audit, tier 2, 3 or 4), the light route (a spike, tier 1; plan in plan.md) or, for a project or programme, its roadmap (roadmap.md)" },
         "timebox": { "type": "number", "exclusiveMinimum": 0, "description": "The light route: the time box, person-weeks" },
         "owner": { "type": "string", "minLength": 1, "description": "Get Ready: who fixes the named foundations" },
         "review": { "type": "string", "format": "date", "description": "Get Ready: when it comes back to Gate 1, fixed or not" },
-        "decided": { "enum": ["go", "get-ready", "stop"], "description": "The owner's decision at Gate 1" },
+        "decided": { "enum": ["go", "get-ready", "stop"], "description": "The decision at Gate 1" },
+        "by": { "type": "string", "minLength": 1, "description": "Who signed it off: a gate approver for the idea's scope, other than its owner (the owner may only stop it)" },
         "date": { "type": "string", "format": "date" },
         "reply": { "type": "string" }
       }

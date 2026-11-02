@@ -22,7 +22,7 @@ import factory_lib as lib  # noqa: E402
 import pipeline  # noqa: E402
 
 START, END = "<!-- status:start -->", "<!-- status:end -->"
-STAGES = ["develop", "spec", "build", "publish", "done"]
+STAGES = ["develop", "roadmap", "spec", "build", "publish", "done"]
 GATE_MARK = {"not-reached": "-", "awaiting-approval": "W", "approved": "A", "changes-requested": "C", "get-ready": "R", "stopped": "S"}
 
 
@@ -106,7 +106,7 @@ def table(rows: list[dict]) -> str:
         if r.get("current", {}).get("milestone"):
             status += f" ({r['current']['milestone']})"
         lines.append(
-            f"| {r['slug']} | {r.get('kind', '')} | {r.get('stage', '?')}{' (light)' if r.get('route') == 'light' else ''} | {status} | {r.get('tier') or ''} | "
+            f"| {r['slug']} | {r.get('kind', '')} | {r.get('stage', '?')}{' (light)' if r.get('route') == 'light' else ''}{f" ({r['epic']} of {r['parent']})" if r.get('parent') else ''} | {status} | {r.get('tier') or ''} | "
             f"{r.get('template') or ''} | {r.get('gates_line', '')} | {r.get('factory_version', '')} | {r.get('updated', '')} | {r.get('next', '')} |"
         )
     return "\n".join(lines)

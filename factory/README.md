@@ -1,10 +1,11 @@
 # How the factory works
 
-The factory turns an idea, an existing specification or an imported project into a built, audited application. An idea is first developed into a short brief and assessed against it (knock-outs, the five foundations, RICE, the one thing to know or fix), so the owner can make the investment decision at Gate 1, Go, Get Ready or Stop, before anything is specified. It decides small things itself and records them; it stops at the gates, and for anything only the owner can decide (`context/policies.md`).
+The factory turns an idea, an existing specification or an imported project into a built, audited application. An idea is first developed into a short brief and assessed against it (knock-outs, the five foundations, RICE, the one thing to know or fix), so a gate approver can sign off the investment decision at Gate 1, Go, Get Ready or Stop, before anything is specified. Develop and Assess is self-service: any member of staff can run it to develop and harden their own idea; from Spec on, the factory operators run it (`docs/operating-model.md`). It decides small things itself and records them; it stops at the gates, and for anything only the owner can decide (`context/policies.md`).
 
 ```
 The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, time-boxed ─gate 3→ grow │ keep │ stop
 The full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
+A project or programme:          Develop and Assess (roadmap.md) ─gate 1→ the roadmap: each epic (spikes first) an idea of its own
 ```
 
 Ideas come in as lines in `ideas/inbox.md` or as idea cards (`project-files/idea-card.md`) exported to `ideas/inbox.csv`. The terms are in `docs/glossary.md`, and who does what is in `docs/operating-model.md`.
@@ -18,12 +19,13 @@ Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the
 | **Build and Audit** | The app in `app/`, epic by epic with tests; the spec conformance audit; a verification report; `outcome.md` (did the Gate 1 assessment hold?) | The audit and readiness |
 | **Publish** | A dry-run report; on a typed confirmation, the repository; `benefits.md`, reviewed 30 and 90 days later (were the success measures met?) | The release |
 | *The light route* (`stages/light.md`) | A spike (tier 1), instead of Spec: `plan.md` (the question, success and kill criteria, the time box, the data and protection), approved with Gate 1; a time-boxed build; the outcome | Gate 3: grow (to Spec at the tier named), keep or stop |
+| *The roadmap route* (`stages/roadmap.md`) | For a project or programme: `roadmap.md`, the overall plan of how it builds out over time (the end state, phases, epics with the spikes first, what starts now), approved with Gate 1; each epic then started as an idea of its own (`pipeline.py epic`) | Gate 1: the direction; each epic has its own gates |
 
 ## Where things are
 | Path | What |
 |---|---|
 | `context/` | Who the owner is, policies, defaults, learned choices, environment, systems, lenses (`context/README.md` gives the precedence) |
-| `stages/` | What to do at each stage: `develop-assess.md`, `spec.md`, `build.md`, `audit.md`, `publish.md`, and `changes.md` for anything after a gate |
+| `stages/` | What to do at each stage: `develop-assess.md`, `spec.md`, `build.md`, `audit.md`, `publish.md`, the light route (`light.md`), the roadmap route (`roadmap.md`), and `changes.md` for anything after a gate |
 | `standards/` | `PRINCIPLES.md` for every app, stack rules per template, the spec pack and its IDs, security, testing, versioning |
 | `audits/` | Audit prompts; spec conformance is mandatory before Gate 3 |
 | `schemas/` | JSON Schemas for the idea register, the assessment, the Application Definition, project state, composition, catalogue entries, source records and scopes |
@@ -34,10 +36,11 @@ Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the
 ## Scripts
 | Script | Does |
 |---|---|
-| `pipeline.py capture / add / develop / check / render / decide / reassess / approve-data / light` | Develop and Assess: captures ideas from `ideas/inbox.md`, the idea cards in `ideas/inbox.csv`, or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1 (Go, Go as a spike, Get Ready with an owner and a review date, Stop), `reassess` reopens a Get Ready idea, `light` records a spike's Gate 3 (grow to a tier, keep, stop); overdue Get Ready ideas are flagged; `approve-data` records an approver's yes for a data class POL-11 allows only by approval |
+| `pipeline.py capture / add / develop / check / render / decide / reassess / approve-data / light / epic` | Develop and Assess: captures ideas from `ideas/inbox.md`, the idea cards in `ideas/inbox.csv`, or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1, signed off by an approver other than the idea's owner (Go, Go as a spike, Go on the roadmap, Get Ready with an owner and a review date, Stop), `epic` starts an epic of an approved roadmap as an idea of its own, `reassess` reopens a Get Ready idea, `light` records a spike's Gate 3 (grow to a tier, keep, stop); overdue Get Ready ideas are flagged; `approve-data` records an approver's yes for a data class POL-11 allows only by approval |
 | `scaffold.py new <slug> --name "..."` | Creates `ideas/<slug>/` with the brief and assessment stubs (`pipeline.py develop` calls it) |
 | `scaffold.py overview <slug>` | The overview, filled from the assessment (Gate 1) |
 | `scaffold.py plan <slug>` | A spike's plan (`plan.md`), when a spike is recommended |
+| `scaffold.py roadmap <slug>` | A project or programme's roadmap (`roadmap.md`) |
 | `scaffold.py definition <slug>` | The Application Definition: the solution choices (start of Spec) |
 | `scaffold.py spec <slug>` | The spec pack stubs, filled from the definition |
 | `check_spec.py <slug> [--assessment] [--impact IDs]` | Checks the brief, the assessment and the overview (Gate 1), or the definition and the whole pack (Gate 2): blockers and warnings; writes `spec/traceability.md`; also checks a pack copied outside the factory |

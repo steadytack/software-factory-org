@@ -21,7 +21,9 @@
         "id": { "type": "string", "pattern": "^IDEA-\\d{3}$" },
         "title": { "type": "string", "minLength": 1 },
         "idea": { "type": "string", "minLength": 1, "description": "The idea as given (the inbox line, the single idea, or a summary of the supplied document)" },
-        "source": { "enum": ["inbox", "single", "document"] },
+        "source": { "enum": ["inbox", "single", "document", "epic"] },
+        "parent": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "An epic: the project or programme whose roadmap it is in (pipeline.py epic)" },
+        "epic": { "type": "string", "pattern": "^E\\d+$", "description": "An epic: its ID in the parent's roadmap" },
         "added": { "type": "string", "format": "date" },
         "scope": { "type": "string" },
         "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "The idea folder it was developed into (pipeline.py develop); absent while only captured" }

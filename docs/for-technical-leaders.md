@@ -9,7 +9,7 @@ The factory is how Organisation A turns ideas into working apps using AI, withou
 |---|---|---|
 | **The agent** (Claude Code with the `factory` skill) | Drafts briefs, assessments, specs and code; answers challenges; prepares each gate page | Score, rank, approve or publish anything by itself |
 | **The scripts** (`factory/scripts/`, Python, no AI) | Validate against JSON Schemas, compute RICE and the ranking, check traceability, scan for secrets, run builds in clean containers, refuse anything outward-facing without a typed confirmation | Make judgements |
-| **People** (named gate approvers) | Decide Go, Get Ready or Stop; approve the spec, the build and the release | Write the paperwork |
+| **People** (idea owners and named gate approvers) | Owners develop and harden their own ideas in Develop and Assess; approvers, never the owner, sign off Go, Get Ready or Stop, then the spec, the build and the release | Write the paperwork |
 
 Everything is in the repository: the stages, standards, policies, schemas and each idea's state (`ideas/<slug>/state.json`, `decisions.md`, gate files). Nothing important lives only in a chat. Any session, model or person can pick up where the last one stopped.
 
@@ -120,7 +120,7 @@ Each step resolves one of the known limits below.
 - **No idea has been through it end to end yet.** The first pilot will produce the first real cycle times.
 - **The AaC models aren't connected yet.** Until they are, using them depends on the operator reading the right model, not on a check.
 - **One template.** `web-app` brings a database, auth and backups. That is heavy for a short, time-boxed spike, and it doesn't cover work such as optimisation solvers, data pipelines or agents. A lighter template for spikes would make the fast route faster; the others come with the ideas that need them.
-- **Large programmes.** A programme such as a scheduling and routing engine with a dozen integrations comes in as several ideas, and the factory de-risks it with spikes on synthetic data and stand-in integrations. It doesn't deliver the whole programme until the templates and data controls for it are approved.
+- **Large programmes.** A programme such as a scheduling and routing engine with a dozen integrations is developed with a roadmap: the build-out over time, its open questions as spike epics on synthetic data and stand-in integrations first, each epic then an idea of its own with its own gates. The parts that need live systems of record or technology with no approved template are project epics in the same roadmap, delivered with IT, until the templates and data controls for them are approved.
 - **People are the throughput limit.** The agent drafts quickly, but gates and audits need human review. The work-in-progress limit (DEF-23, 3 ideas per operator) protects that capacity, and it grows as operators are added.
 - **The agent can be wrong.** That is why challenge, deterministic checks, audits and gates exist. None of them makes the agent's output trustworthy on its own. Together they make errors visible before anything is relied on.
 
