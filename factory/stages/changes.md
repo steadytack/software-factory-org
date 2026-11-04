@@ -1,6 +1,6 @@
 # Changes after a gate
 
-A change to something already approved is a controlled edit, not a restart (factory spec 14.5).
+A change to something already approved is a controlled edit, not a restart (factory spec 14.5). When the app does not do what the approved spec says, that is a bug, not a change: `bugs.md`.
 
 1. **Record it** in the project's `changes.md` and in spec `09` (Change requests): `CR-nnn` (never reused), the change, the reason, the affected IDs, the impact, whether approval is needed, the outcome.
 2. **Find what it touches:** `python factory/scripts/check_spec.py <slug> --impact FR-007[,US-003]` lists the linked items (stories and criteria, rules, screens, data, permissions, integrations, capabilities, epics, tests) and the documents to review. A new version of an imported source: `import_source.py` keeps the old version; compare the two and treat each difference as a change.

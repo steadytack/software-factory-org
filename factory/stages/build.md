@@ -14,7 +14,7 @@ Gate 2 is approved. Read the whole pack, `composition.json`, `decisions.md`, `fa
 6. **Milestone gates.** Each epic (or milestone) ends at a short gate: `gates/gate-3-<epic>.md` with what it delivered, results exactly as run (each run or not run), changes to the plan, and the next epic. A one-epic app has one gate.
 7. **Real stack** (anything with a server): build the images, start the stack, exercise the journeys against it with real services where the spec says so; check health and that anonymous access is refused; screenshots of any UI (desktop and phone), looked at.
 8. **New dependencies** beyond the template's: vetted on their registry before they are added and recorded in `decisions.md` (`factory/standards/security.md`, "Vetting a new dependency").
-9. **Changes** to the approved spec go through `changes.md` (a change request), never silently. Something that has gone wrong (a defect found late, a service that does not behave as documented, data that is not what the brief said) is an issue, `ISS-nnn` in spec `09`, with its impact, action, owner and what it blocks, until it is closed.
+9. **Changes** to the approved spec go through `changes.md` (a change request), never silently. Something that has gone wrong (a defect found late, a service that does not behave as documented, data that is not what the brief said) is an issue, `ISS-nnn` in spec `09`, with its impact, action, owner and what it blocks, until it is closed. A bug found after a story is done is fixed as `bugs.md` says: a failing test first.
 10. **Stop and report** when a blocker cannot be resolved safely, or after the same failure three times without a new approach (POL-08).
 
 Then run the audit (`audit.md`).

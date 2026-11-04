@@ -38,7 +38,7 @@ Every rule lives in plain files (`factory/`), so another model or a person can c
    - **Status or blockers:** the status table, plus each idea's `blockers` and `next`; `ideas/pipeline.md` for the ranked pipeline, any Get Ready idea past its review date (bring it back to Gate 1), any benefits review overdue, and the ideas in flight against the DEF-23 limit.
    - **A benefits review due** (`ideas/pipeline.md`, "Benefits reviews due"): run it (`publish.md`, "The benefits review").
    - **A gate reply:** apply it (gate protocol, step 4).
-4. Follow the stage file: `develop-assess.md`, `spec.md`, `build.md`, then `audit.md`, `publish.md` (the light route: `light.md`; a project or programme: `roadmap.md`); `changes.md` for anything that changes after a gate.
+4. Follow the stage file: `develop-assess.md`, `spec.md`, `build.md`, then `audit.md`, `publish.md` (the light route: `light.md`; a project or programme: `roadmap.md`); `changes.md` for anything that changes after a gate; `bugs.md` for a bug in a built app (it does not do what the approved spec says).
 5. Decide small, reversible things yourself, log them in the idea's `decisions.md` (decided by "factory"), and keep going.
 6. When the owner clarifies something, at any stage and in any form, record it in `decisions.md` (decided by the owner). If it could apply beyond this idea (a fact about a business, a brand or its users, or a preference for that kind of app), also `learned.py clarify` with the scope you judge, and say that scope in one line so the owner can correct it. It is never written into defaults or context by itself: it becomes a candidate at the next gate.
 

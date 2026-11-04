@@ -25,7 +25,7 @@ Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the
 | Path | What |
 |---|---|
 | `context/` | Who the owner is, policies, defaults, learned choices, environment, systems, lenses (`context/README.md` gives the precedence) |
-| `stages/` | What to do at each stage: `develop-assess.md`, `spec.md`, `build.md`, `audit.md`, `publish.md`, the light route (`light.md`), the roadmap route (`roadmap.md`), and `changes.md` for anything after a gate |
+| `stages/` | What to do at each stage: `develop-assess.md`, `spec.md`, `build.md`, `audit.md`, `publish.md`, the light route (`light.md`), the roadmap route (`roadmap.md`), `changes.md` for anything after a gate, and `bugs.md` for a bug in a built app |
 | `standards/` | `PRINCIPLES.md` for every app, stack rules per template, the spec pack and its IDs, security, testing, versioning |
 | `audits/` | Audit prompts; spec conformance is mandatory before Gate 3 |
 | `schemas/` | JSON Schemas for the idea register, the assessment, the Application Definition, project state, composition, catalogue entries, source records and scopes |

@@ -2,6 +2,12 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.16.0 (2026-11-04)
+A comparison with GitHub's Spec Kit found one gap: its `bug` extension (assess, fix, test, with a verdict) has no counterpart here. `changes.md` covers a spec that is wrong, and an issue (ISS) covers something going wrong during Build, but nothing said how to fix an app that does not do what its approved spec says.
+- **The bug route** (`factory/stages/bugs.md`, new): assess (a bug, a spec gap that goes to `changes.md`, not reproduced, or elsewhere), record it as an `ISS-nnn`, write a test that reproduces it and fails, make the smallest fix, check the delta (`check_spec.py --impact`, the clean container), and give a verdict (verified, partially verified or failed) in the ISS and in `verification.md` under "Bug fixes". A fix to a published app goes out only on the owner's approval (POL-01).
+- Pointers from `changes.md`, `build.md` step 9, the skill, `factory/README.md` and the glossary.
+- Migration: none. Documentation only; no script or schema changes.
+
 ## 0.15.0 (2026-11-02)
 Two pieces of feedback on who does what and on large ideas: Develop and Assess should be a tool business users run themselves to develop and harden their ideas, with a sign-off to go further; and a project or programme needs an overall plan of how it builds out over time, with its spikes as epics in that plan rather than a loose set of separate ideas.
 - **Develop and Assess is the idea owner's** (`develop-assess.md`, the skill's "Who does what"): any member of staff can run it with `/factory`, going round the brief, the assessment and the challenge as often as they like. `pipeline.py develop --owner` records them (`owner` in `state.json`). From Spec on, the factory operators run the stages; the skill checks the person running `/factory` is an operator before starting or resuming Spec, Build or Publish.
