@@ -5,6 +5,7 @@ The factory turns an idea, an existing specification or an imported project into
 ```
 The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, time-boxed ─gate 3→ grow │ keep │ stop
 The full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
+                                  (a spike that grows joins the full route at Spec, at the tier the approver names)
 A project or programme:          Develop and Assess (roadmap.md) ─gate 1→ the roadmap: each epic (spikes first) an idea of its own
 ```
 

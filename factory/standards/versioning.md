@@ -12,6 +12,8 @@
 | A composition | `composition.json` (`schema_version`, asset versions) | Recorded, never inferred |
 | A built app | Its own repository and tags | Owner's choice; the factory records the commit at each gate |
 
+**The factory's changelog.** Changes collect under `## Unreleased` at the top of `CHANGELOG.md`, one line each: what changed, the idea or source that caused it, and the migration if one is needed. The detail goes in the commit message, not the changelog. `VERSION` is bumped once per batch (a few days' or a week's work, or before an idea passes a gate under it), when `## Unreleased` becomes `## <version> (<date>)`.
+
 Each idea's `state.json` records the factory version it was last run under, so an older idea can be migrated deliberately rather than silently.
 
 IDs inside a spec are never reused when an item is deleted or superseded (see `requirement-ids.md`).

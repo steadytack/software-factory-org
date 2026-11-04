@@ -19,14 +19,14 @@
     "1": {
       "status": "approved",
       "date": "2026-11-01",
-      "reply": "for the decisions 1.a, 2,b,3a",
+      "reply": "for the decisions 1.a, 2,b,3a [meaning: 1A Go as a spike; 2B Impact stays 0.5; 3A Risk stays green]",
       "version": "0.1",
       "file": "gates/gate-1.md"
     },
     "2": {
       "status": "approved",
       "date": "2026-11-01",
-      "reply": "plan (plan.md) approved with Gate 1: for the decisions 1.a, 2,b,3a"
+      "reply": "plan (plan.md) approved with Gate 1: for the decisions 1.a, 2,b,3a [meaning: 1A Go as a spike; 2B Impact stays 0.5; 3A Risk stays green]"
     },
     "3": {
       "status": "not-reached"

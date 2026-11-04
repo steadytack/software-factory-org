@@ -61,7 +61,7 @@
     "timebox": 1.5,
     "decided": "go",
     "date": "2026-11-01",
-    "reply": "for the decisions 1.a, 2,b,3a"
+    "reply": "for the decisions 1.a, 2,b,3a [meaning: 1A Go as a spike; 2B Impact stays 0.5; 3A Risk stays green]"
   },
   "reassessments": []
 }

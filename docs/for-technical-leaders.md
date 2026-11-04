@@ -25,10 +25,7 @@ Using AI to build faster is easy. Keeping a hundred AI-built apps consistent, sa
 **All of it is content in the repository, versioned and improved like code.** A change to a policy, default, stage, template or check is recorded in `CHANGELOG.md` with a `VERSION` bump, and each idea records the factory version it was built on. The learning loop (below) proposes those changes from evidence. So every idea benefits from what earlier ideas taught, and no app is left on a private set of rules.
 
 ## The flow
-```
-Fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, time-boxed ─gate 3→ grow │ keep │ stop
-Full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
-```
+The routes (a spike, the full route, a project or programme) are drawn in [factory/README.md](../factory/README.md).
 
 | Stage | What the agent produces | What the scripts check |
 |---|---|---|

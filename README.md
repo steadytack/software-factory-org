@@ -8,15 +8,7 @@ Turns an idea, an existing specification or an imported project into a built, te
 - **Running it?** [docs/operating-model.md](docs/operating-model.md) (who does what), [factory/README.md](factory/README.md) (how it works), [SETUP.md](SETUP.md) (first time here).
 - **A word you don't know?** [docs/glossary.md](docs/glossary.md).
 
-```
-The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, time-boxed ─gate 3→ grow │ keep │ stop
-The full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
-                                  (a spike that grows joins the full route at Spec, at the tier the approver names)
-A project or programme:          Develop and Assess (roadmap.md) ─gate 1→ the roadmap: each epic (spikes first) an idea of its own
-
-Tiers (factory/standards/tiers.md): 1 Spike · 2 Exploration prototype · 3 Business prototype · 4 Production app.
-Data and protection are decided separately, per idea.
-```
+The routes through the factory (a spike, the full route, a project or programme) and its tiers are drawn in [factory/README.md](factory/README.md).
 
 ## Layout
 | Folder | Holds | Updated by |

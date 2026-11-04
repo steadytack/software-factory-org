@@ -2,6 +2,16 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## Unreleased
+
+## 0.18.0 (2026-11-04)
+From a review of the repo: the factory went from 0.2.1 to 0.17.0 in six days while one idea, a spike, went through it.
+- **Factory freeze** (`CLAUDE.md`): until three ideas reach Gate 3 (one on the full route), the factory changes only for a problem a real idea hit; other ideas for it go in `factory/parked.md` (new).
+- **Lighter versioning** (`versioning.md`): one line per change under `## Unreleased`, detail in the commit; `VERSION` bumped once per batch.
+- **The routes are drawn once**, in `factory/README.md` (with the line on a spike that grows); `README.md` and `for-technical-leaders.md` link to it. The skill keeps its own copy, as it is loaded without other reads.
+- **Gate replies read on their own** (`develop-assess.md`, the skill's gate protocol): the approver's words plus `[meaning: ...]` when they point at numbered decisions. `plan-cost-calculator`'s Gate 1 reply is backfilled.
+- Migration: none.
+
 ## 0.17.0 (2026-11-04)
 From a read of replica-skill (Jake Schincariol), whose browser tests fail on console errors, server errors and accessibility violations, and whose review evidence must each carry a link. Its other practices (stable IDs, priorities, a test-first bug loop, a secrets sweep before deploy) the factory already has.
 - **Browser journeys fail on hidden errors** (`web-app` template 1.2.0, `testing.md`, the web-app stack): `frontend/tests/e2e/fixtures.ts` fails any journey on a browser console error, an uncaught page error or a 5xx response. Chrome's own "Failed to load resource" lines are ignored, since a 4xx is often expected and a 5xx is caught from the response. A test that expects an error names it with `test.use({ allowedErrors: /.../ })`, as the stale-build and offline journeys now do.
