@@ -27,7 +27,7 @@ Set per idea (the factory records it in `state.json` and the spec; `factory/stan
 ## 3. Architecture
 
 - Entry points (API handlers, CLI commands, pipeline orchestration, an agent loop) parse input, call logic, format output. The logic lives elsewhere and is testable alone.
-- Storage and external integrations (database, filesystem, third-party APIs, LLM providers) sit behind adapters or services, so a swap touches one place.
+- Storage and external integrations (database, filesystem, third-party APIs, LLM providers) sit behind adapters or services, so the logic can be tested without them and a stand-in (DEF-24) can take their place. Do not thin-wrap a good library or the ORM just so it could be swapped, and use the database's own features where they help: a swap that is not planned is not a requirement.
 - Dependencies point one way: entry point → logic → data access → storage.
 - Configuration is injected, read from environment variables or an uncommitted `.env`, and validated at startup (fail fast).
 - Make code testable without live infrastructure: a mockable adapter beats a hard-coded call.

@@ -2,6 +2,12 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.16.1 (2026-11-04)
+A read of "Modern Software Over-Engineering Mistakes" (RDX, 2016), the Twelve-Factor App and Roast Room against the factory found most of their points already covered (YAGNI, abstract on the third repetition, config from the environment, the challenge's strongest case against). Two gaps were worth closing, both from the first.
+- **An "-ity" needs a scenario** (`challenge.md`, Gate 2): the challenger flags an NFR or design choice justified by scalability, extensibility, configurability or security with no example scenario that needs it.
+- **Adapters for testing, not for swapping** (`PRINCIPLES.md` §3): storage and integrations still sit behind adapters, now so the logic can be tested without them and a stand-in (DEF-24) can take their place, rather than "so a swap touches one place". A good library or the ORM is not thin-wrapped just so it could be swapped, and the database's own features may be used.
+- Migration: none. Documentation only. Apps already built keep their own copy of `PRINCIPLES.md`.
+
 ## 0.16.0 (2026-11-04)
 A comparison with GitHub's Spec Kit found one gap: its `bug` extension (assess, fix, test, with a verdict) has no counterpart here. `changes.md` covers a spec that is wrong, and an issue (ISS) covers something going wrong during Build, but nothing said how to fix an app that does not do what its approved spec says.
 - **The bug route** (`factory/stages/bugs.md`, new): assess (a bug, a spec gap that goes to `changes.md`, not reproduced, or elsewhere), record it as an `ISS-nnn`, write a test that reproduces it and fails, make the smallest fix, check the delta (`check_spec.py --impact`, the clean container), and give a verdict (verified, partially verified or failed) in the ISS and in `verification.md` under "Bug fixes". A fix to a published app goes out only on the owner's approval (POL-01).
