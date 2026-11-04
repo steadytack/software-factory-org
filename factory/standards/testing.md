@@ -2,7 +2,7 @@
 
 ## What is tested
 - **A test per functional requirement** (FR), at the level that proves it: unit for a rule or calculation, API or integration for behaviour across a boundary.
-- **An end-to-end journey** for each user journey that crosses the UI.
+- **An end-to-end journey** for each user journey that crosses the UI. A journey also fails on a browser console error, an uncaught page error or a server error (5xx), unless the test names the error it expects; and each page with a UI is checked for accessibility (WCAG 2.1 A and AA, with axe), with a rule skipped only for a reason recorded as a DEC. The `web-app` template does both (`frontend/tests/e2e/fixtures.ts`).
 - **Negative and edge cases** from the acceptance criteria (empty, huge, duplicate, malformed, unauthorised).
 - **A contract test per integration** (INT), at tier 3 and above: the shape of what crosses it (fields, types, errors, status codes) checked against what the other side really sends or accepts, from its published schema or a recorded real exchange; a mock that only agrees with this app proves nothing. `check_spec.py` warns about an INT no TEST names.
 - **Evals for an AI feature** (`ai-features.md`): an eval set against the real model with a pass threshold, beside tests that mock the model for malformed output, refusals, timeouts and injection.

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 
 import { MIN_COLUMN_WIDTH } from "../../../lib/tableViewPrefs";
@@ -34,6 +34,12 @@ export function ColumnResizeHandle({
     const padding = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
     return Math.max(MIN_COLUMN_WIDTH, Math.round(cell.getBoundingClientRect().width - padding));
   };
+  // A focusable separator needs aria-valuenow. With no stored width, the
+  // column's measured width is written after each render (the cell's width
+  // follows its content, so it can change whenever the table does).
+  useLayoutEffect(() => {
+    if (width === undefined) handleRef.current?.setAttribute("aria-valuenow", String(measure()));
+  });
 
   function onPointerDown(e: PointerEvent<HTMLDivElement>) {
     if (e.button !== 0) return;

@@ -60,7 +60,7 @@ Dropped: full OAuth2/Entra ID enterprise identity — that solves a multi-user, 
 ## Testing
 
 - Backend: pytest.
-- Frontend: Vitest for components/units, Playwright for the critical user journeys only (not exhaustive e2e coverage).
+- Frontend: Vitest for components/units, Playwright for the critical user journeys only (not exhaustive e2e coverage). Every spec imports `test` and `expect` from `tests/e2e/fixtures.ts`, so a journey fails on a console error, a page error or a 5xx; a test expecting one says so with `test.use({ allowedErrors: /.../ })`. A new page is added to `tests/e2e/accessibility.spec.ts`.
 - See `standards/PRINCIPLES.md` section 4 (Testing) for what to prioritise testing.
 
 ## Project Structure

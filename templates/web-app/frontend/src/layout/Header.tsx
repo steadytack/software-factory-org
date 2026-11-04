@@ -83,14 +83,13 @@ export function Header() {
       <div className="hidden min-w-0 flex-1 justify-center px-2 md:flex">
         <button
           onClick={() => setModalOpen(true)}
-          aria-label="Jump to"
           className="group flex h-8 w-full min-w-0 max-w-[480px] pointer-coarse:h-11 items-center gap-2 rounded-md border border-border bg-card px-3 text-left shadow-sm transition-colors hover:border-input"
         >
           <Search className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
           <span className="flex-1 select-none truncate text-left text-dense text-muted-foreground">
             Search sites, surveys and pages…
           </span>
-          <Kbd className="hidden md:inline-flex">Ctrl K</Kbd>
+          <Kbd className="hidden md:inline-flex" aria-hidden="true">Ctrl K</Kbd>
         </button>
       </div>
 
@@ -124,7 +123,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 className={`ml-0.5 h-8 gap-2 px-1 pointer-coarse:h-11 pointer-coarse:min-w-11 ${HEADER_BTN}`}
-                aria-label="Account menu"
+                aria-label={`Account menu, ${initials}`}
               >
                 <Avatar className="size-6">
                   <AvatarFallback className="bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground">

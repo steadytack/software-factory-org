@@ -16,7 +16,7 @@
     "files",
     "web"
   ],
-  "version": "1.1.0",
+  "version": "1.2.0",
   "status": "approved",
   "source": {
     "ref": "templates/web-app",
@@ -55,6 +55,18 @@
       "check": "factory/scripts/verify.py --template web-app (clean containers)",
       "result": "passed",
       "detail": "1.1.0 adds architecture checks: backend ruff with C90, PLR0915, PLW0603 and FBT, and lint-imports (2 contracts kept, 1 ignored import); 256 backend tests passed; frontend tsc, eslint (with the layering rule) and vitest passed (count not printed by verify)"
+    },
+    {
+      "date": "2026-11-04",
+      "check": "Playwright end-to-end journeys against the composed stack (MULTI_USER_ENABLED=true)",
+      "result": "passed",
+      "detail": "1.2.0 adds tests/e2e/fixtures.ts (every journey fails on a console error, an uncaught page error or a 5xx) and an axe accessibility check (WCAG 2.1 A and AA) on the login page and the six main pages; it found and fixed four naming faults (header search, account menu, dashboard stat cards, column resize handles); 19 of 19 passed"
+    },
+    {
+      "date": "2026-11-04",
+      "check": "factory/scripts/verify.py --template web-app (clean containers)",
+      "result": "passed",
+      "detail": "1.2.0: 2 of 2 parts; backend 256 passed; frontend tsc, eslint and 231 vitest tests passed"
     }
   ],
   "risks": [],

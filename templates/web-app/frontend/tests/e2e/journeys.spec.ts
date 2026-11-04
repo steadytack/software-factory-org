@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 import {
   ADMIN,
@@ -151,79 +151,84 @@ test("on a phone, + adds a survey to the site being viewed", async ({ page }) =>
   await expect(page.getByText("Survey added.")).toBeVisible();
 });
 
-test("with no signal: signed in, every record opens, and new work uploads in order", async ({
-  page,
-  context,
-  baseURL,
-}) => {
-  await login(page, EDITOR);
-  // Needs the built app's service worker (the composed stack), not the dev server.
-  // A worker only controls pages loaded after it activates, so reload once, as
-  // a returning visitor would.
-  await page.waitForTimeout(1_000);
-  await page.reload();
-  const hasWorker = await page
-    .waitForFunction(() => Boolean(navigator.serviceWorker?.controller), null, { timeout: 10_000 })
-    .then(() => true)
-    .catch(() => false);
-  test.skip(!hasWorker, "Offline needs the production build's service worker (PLAYWRIGHT_BASE_URL)");
-  // The background sync has put every record on the device.
-  await page.waitForFunction(() => localStorage.getItem("webapp-last-sync"), null, { timeout: 20_000 });
+test.describe("with no signal", () => {
+  // Requests made while offline fail, and the browser says so.
+  test.use({ allowedErrors: /TypeError: Failed to fetch/ });
 
-  await goOffline(context);
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  test("with no signal: signed in, every record opens, and new work uploads in order", async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    await login(page, EDITOR);
+    // Needs the built app's service worker (the composed stack), not the dev server.
+    // A worker only controls pages loaded after it activates, so reload once, as
+    // a returning visitor would.
+    await page.waitForTimeout(1_000);
+    await page.reload();
+    const hasWorker = await page
+      .waitForFunction(() => Boolean(navigator.serviceWorker?.controller), null, { timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    test.skip(!hasWorker, "Offline needs the production build's service worker (PLAYWRIGHT_BASE_URL)");
+    // The background sync has put every record on the device.
+    await page.waitForFunction(() => localStorage.getItem("webapp-last-sync"), null, { timeout: 20_000 });
 
-  // Records never opened in this browser still open.
-  await page.goto(`/sites/${siteId}`);
-  await expect(page.getByRole("heading", { name: siteName })).toBeVisible();
-  await page.goto(surveyPath);
-  await expect(page.getByRole("heading", { name: /^Survey · / })).toBeVisible();
+    await goOffline(context);
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 
-  // A new site, a survey on it, and a comment on that survey.
-  const offlineSite = `E2E offline site ${stamp}`;
-  await page.goto("/sites?new=1");
-  let dialog = page.getByRole("dialog");
-  await dialog.getByLabel(/^Name/).fill(offlineSite);
-  await dialog.getByPlaceholder(/easting, northing/i).fill("530000, 180000");
-  await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByText("Saved on this device").first()).toBeVisible();
-  const newSite = (await waitingIds(page))["/api/sites"][0];
-  await page.goto(`/sites/${newSite}`);
-  await expect(page.getByRole("heading", { name: offlineSite })).toBeVisible();
-  await expect(page.getByText("Waiting to upload")).toBeVisible();
+    // Records never opened in this browser still open.
+    await page.goto(`/sites/${siteId}`);
+    await expect(page.getByRole("heading", { name: siteName })).toBeVisible();
+    await page.goto(surveyPath);
+    await expect(page.getByRole("heading", { name: /^Survey · / })).toBeVisible();
 
-  await page.goto(`/surveys?new=1&site=${newSite}`);
-  dialog = page.getByRole("dialog");
-  await dialog.getByLabel(/^Surveyor/).fill("E2E offline surveyor");
-  await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(dialog).toHaveCount(0);
-  const newSurvey = (await waitingIds(page))["/api/surveys"][0];
-  await page.goto(`/surveys/${newSurvey}`);
-  await expect(page.getByRole("heading", { name: /^Survey · / })).toBeVisible();
-  await expect(page.getByText("Waiting to upload")).toBeVisible();
+    // A new site, a survey on it, and a comment on that survey.
+    const offlineSite = `E2E offline site ${stamp}`;
+    await page.goto("/sites?new=1");
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel(/^Name/).fill(offlineSite);
+    await dialog.getByPlaceholder(/easting, northing/i).fill("530000, 180000");
+    await dialog.getByRole("button", { name: "Save" }).click();
+    await expect(page.getByText("Saved on this device").first()).toBeVisible();
+    const newSite = (await waitingIds(page))["/api/sites"][0];
+    await page.goto(`/sites/${newSite}`);
+    await expect(page.getByRole("heading", { name: offlineSite })).toBeVisible();
+    await expect(page.getByText("Waiting to upload")).toBeVisible();
 
-  await page.getByRole("tab", { name: /comments/i }).click();
-  await page.getByRole("button", { name: "Add comment" }).click();
-  await page.getByLabel("New comment").fill("E2E offline comment");
-  await page.getByRole("button", { name: "Post" }).click();
-  await expect(page.getByText("E2E offline comment")).toBeVisible();
+    await page.goto(`/surveys?new=1&site=${newSite}`);
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel(/^Surveyor/).fill("E2E offline surveyor");
+    await dialog.getByRole("button", { name: "Save" }).click();
+    await expect(dialog).toHaveCount(0);
+    const newSurvey = (await waitingIds(page))["/api/surveys"][0];
+    await page.goto(`/surveys/${newSurvey}`);
+    await expect(page.getByRole("heading", { name: /^Survey · / })).toBeVisible();
+    await expect(page.getByText("Waiting to upload")).toBeVisible();
 
-  // Still there after a reload with no signal.
-  await page.reload();
-  await expect(page.getByRole("heading", { name: /^Survey · / })).toBeVisible();
+    await page.getByRole("tab", { name: /comments/i }).click();
+    await page.getByRole("button", { name: "Add comment" }).click();
+    await page.getByLabel("New comment").fill("E2E offline comment");
+    await page.getByRole("button", { name: "Post" }).click();
+    await expect(page.getByText("E2E offline comment")).toBeVisible();
 
-  // Back online: everything uploads, parents first.
-  await goOnline(context);
-  await expect(page.getByText(/uploaded 3 changes made offline/i)).toBeVisible({ timeout: 20_000 });
-  const api = await apiAs(baseURL!, EDITOR);
-  for (const path of [`/api/sites/${newSite}`, `/api/surveys/${newSurvey}`]) {
-    expect((await api.get(path)).status(), path).toBe(200);
-  }
-  const comments = await (await api.get(`/api/comments?entity=survey&entity_id=${newSurvey}`)).json();
-  expect(comments.items.map((c: { text: string }) => c.text)).toEqual(["E2E offline comment"]);
-  await api.dispose();
-  await expect(page.getByText("Waiting to upload")).toHaveCount(0);
+    // Still there after a reload with no signal.
+    await page.reload();
+    await expect(page.getByRole("heading", { name: /^Survey · / })).toBeVisible();
+
+    // Back online: everything uploads, parents first.
+    await goOnline(context);
+    await expect(page.getByText(/uploaded 3 changes made offline/i)).toBeVisible({ timeout: 20_000 });
+    const api = await apiAs(baseURL!, EDITOR);
+    for (const path of [`/api/sites/${newSite}`, `/api/surveys/${newSurvey}`]) {
+      expect((await api.get(path)).status(), path).toBe(200);
+    }
+    const comments = await (await api.get(`/api/comments?entity=survey&entity_id=${newSurvey}`)).json();
+    expect(comments.items.map((c: { text: string }) => c.text)).toEqual(["E2E offline comment"]);
+    await api.dispose();
+    await expect(page.getByText("Waiting to upload")).toHaveCount(0);
+  });
 });
 
 // A plain white tile, so the only coloured pixels on the map are its overlays.

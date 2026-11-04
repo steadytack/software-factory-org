@@ -270,7 +270,6 @@ export function DashboardPage() {
         <Link
           to="/surveys?filters=status.is.draft"
           className="rounded-lg [&>div]:transition-colors hover:[&>div]:border-primary/40"
-          aria-label={`Draft surveys: ${draftSurveys}. View them`}
         >
           <StatCard
             label="Draft surveys"
@@ -295,7 +294,6 @@ export function DashboardPage() {
         <Link
           to="/sites"
           className="col-span-2 rounded-lg sm:col-span-1 [&>div]:transition-colors hover:[&>div]:border-primary/40"
-          aria-label={`Total sites: ${stats?.total_sites ?? sites?.length ?? 0}. View all sites`}
         >
           <StatCard
             label="Total sites"

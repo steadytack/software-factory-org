@@ -1,6 +1,6 @@
 # {name}: idea brief
 
-One to two pages in plain language, for the people who will decide. Drafted by the factory in Stage 1 (Develop and Assess) from the idea and the scope's context; every assumption is marked *(assumed)*. It is the evidence `assessment.md` rates, so say what is known and what is not.
+One to two pages in plain language, for the people who will decide. Drafted by the factory in Stage 1 (Develop and Assess) from the idea and the scope's context; every assumption is marked *(assumed)*, and every piece of evidence names its source (a link, a dataset, a document or a person). It is the evidence `assessment.md` rates, so say what is known and what is not.
 
 ## The idea
 {idea}

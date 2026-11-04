@@ -1,10 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 import { ADMIN, haveAdmin, login } from "./helpers";
 
 // Without a service worker, so the page's own requests can be answered the
 // way a server that has moved on to a newer build answers them.
 test.use({ serviceWorkers: "block" });
+// These tests take a page file away on purpose, so the browser's errors for
+// it are expected.
+test.use({ allowedErrors: /Failed to load module script|Failed to fetch dynamically imported module/ });
 
 test.beforeEach(() => {
   test.skip(!haveAdmin, "Set ADMIN_EMAIL / ADMIN_PASSWORD to run the e2e journeys");
