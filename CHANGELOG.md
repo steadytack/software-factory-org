@@ -2,6 +2,12 @@
 
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
+## 0.16.2 (2026-11-04)
+"Prototypes are not that helpful anymore" (Elliot Morris, 2026) warns that findings from an AI-built prototype stop holding once they meet the organisation, and that a prototype is no basis for a delivery estimate. The spike route already asks for one sharp question with criteria that can fail; what it lacked was a record of what the spike left untested.
+- **What this does not show** (`light.md`, a spike's Gate 3): `gates/gate-3.md` names what was faked or left out (stand-ins and synthetic data, access and provisioning, the people and process around the app) and says the spike's effort is not an estimate for the full build.
+- **On grow:** what the spike does not show stays amber in the assessment, and the full build's effort is estimated afresh.
+- Migration: none. Documentation only.
+
 ## 0.16.1 (2026-11-04)
 A read of "Modern Software Over-Engineering Mistakes" (RDX, 2016), the Twelve-Factor App and Roast Room against the factory found most of their points already covered (YAGNI, abstract on the third repetition, config from the environment, the challenge's strongest case against). Two gaps were worth closing, both from the first.
 - **An "-ity" needs a scenario** (`challenge.md`, Gate 2): the challenger flags an NFR or design choice justified by scalability, extensibility, configurability or security with no example scenario that needs it.
