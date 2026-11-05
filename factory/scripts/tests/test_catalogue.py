@@ -107,10 +107,15 @@ def test_a_zip_is_unpacked_safely(repo, tmp_path):
 
 def test_a_source_over_the_limits_is_refused_and_leaves_nothing(repo, hostile, monkeypatch):
     monkeypatch.setattr(catalogue, "MAX_FILES", 3)
-    before = sorted(p.name for p in (repo / "catalogue/sources").iterdir())
+    sources = repo / "catalogue/sources"  # an empty folder is not in git, so a fresh checkout may not have it
+
+    def listing():
+        return sorted(p.name for p in sources.iterdir()) if sources.is_dir() else []
+
+    before = listing()
     with pytest.raises(catalogue.CatalogueError, match="larger than the importer accepts"):
         catalogue.import_source(str(hostile), "owner", root=repo)
-    assert sorted(p.name for p in (repo / "catalogue/sources").iterdir()) == before
+    assert listing() == before
 
 
 def test_an_unknown_origin_is_refused(repo, tmp_path):

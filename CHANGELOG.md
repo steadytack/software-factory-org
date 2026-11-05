@@ -3,6 +3,7 @@
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
 ## Unreleased
+- **CI fix** (`test_catalogue.py`): the over-the-limits test no longer assumes `catalogue/sources/` exists; an empty folder is not in git, so the GitHub Actions checkout lacked it and the test failed there (it passed locally).
 
 ## 0.19.0 (2026-11-04)
 Simplification before the next idea. The one spike so far carried about 9,100 words in 9 documents before its build started.
