@@ -51,7 +51,7 @@ CURRENT_DOCS = [
     "factory/context/*.md", "factory/standards/*.md", "factory/standards/stacks/*.md", "templates/*/README.md", "templates/*/CLAUDE.md",
 ]
 # Generated tables: (file, renderer). A file is only checked once it exists.
-TABLES = [("README.md", "readme"), ("factory/stages/spec.md", "picker")]
+TABLES = [("README.md", "readme"), ("factory/dormant/spec.md", "picker")]
 
 
 def ready(registry: dict) -> list[dict]:

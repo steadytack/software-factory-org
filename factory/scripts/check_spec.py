@@ -8,7 +8,7 @@ Usage:
 
 Deterministic, no AI. Prints `BLOCKER file:line message` and `warning file:line message`; exits 1
 when there is any blocker. Rules: factory/stages/develop-assess.md (Gate 1), factory/standards/requirement-ids.md
-and factory/stages/spec.md (Gate 2). At both gates, an idea in the factory has its challenger's review checked
+and factory/dormant/spec.md (Gate 2). At both gates, an idea in the factory has its challenger's review checked
 (gates/challenge-<gate>.md, factory/standards/challenge.md): missing is a warning, an unanswered challenge a blocker.
 A pack copied outside the factory can be checked by its path; catalogue references are then checked
 against this factory's catalogue.
@@ -53,13 +53,13 @@ DECISIONS = {"reuse", "adapt", "build", "import", "redesign", "defer"}
 NEEDS_FR = {"RULE": "FR", "SCR": "FR", "DATA": "FR", "PERM": "FR", "INT": "FR"}
 BRIEF_HEADINGS = ["Problem", "Outcome and success measures", "How it's done today", "Data", "Risk", "People and process",
                   "Strategic fit", "Assumptions and unknowns"]
-PLAN_HEADINGS = ["The question", "Success and kill criteria", "Time box", "In and out", "Data and protection", "Template", "Afterwards"]
+CARD_HEADINGS = ["Problem", "The question", "Success and stop", "Time box", "Data and protection", "Challenge", "Sign-off"]
 ROADMAP_HEADINGS = ["The end state", "How it builds out", "Epics", "Starts now", "Outside the factory", "Risks to the roadmap"]
 OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes", "transition")
 # Documents added after the first release: an idea started on an older factory is warned, not blocked (versioning.md).
 DOC_SINCE = {"13-business-process": "0.2.0"}
-# A tier 2 exploration prototype may leave these out: the production thresholds and the deployment (specification-pack.md).
+# A tier 2 prototype may leave these out: the production thresholds and the deployment (specification-pack.md).
 TIER2_OPTIONAL = {"05-non-functional-requirements", "10-architecture-and-deployment"}
 PREMORTEM_SINCE = "0.9.0"
 PREMORTEM = re.compile(r"^##\s+Pre-mortem\s*$(.*?)(?=^##\s|\Z)", re.M | re.S | re.I)
@@ -209,7 +209,7 @@ def check_definition(idea: Path, f: Findings) -> dict | None:
     for p in problems:
         f.block(*p.split("  ", 1))
     if data is None and not problems:
-        f.block("application-definition.md", "missing (Spec writes it first; see factory/stages/spec.md)")
+        f.block("application-definition.md", "missing (Spec writes it first; see factory/dormant/spec.md)")
         return None
     if data is not None and not problems:
         text = (idea / "application-definition.md").read_text(encoding="utf-8")
@@ -221,8 +221,8 @@ def check_definition(idea: Path, f: Findings) -> dict | None:
             if data.get(key, {}).get("state") == "unresolved":
                 f.warn("application-definition.md", f"{key} is unresolved")
         if data["maturity_tier"]["value"] == 1 and (idea / "state.json").exists():
-            f.warn("application-definition.md", "tier 1 is a spike, which takes the light route (a plan, no spec pack: "
-                                                "factory/stages/light.md); the full route is tier 2, 3 or 4")
+            f.warn("application-definition.md", "tier 1 is a spike, which takes the light route (a spike card, no spec pack: "
+                                                "factory/stages/light.md); the full route is tier 2 or 3")
         for key in ("data", "protection"):
             if key not in data:
                 f.warn("application-definition.md", f"no {key} decision (factory/standards/tiers.md: data and protection are decided apart from the tier)")
@@ -275,18 +275,14 @@ def check_brief(idea: Path, f: Findings) -> None:
             f.block(pipeline.BRIEF, f"no '## {heading}' section")
 
 
-def check_plan(idea: Path, f: Findings) -> None:
-    """The spike's plan (the light route, Gate 1): present, every section there, nothing left to fill in."""
-    path = idea / pipeline.PLAN
-    if not path.exists():
-        f.block(pipeline.PLAN, "missing (scaffold.py plan <slug>; see factory/stages/light.md)")
-        return
-    text = path.read_text(encoding="utf-8")
+def check_card(idea: Path, f: Findings) -> None:
+    """A spike's one-page card (the light route, Gate 1): every section there, nothing left to fill in."""
+    text = re.sub(r"```.*?```", "", (idea / pipeline.CARD).read_text(encoding="utf-8"), flags=re.S)
     if has_placeholder(text):
-        f.block(pipeline.PLAN, "placeholder text left (<...>): the question, the criteria and the time box are decided now")
-    for heading in PLAN_HEADINGS:
+        f.block(pipeline.CARD, "placeholder text left (<...>): the question, the criteria, the time box and the challenge are decided now")
+    for heading in CARD_HEADINGS:
         if not re.search(rf"(?im)^##\s+{re.escape(heading)}\s*$", text):
-            f.block(pipeline.PLAN, f"no '## {heading}' section")
+            f.block(pipeline.CARD, f"no '## {heading}' section")
 
 
 def check_roadmap(idea: Path, f: Findings, a: dict) -> None:
@@ -294,7 +290,7 @@ def check_roadmap(idea: Path, f: Findings, a: dict) -> None:
     valid kinds, dependencies on epics that exist, something to start, and spikes for the open questions."""
     path = idea / pipeline.ROADMAP
     if not path.exists():
-        f.block(pipeline.ROADMAP, f"missing: a {a['scale']} needs its roadmap (scaffold.py roadmap <slug>; see factory/stages/roadmap.md)")
+        f.block(pipeline.ROADMAP, f"missing: a {a['scale']} needs its roadmap (scaffold.py roadmap <slug>; see factory/dormant/roadmap.md)")
         return
     text = path.read_text(encoding="utf-8")
     if has_placeholder(text):
@@ -414,14 +410,20 @@ def factory_root(idea: Path) -> Path | None:
 def check_gate_one(idea: Path, f: Findings, root: Path | None = None) -> dict | None:
     """Gate 1, the investment decision: the brief, the assessment (in full) and, unless knocked out, the overview."""
     root = root or factory_root(idea)
-    check_brief(idea, f)
+    card = pipeline.is_card(idea)
+    where = pipeline.CARD if card else pipeline.ASSESSMENT
+    if card:
+        check_card(idea, f)
+    else:
+        check_brief(idea, f)
     a, problems = pipeline.read_assessment(idea, root)
     for p in problems:
-        f.block(pipeline.ASSESSMENT, p)
+        f.block(where, p)
     if a is None and not problems:
         f.block(pipeline.ASSESSMENT, "missing (pipeline.py develop; see factory/stages/develop-assess.md)")
     if a is None or problems:
-        check_overview(idea, f)
+        if not card:
+            check_overview(idea, f)
         return None
     state, reg = {}, pipeline.load(root)
     if (idea / "state.json").exists():
@@ -429,18 +431,18 @@ def check_gate_one(idea: Path, f: Findings, root: Path | None = None) -> dict | 
     blockers, warnings = pipeline.assessment_problems(a, idea.name, root, complete=True, reg=reg,
                                                      scope=pipeline.idea_scope(state, reg, idea.name))
     for b in blockers:
-        f.block(pipeline.ASSESSMENT, b)
+        f.block(where, b)
     for w in warnings:
-        f.warn(pipeline.ASSESSMENT, w)
+        f.warn(where, w)
+    if card:
+        if a["decision"].get("route") != "light":
+            f.block(pipeline.CARD, "a spike card takes the light route (decision/route light)")
+        return a
     if a.get("scale", "app") != "app":
         check_roadmap(idea, f, a)
-    light = a["decision"].get("route") == "light"
-    if light:
-        check_plan(idea, f)
-        if "go" not in (a["decision"]["recommended"], a["decision"].get("decided")):
-            f.warn(pipeline.ASSESSMENT, "route is light, but the recommendation is not Go")
-    if light and not (idea / "overview.md").exists():
-        f.warn("overview.md", "missing: the light route needs none, but sponsors read it if the idea grows")
+    if a["decision"].get("route") == "light":
+        f.block(pipeline.ASSESSMENT, f"the light route has a spike card ({pipeline.CARD}) in place of the brief and assessment "
+                "(pipeline.py develop --spike); a full assessment goes the full route")
     elif not a.get("knockout"):
         check_overview(idea, f)
     if not a.get("knockout"):
@@ -924,7 +926,7 @@ def main(argv: list[str]) -> int:
         print("BLOCKER " + b)
     for w in f.warnings:
         print("warning " + w)
-    what = "Gate 1: brief, assessment and overview" if assessment_only else "spec"
+    what = ("Gate 1: the spike card" if (spec.parent / pipeline.CARD).exists() else "Gate 1: brief, assessment and overview")         if assessment_only else "spec"
     verdict = "FAILED" if f.blockers else "OK"
     tail = "" if assessment_only or matrix is None else "; wrote spec/traceability.md"
     print(f"check_spec: {verdict} ({what}: {len(f.blockers)} blocker(s), {len(f.warnings)} warning(s)){tail}")

@@ -1,6 +1,6 @@
 # A bug in a built app
 
-A bug is the app doing something other than what its approved spec says (for a spike, its `plan.md`). The spec stands and the code is fixed, so nothing is re-approved. When the spec is wrong or says nothing, it is not a bug: it is a change request (`changes.md`). Fix a bug in a session of its own (DEF-18): `/factory resume <slug>` with the report.
+A bug is the app doing something other than what its approved spec says (for a spike, its card, `spike.md`). The spec stands and the code is fixed, so nothing is re-approved. When the spec is wrong or says nothing, it is not a bug: it is a change request (`changes.md`). Fix a bug in a session of its own (DEF-18): `/factory resume <slug>` with the report.
 
 ```
 Assess ─(a bug)→ ISS recorded → a failing test → the fix → the delta checks → the verdict

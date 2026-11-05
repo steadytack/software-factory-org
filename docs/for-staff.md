@@ -36,22 +36,19 @@ Don't worry about having all the answers. "I don't know" is a fine answer. The t
 ## What happens next
 | Step | What happens |
 |---|---|
-| **1. Develop and assess** | You (with the factory) or the team write your idea up as a one-page brief and check it: is the problem real, is it worth it, is the data there, what could go wrong? |
-| **2. Sign-off** | A named approver, not you, decides: **go**, **try it small first**, **get ready** (fix something first, then look again) or **stop**. From here the factory team builds it, with you trying what they build. |
-| **3. Try it** | Most ideas start as a **spike**: a small working version, built quickly to see if the approach works. |
-| **4. Grow it** | If the spike works, it can grow into something people use, and later into a supported app. Each step up is a decision, never an accident. |
-
-**A bigger idea**, one that is really a project or a programme, gets a **roadmap**: the plan for how it builds out over time, step by step. The first steps are usually small tries (spikes) that answer the big questions, and each step after them is signed off on its own.
+| **1. Write it up** | Most ideas start as a **spike**: you (with the factory) or the team write a one-page **spike card**: the problem, the one question a small build would answer, how you would know it worked or should stop, and how long to spend. A bigger idea is written up in full first. |
+| **2. Sign-off** | A named approver, not you, decides: **go**, **get ready** (fix something first, then look again) or **stop**. From here the factory team builds it, with you trying what they build. |
+| **3. Try it** | The spike is built in a fixed time, usually a week or two, to answer its question. |
+| **4. Grow it** | If the spike works, it can grow into a prototype people use, and later into a supported app. Each step up is a decision, never an accident. |
 
 ## What you get back
 - **A reply to every idea card.** No idea disappears.
-- **A short, plain overview of your idea:** the problem, what it would change, and how it was assessed.
+- **Your spike card, or a short overview of your idea:** the problem, what it would change, and how it was assessed.
 - **The decision and why.** If it's "get ready", you hear what has to be fixed and when it will be looked at again. If it's "stop", you hear what would change the answer.
 
-## The four sizes of app
+## The three sizes of app
 - **Spike**: a quick try to answer one question. It may be thrown away.
-- **Exploration prototype**: looks and feels like the real thing, so people can react to it.
-- **Business prototype**: does real work for a team, kept simple underneath.
+- **Prototype**: people use it and react to it, to shape the idea. Kept simple underneath.
 - **Production app**: relied on, fully tested, supported and looked after.
 
 ## Built the same way, every time
@@ -66,4 +63,4 @@ The factory works from what the organisation already knows about itself: what ea
 - Every app is checked against what was asked for before anyone uses it.
 
 ## Questions
-Ask the factory team (see [the operating model](operating-model.md)). The words the team uses are explained in [the glossary](glossary.md).
+Ask the factory team (who does what: [factory/README.md](../factory/README.md)). The words the team uses are explained in [the glossary](glossary.md).

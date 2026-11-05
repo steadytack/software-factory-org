@@ -35,7 +35,7 @@ PAGE = "factory/web/index.html"
 SHARE = "factory/web/share.json"
 SLUG = re.compile(r"^[a-z][a-z0-9-]*$")
 SKIP_DIRS = {"node_modules", ".git", ".venv", "__pycache__", "dist", ".pytest_cache", "backups"}
-IDEA_DOCS = ["idea.md", "overview.md", "idea-brief.md", "assessment.md", "decisions.md", "changes.md", "application-definition.md", "verification.md", "publish-report.md"]
+IDEA_DOCS = ["idea.md", "spike.md", "overview.md", "idea-brief.md", "assessment.md", "decisions.md", "changes.md", "application-definition.md", "verification.md", "publish-report.md"]
 PERSONAL = {
     "a personal email address": re.compile(r"[A-Za-z0-9._-]+@(gmail|googlemail|outlook|hotmail|yahoo|icloud)\.com"),
     "a machine path": re.compile(r"C:\\Users\\|/c/Users/|/home/[a-z]+/|/Users/[A-Za-z]+/"),
@@ -110,7 +110,7 @@ def view(root: Path | None = None) -> dict:
             "changes": parse_changes(base / "ideas" / slug / "changes.md"),
             "docs": idea_docs(base, slug) if SLUG.match(slug) else [],
         })
-    factory_docs = [p for p in ["docs/overview-for-leaders.md", "docs/for-staff.md", "docs/for-technical-leaders.md", "README.md", "factory/README.md", "docs/operating-model.md",
+    factory_docs = [p for p in ["docs/for-leaders.md", "docs/for-staff.md", "README.md", "factory/README.md",
                                     "docs/glossary.md", "CHANGELOG.md", "CLAUDE.md"]
                     if (base / p).exists()]
     factory_docs += sorted(p.relative_to(base).as_posix() for p in (base / "factory" / "stages").glob("*.md")) if (base / "factory" / "stages").is_dir() else []

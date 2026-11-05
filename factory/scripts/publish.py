@@ -4,7 +4,7 @@
 Usage: python factory/scripts/publish.py <slug> [--fix] [--create] [--public]
 
 Dry run by default: checks ideas/<slug>/app and writes ideas/<slug>/publish-report.md. The only
-change it makes is copying spec/ into app/docs/spec/ (a kept light build: plan.md into app/docs/; and, with --fix, adding a LICENSE).
+change it makes is copying spec/ into app/docs/spec/ (a kept light build: its card, spike.md, into app/docs/; and, with --fix, adding a LICENSE).
   --create   after a report with no blockers, create the GitHub repository and push; the repository
              name must be typed back to confirm (policy POL-01). Private unless --public.
   --public   make the new repository public; the word "public" must also be typed.
@@ -158,10 +158,10 @@ def run_checks(slug: str, fix: bool, root: Path | None = None) -> Report:
             r.check(done.returncode == 0, "spec check passes", "spec check fails (run check_spec.py)")
         else:
             r.warnings.append("spec check not run (check_spec.py is not installed)")
-    elif lib.load_state(slug, root).get("light", {}).get("result") == "keep" and (idea / "plan.md").exists():
+    elif lib.load_state(slug, root).get("light", {}).get("result") == "keep" and (idea / "spike.md").exists():
         (app / "docs").mkdir(parents=True, exist_ok=True)
-        shutil.copy(idea / "plan.md", app / "docs" / "plan.md")
-        r.passed.append("a kept light build: its plan copied to app/docs/plan.md in place of a spec")
+        shutil.copy(idea / "spike.md", app / "docs" / "spike.md")
+        r.passed.append("a kept light build: its card copied to app/docs/spike.md in place of a spec")
     else:
         r.blockers.append("no spec in ideas/<slug>/spec")
 

@@ -5,7 +5,7 @@
   "name": "{name}",
   "version": "0.1",
   "status": "draft",
-  "maturity_tier": {"value": 3, "state": "unresolved", "reason": "<2, 3 or 4, and why: there is no default>"},
+  "maturity_tier": {"value": 3, "state": "unresolved", "reason": "<2 (a prototype) or 3 (a production app), and why: there is no default>"},
   "data": {"value": "synthetic", "state": "unresolved", "reason": "<synthetic, sample or real, and why; within the data classes POL-11 allows>"},
   "protection": {"value": "B", "state": "unresolved", "reason": "<A to D, from the data and who can reach it>"},
   "deployment": {"value": "hosted", "state": "recommended", "default": "DEF-02", "reason": "<why>", "development": "<if it differs>"},
@@ -26,7 +26,7 @@
 The solution choices, made at the start of Spec and approved with the spec at Gate 2. The block above is the machine-readable record (checked against `factory/schemas/application-definition.schema.json`). Each choice is `recommended`, `accepted`, `rejected`, `deferred` or `unresolved`; `default` names the DEF-nn it came from. The problem, outcome, users and success measures are in `idea-brief.md` and are not repeated here.
 
 ## Tier, data and protection
-<The tier (2 Exploration prototype, 3 Business prototype, 4 Production app) and why (`factory/standards/tiers.md`). Separately: the data it is built and run with (synthetic, a sample of real records, or real; its classes and any POL-11 conditions), and the protection level that data and its users need (`factory/standards/security.md`).>
+<The tier (2 Prototype, 3 Production app) and why (`factory/standards/tiers.md`). Separately: the data it is built and run with (synthetic, a sample of real records, or real; its classes and any POL-11 conditions), and the protection level that data and its users need (`factory/standards/security.md`).>
 
 ## Deployment and runtime
 <Category, why, and the development environment if it differs.>

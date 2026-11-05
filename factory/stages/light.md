@@ -1,29 +1,39 @@
 # The light route: a spike (tier 1)
 
-The fast way through the factory for an idea whose value looks real but whose ambers are questions a small build answers faster than more research: is it feasible, does the approach work, does the data really support it. It skips the spec pack and Gate 2, is time-boxed (1 person-week by default), and ends at Gate 3 with **grow** (to the tier the approver names), **keep** or **stop**. Every other tier takes the full route with a spec pack (`factory/standards/tiers.md`). In a project or programme, the spikes are epics in its roadmap (`roadmap.md`), each started as an idea of its own and run as here; at its Gate 3, update the roadmap with what it showed.
+The fast way through the factory: build the smallest thing that answers one question, in a time box (1 person-week by default), instead of writing a spec. A spike has **one document, its card** (`spike.md`), in place of a brief, assessment, overview and plan. It skips Spec and Gate 2, and ends at Gate 3 with **grow** (to tier 2 or 3), **keep** or **stop**.
 
 ```
-Develop and Assess ─gate 1 (Go as a spike, with plan.md)→ Build the spike ─gate 3→ grow (to Spec at tier 2, 3 or 4) │ keep │ stop
+spike card ─gate 1 (Go as a spike)→ Build, time-boxed ─gate 3→ grow (to Spec at tier 2 or 3) │ keep │ stop
 ```
 
 ## When
-Recommend it at Gate 1 (`decision.route: "light"`, `timebox`) when every foundation is green or amber, the one thing or the ambers can be tested by building something small, and building it would take less time than settling them on paper. Not when a foundation is red (fix it first: Get Ready), and never to step around a policy.
+When one question decides whether the idea is worth more (is it feasible, does the approach work, does the data support it) and building something small answers it faster than research. Never to step around a policy. An idea that needs more than one question answered, or real investment from the start, goes through Develop and Assess in full (`develop-assess.md`).
 
-**Data and protection are decided in the plan,** not by the tier: a spike may use synthetic data, a sample of real records or real data, as far as the idea's data classes allow (POL-11 and its conditions), and is protected for what it holds and who can reach it (`security.md`). Hosted in Docker like every tier (DEF-02).
+## The card (before Gate 1)
+1. `python factory/scripts/pipeline.py develop IDEA-nnn --spike` makes `ideas/<slug>/spike.md` (for an idea not in the register: `scaffold.py new <slug> --name "..." --spike`).
+2. Fill it in, keeping it to about a page:
+   - **The block at the top:** the data classes (checked against POL-11; a class allowed only by approval needs `pipeline.py approve-data` first), the one thing, the recommendation (Go, or Stop with its reason) and the time box.
+   - **Problem**, with where the evidence comes from; evidence with no source is an assumption.
+   - **The question**, and the answer that would settle it.
+   - **Success and stop**, decided now and judged on evidence the build does not tune to (held-out cases, or a judgement recorded before the build), so the test can fail.
+   - **Time box**, with what is in and out.
+   - **Data and protection** (`factory/standards/security.md`) and the template.
+   - **Challenge:** a fresh subagent that did not see the drafting argues against the card (`factory/standards/challenge.md`); one line per challenge, with what changed or why it was kept.
+3. `python factory/scripts/check_spec.py <slug> --assessment` must pass: every section there, nothing left to fill in, the data classes allowed.
 
-## Plan (before Gate 1)
-`python factory/scripts/scaffold.py plan <slug>` writes `plan.md`; fill it in: the question (the ambers or the one thing, each with the answer that would settle it), the success and kill criteria (decided now, before anything is built, and judged on evidence the build does not tune to: held-out cases, or a judgement recorded blind or before the build, so the test can fail), the time box, the smallest scope that answers the question, the data (synthetic, a real sample or real, its classes) and the protection level, the template, and whether the code is throwaway or a seed. `check_spec.py <slug> --assessment` checks it with the brief and the assessment; a spike needs no overview. Gate 1 shows the plan beside the assessment, and **Go as a spike** approves both: `pipeline.py decide <slug> go --route light [--timebox N] --by <approver> --reply "..."` records Gate 2 as approved with it and moves the idea to Build at tier 1.
+## Gate 1
+Show the card to a gate approver for the idea's scope (not its owner, who may only stop it). Their reply is recorded exactly, with `[meaning: ...]` when it points at numbered choices: `pipeline.py decide <slug> go --by <approver> --reply "..." [--timebox N]` writes it into the card's **Sign-off**, records Gates 1 and 2 as approved and moves the idea to Build at tier 1. A Stop: `pipeline.py decide <slug> stop --reason "..." --by <approver> --reply "..."`.
 
 ## Build
 1. `python factory/scripts/scaffold.py app <slug> <template>`, then Build steps 2 and 3 (`build.md`: safe beside everything else, the baseline checks).
-2. Build only what `plan.md` says is in. No epics, no spec pack; the main path tested (`testing.md`). Record shortcuts in `decisions.md` as you take them.
+2. Build only what the card says is in. The main path tested (`testing.md`). Record shortcuts in `decisions.md` as you take them.
 3. Stop at the time box with what you have. Running out of time is a result, not a failure.
 
-## Gate 3 for a spike
-1. Check the result against the success and kill criteria, as run (each run or not run).
-2. The outcome (`audit.md` step 7): `python factory/scripts/learned.py outcome <slug>`, filled in, with the time box as the estimate; `learned.py check <slug>` must pass.
-3. Write `gates/gate-3.md`: **Done** (what was built, how to run it), **Results exactly as run** against each criterion, **What this does not show** (what was faked or left out: stand-ins and synthetic data in place of live systems and real data, access and provisioning, the people and process around the app; and that the spike's effort is not an estimate for the full build), **Recommended:** grow (to which tier, and why), keep or stop, **Decisions for you**, **Risks** (the shortcuts taken), **Next**.
-4. **Stop for sign-off.** Accept, from a gate approver for the idea's scope (not the idea's owner, who may only stop it), `grow to 2|3|4`, `keep`, `stop` (with a reason) or `approve` (the recommendation). Record it with `python factory/scripts/pipeline.py light <slug> grow|keep|stop --by <approver> --reply "..." [--tier 2|3|4] [--reason "..."]`:
-   - **Grow** (the tier is required; there is no default): leaves the light route for Spec (`spec.md`) at that tier, with gates 2 and 3 reset. What the spike showed updates the brief, the assessment's ambers and the one thing (record the changes in `decisions.md`); what it does not show stays amber, and the effort is estimated afresh for the full build; the spec starts from it, and a seed's code may be the base the build starts from (doc 12). Keep `outcome.md`, and update it at the full Gate 3 rather than writing a new one.
-   - **Keep:** good enough as it is, as a demonstration or a tool for its builder: on to Publish (`publish.md`). Anything other people will use grows instead.
+## Gate 3
+1. Check the result against the success and stop criteria, as run, and run the spec-conformance audit against the card (`factory/audits/README.md`, which also says when a spike needs the other audits).
+2. `python factory/scripts/learned.py outcome <slug>`, filled in (the time box is the estimate); `learned.py check <slug>` must pass.
+3. Write `gates/gate-3.md`, short: what was built and how to run it; the results exactly as run against each criterion; **what this does not show** (stand-ins and synthetic data in place of live systems, access, the people and process around it, and that the spike's effort is no estimate for a full build); the recommendation; the risks.
+4. Record the approver's reply with `python factory/scripts/pipeline.py light <slug> grow|keep|stop --by <approver> --reply "..." [--tier 2|3] [--reason "..."]`:
+   - **Grow** (the tier is required): on to Spec (`factory/dormant/spec.md`, brought back for it) at that tier, starting from what the spike showed. What it does not show stays an open question, and the effort is estimated afresh.
+   - **Keep:** good enough as it is, as a demonstration or a tool for its builder; Publish (`factory/dormant/publish.md`) comes back for it. Anything other people will rely on grows instead.
    - **Stop:** closed with its reason, which is as useful an answer as a Go.

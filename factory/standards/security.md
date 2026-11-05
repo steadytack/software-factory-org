@@ -1,6 +1,6 @@
 # Security baseline
 
-`../context/policies.md` applies at every tier. This file sets the **protection level**, which follows what the app holds and who can reach it, not its tier (`tiers.md`): a spike on a real Internal sample, a business prototype with real staff and a production app with the same data and users are all protected at level B. Choose the highest level any of its data or users needs; a level never overrides a clear security, privacy or safety requirement in the spec.
+`../context/policies.md` applies at every tier. This file sets the **protection level**, which follows what the app holds and who can reach it, not its tier (`tiers.md`): a spike on a real Internal sample, a prototype with real staff and a production app with the same data and users are all protected at level B. Choose the highest level any of its data or users needs; a level never overrides a clear security, privacy or safety requirement in the spec.
 
 | Level | When |
 |---|---|

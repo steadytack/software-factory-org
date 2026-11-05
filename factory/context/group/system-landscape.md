@@ -4,7 +4,7 @@
 
 The factory does not read the AaC models directly yet. Connecting them (a sync that keeps the catalogue's reference cards up to date from the models) is planned, once the AaC formats and access are agreed with their owners. Until then:
 
-- **When an idea touches a system or a process, read its AaC model** (ask its owner, `docs/operating-model.md`) and cite it in the brief, the definition and the spec: the system's or process's name as the model gives it, and where the model is.
+- **When an idea touches a system or a process, read its AaC model** (ask its owner) and cite it in the brief, the definition and the spec: the system's or process's name as the model gives it, and where the model is.
 - **Reference cards** in the catalogue give each main system or process a searchable entry that points at its source of truth (the AaC model, or a Confluence or SharePoint page), with a maintainer, confirmed each year:
   - Create one: `python factory/scripts/catalogue.py card system <name> --link URL --maintainer WHO --purpose TEXT` (or `card process ...`)
   - Find them: `python factory/scripts/catalogue.py search <words>` (confirmed cards are returned; stale ones are flagged)

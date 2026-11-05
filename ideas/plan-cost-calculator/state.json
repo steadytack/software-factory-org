@@ -5,7 +5,7 @@
   "kind": "app",
   "stage": "build",
   "status": "in-progress",
-  "factory_version": "0.14.0",
+  "factory_version": "0.19.0",
   "updated": "2026-11-01",
   "template": "web-app",
   "tier": 1,
@@ -21,7 +21,7 @@
       "date": "2026-11-01",
       "reply": "for the decisions 1.a, 2,b,3a [meaning: 1A Go as a spike; 2B Impact stays 0.5; 3A Risk stays green]",
       "version": "0.1",
-      "file": "gates/gate-1.md"
+      "file": "spike.md"
     },
     "2": {
       "status": "approved",
@@ -39,7 +39,7 @@
   "last_verification": null,
   "imports": [],
   "changes": [],
-  "next": "Build the spike to plan.md within 1.5 person-week(s), then Gate 3: grow, keep or stop (factory/stages/light.md)",
+  "next": "Build the spike to spike.md within 1.5 person-week(s), then Gate 3: grow, keep or stop (factory/stages/light.md)",
   "assessment": {
     "decision": "go",
     "score": 0.67,

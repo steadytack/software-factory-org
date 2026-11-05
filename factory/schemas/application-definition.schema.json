@@ -12,7 +12,7 @@
     "name": { "type": "string", "minLength": 1 },
     "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
     "status": { "enum": ["draft", "in-review", "approved", "superseded"] },
-    "maturity_tier": { "$ref": "#/$defs/choice", "properties": { "value": { "enum": [1, 2, 3, 4] } } },
+    "maturity_tier": { "$ref": "#/$defs/choice", "properties": { "value": { "enum": [1, 2, 3] } } },
     "data": {
       "$ref": "#/$defs/choice",
       "description": "Which data it is built and run with, decided apart from the tier: synthetic, a sample of real records, or real data",

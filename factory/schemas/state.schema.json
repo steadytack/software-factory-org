@@ -28,7 +28,7 @@
     "factory_version": { "type": "string" },
     "updated": { "type": "string", "format": "date" },
     "template": { "type": ["string", "null"] },
-    "tier": { "enum": [1, 2, 3, 4, null] },
+    "tier": { "enum": [1, 2, 3, null] },
     "versions": {
       "type": "object",
       "additionalProperties": false,
@@ -106,7 +106,7 @@
         "review": { "type": "string", "format": "date", "description": "Get Ready: when it comes back to Gate 1" }
       }
     },
-    "route": { "enum": ["full", "light", "roadmap"], "description": "Absent is full (tier 2, 3 or 4). The roadmap route (a project or programme) approves its build-out over time; each epic is an idea of its own. The light route (a spike, tier 1) skips the spec pack and Gate 2 (its plan, plan.md, is approved at Gate 1) and ends at Gate 3 with grow, keep or stop" },
+    "route": { "enum": ["full", "light", "roadmap"], "description": "Absent is full (tier 2 or 3). The roadmap route (a project or programme) approves its build-out over time; each epic is an idea of its own. The light route (a spike, tier 1) skips the spec pack and Gate 2 (its plan, plan.md, is approved at Gate 1) and ends at Gate 3 with grow, keep or stop" },
     "light": {
       "type": "object",
       "description": "How the light route ended at Gate 3 (pipeline.py light)",
@@ -114,7 +114,7 @@
       "additionalProperties": false,
       "properties": {
         "result": { "enum": ["grow", "keep", "stop"] },
-        "to_tier": { "enum": [2, 3, 4], "description": "Grow: the tier it grew to" },
+        "to_tier": { "enum": [2, 3], "description": "Grow: the tier it grew to" },
         "date": { "type": "string", "format": "date" },
         "reply": { "type": "string" },
         "by": { "type": "string" },

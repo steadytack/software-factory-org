@@ -24,7 +24,7 @@ INPUTS
 - If no specification is supplied, or it is partial: reconstruct one from the
   README, documentation, comments, tests, route/command/stage definitions, UI
   labels, commit history and issue tracker. Present the reconstructed spec as
-  a numbered list and get my approval BEFORE auditing against it (unless the project has an approved spec pack, the factory's `spec/` folder for the idea: use it and do not reconstruct). Mark each
+  a numbered list and get my approval BEFORE auditing against it (unless the factory has an approved spec for the idea: its spec pack in `spec/`, or for a spike its card, `spike.md`, whose question, success and stop criteria and "In" list are the spec; use it and do not reconstruct). Mark each
   reconstructed item with its source and your confidence.
 - Where the supplied spec is silent or ambiguous on something the code does,
   do not guess the intent — list it as a question.

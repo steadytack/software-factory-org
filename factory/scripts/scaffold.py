@@ -2,15 +2,15 @@
 """Create an idea's working folder, and later its app from a template.
 
 Usage:
-  python factory/scripts/scaffold.py new <slug> --name "Readable name" [--kind app|factory-asset|demo]
+  python factory/scripts/scaffold.py new <slug> --name "Readable name" [--kind app|factory-asset|demo] [--spike]
   python factory/scripts/scaffold.py overview <slug>       the overview, filled from the assessment (end of Develop and Assess)
-  python factory/scripts/scaffold.py plan <slug>           a spike's plan (the light route; Develop and Assess)
   python factory/scripts/scaffold.py roadmap <slug>        a project or programme's roadmap, epic by epic (Develop and Assess)
   python factory/scripts/scaffold.py definition <slug>     the Application Definition: the solution choices (start of Spec)
   python factory/scripts/scaffold.py spec <slug>           the spec pack stubs (Spec)
   python factory/scripts/scaffold.py app <slug> <template>
 
-`new` makes ideas/<slug>/ with state.json, idea.md, the idea brief and assessment stubs, decisions.md,
+`new` makes ideas/<slug>/ with state.json, idea.md, the idea brief and assessment stubs (with --spike, the
+one-page spike card, spike.md, in their place), decisions.md,
 changes.md and empty gates/, source/ and spec/ folders, at the start of Develop and Assess (an idea
 captured in ideas/pipeline.json is made by `pipeline.py develop`, which calls it). `app` copies templates/<template> into ideas/<slug>/app
 (without build output or the factory's own files), adds NOTES.md and the standards it is built to,
@@ -95,8 +95,10 @@ def copy_template(source: Path, dest: Path) -> int:
 IDEA_TEXT = "<In the owner's words: what it is, who it is for, what problem it solves.>"
 
 
-def new_idea(slug: str, name: str, kind: str = "app", root: Path | None = None, idea: str | None = None) -> Path:
-    """The idea's folder, with the brief and assessment stubs to develop and assess (factory/stages/develop-assess.md)."""
+def new_idea(slug: str, name: str, kind: str = "app", root: Path | None = None, idea: str | None = None,
+             spike: bool = False) -> Path:
+    """The idea's folder, with the brief and assessment stubs to develop and assess (factory/stages/develop-assess.md),
+    or for a spike its one-page card (factory/stages/light.md)."""
     base = root or lib.ROOT
     if not re.match(lib.SLUG_PATTERN, slug):
         raise lib.FactoryError(f"slug '{slug}' must be lower-case letters, digits and hyphens, starting with a letter")
@@ -110,9 +112,10 @@ def new_idea(slug: str, name: str, kind: str = "app", root: Path | None = None, 
     (folder / "decisions.md").write_text(DECISIONS_MD, encoding="utf-8", newline="\n")
     (folder / "changes.md").write_text(CHANGES_MD, encoding="utf-8", newline="\n")
     values = {"slug": slug, "name": name, "idea": idea.strip() if idea else IDEA_TEXT}
-    for stub in ("idea-brief.md", "assessment.md"):
+    stubs = {"spike.md": "spike.md"} if spike else {"idea-brief.md": "idea-brief.md", "assessment.md": "assessment.md"}
+    for target, stub in stubs.items():
         template = (base / "factory" / "project-files" / stub).read_text(encoding="utf-8")
-        (folder / stub).write_text(fill(template, values), encoding="utf-8", newline="\n")
+        (folder / target).write_text(fill(template, values), encoding="utf-8", newline="\n")
     state = {
         "schema_version": 1,
         "slug": slug,
@@ -130,7 +133,8 @@ def new_idea(slug: str, name: str, kind: str = "app", root: Path | None = None, 
         "last_verification": None,
         "imports": [],
         "changes": [],
-        "next": "Develop and Assess: draft idea-brief.md, then assessment.md (factory/stages/develop-assess.md)",
+        "next": ("Develop the spike card, spike.md (factory/stages/light.md)" if spike else
+                 "Develop and Assess: draft idea-brief.md, then assessment.md (factory/stages/develop-assess.md)"),
     }
     lib.save_state(slug, state, root)
     return folder
@@ -151,7 +155,7 @@ def new_definition(slug: str, root: Path | None = None) -> Path:
         raise lib.FactoryError(f"ideas/{slug}/application-definition.md already exists")
     template = (base / "factory" / "project-files" / "application-definition.md").read_text(encoding="utf-8")
     text = fill(template, {"slug": slug, "name": state["name"]})
-    if state.get("tier") in (2, 3, 4):  # a spike that grew names its tier at its Gate 3
+    if state.get("tier") in (2, 3):  # a spike that grew names its tier at its Gate 3
         text = text.replace('"maturity_tier": {"value": 3, "state": "unresolved",', f'"maturity_tier": {{"value": {state["tier"]}, "state": "recommended",')
     path.write_text(text, encoding="utf-8", newline="\n")
     state["versions"]["application_definition"] = "0.1"
@@ -160,18 +164,6 @@ def new_definition(slug: str, root: Path | None = None) -> Path:
 
 
 IMPACT_WORDS = {0.25: "minimal", 0.5: "low", 1: "medium", 2: "high", 3: "massive"}
-
-
-def new_plan(slug: str, root: Path | None = None) -> Path:
-    """A spike's plan: the question, success and kill criteria, the time box, scope, data, template, afterwards."""
-    base = root or lib.ROOT
-    state = lib.load_state(slug, root)
-    path = lib.idea_dir(slug, root) / "plan.md"
-    if path.exists():
-        raise lib.FactoryError(f"ideas/{slug}/plan.md already exists")
-    template = (base / "factory/project-files/plan.md").read_text(encoding="utf-8")
-    path.write_text(fill(template, {"name": state["name"], "slug": slug}), encoding="utf-8", newline="\n")
-    return path
 
 
 def new_roadmap(slug: str, root: Path | None = None) -> Path:
@@ -301,12 +293,11 @@ def main(argv: list[str]) -> int:
         if len(args) >= 2 and args[0] == "new":
             name = args[args.index("--name") + 1] if "--name" in args else args[1]
             kind = args[args.index("--kind") + 1] if "--kind" in args else "app"
-            idea = new_idea(args[1], name, kind)
+            idea = new_idea(args[1], name, kind, spike="--spike" in args)
             print(f"Created {idea.relative_to(lib.ROOT).as_posix()}/ (stage develop)")
             return 0
-        if len(args) == 2 and args[0] in ("definition", "overview", "spec", "plan", "roadmap"):
-            made = {"definition": new_definition, "overview": new_overview, "spec": new_spec, "plan": new_plan,
-                    "roadmap": new_roadmap}[args[0]](args[1])
+        if len(args) == 2 and args[0] in ("definition", "overview", "spec", "roadmap"):
+            made = {"definition": new_definition, "overview": new_overview, "spec": new_spec, "roadmap": new_roadmap}[args[0]](args[1])
             print(f"Wrote {made.relative_to(lib.ROOT).as_posix()}")
             return 0
         if len(args) == 3 and args[0] == "app":

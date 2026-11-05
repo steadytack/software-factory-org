@@ -4,6 +4,19 @@ Changes to Organisation A's factory (stages, standards, scripts, schemas, the `f
 
 ## Unreleased
 
+## 0.19.0 (2026-11-04)
+Simplification before the next idea. The one spike so far carried about 9,100 words in 9 documents before its build started.
+- **A spike is one card** (`spike.md`, `stages/light.md`): `pipeline.py develop --spike` (or `scaffold.py new --spike`) writes it in place of the brief, assessment, overview, plan and Gate 1 file; no foundations or RICE; the challenge is a section of it; `decide` writes the sign-off into it. The light route now needs a card, and a card takes only the light route. `scaffold.py plan`, `check_spec.check_plan` and `project-files/plan.md` are gone; spikes get their own section in `ideas/pipeline.md`; outcomes no longer need the five foundations (`outcome` schema).
+- **`plan-cost-calculator` migrated** to one 957-word card; its old brief, assessment, overview, plan and Gate 1 files are in git history (3127021).
+- **Dormant** (`factory/dormant/`, new): Spec, Publish, the roadmap route and the spec-pack standard moved out of the active factory, with their scripts and tests kept working. `dormant/README.md` says how to bring one back.
+- **All four audits stay active** (`factory/audits/`), with the tier rules for three tiers and a "For a spike" column in its README; spec conformance checks a spike against its card, and a spike's Gate 3 runs it (`light.md`).
+- **Three tiers:** 1 Spike, 2 Prototype (the exploration and business prototypes merged), 3 Production app (was 4). Schemas, `pipeline.py light --tier 2|3` and the standards follow.
+- **Four guides:** `README.md`, `docs/for-staff.md`, `docs/for-leaders.md` (new: the leaders' overview, the technical leaders' guide and `docs/the-factory/` merged) and `docs/glossary.md`. The operating model is "Who does what" in `factory/README.md`.
+- **Shorter files:** the skill is an index (1,650 to about 800 words); `develop-assess.md` is about a third of its length; `factory/README.md` is rewritten.
+- **Defaults pruned** from 24 to 18: DEF-12 (offline) and DEF-16 (delivery) retired, DEF-19 to DEF-22 merged into DEF-18 (working economy), others trimmed to what exists. The 11 policies are kept: each is a control the spike relied on or every session needs.
+- **The freeze allows cuts** (`CLAUDE.md`): removing, merging or shortening is always allowed.
+- Migration: a full assessment with `route: light` is now blocked at Gate 1; develop that idea as a spike card instead. An app built at tier 3 or 4 under the old scheme is tier 2 or 3.
+
 ## 0.18.0 (2026-11-04)
 From a review of the repo: the factory went from 0.2.1 to 0.17.0 in six days while one idea, a spike, went through it.
 - **Factory freeze** (`CLAUDE.md`): until three ideas reach Gate 3 (one on the full route), the factory changes only for a problem a real idea hit; other ideas for it go in `factory/parked.md` (new).

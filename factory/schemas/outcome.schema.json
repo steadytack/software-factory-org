@@ -12,7 +12,7 @@
     "assessment_version": { "type": "string", "pattern": "^\\d+\\.\\d+$", "description": "The assessment version approved at Gate 1" },
     "foundations": {
       "type": "object",
-      "required": ["problem", "value", "data", "risk", "people"],
+      "required": [],
       "additionalProperties": false,
       "properties": {
         "problem": { "$ref": "#/$defs/held" },

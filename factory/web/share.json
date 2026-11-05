@@ -2,21 +2,17 @@
   "about": "What dashboard.py --write puts in the shareable page. Paths are globs from the repository root; anything not listed stays out.",
   "overview": "README.md",
   "factory": [
-    "docs/overview-for-leaders.md",
-    "docs/the-factory/overview.md",
-    "docs/the-factory/idea-brief.md",
-    "docs/the-factory/assessment.md",
+    "docs/for-leaders.md",
     "docs/for-staff.md",
-    "docs/for-technical-leaders.md",
     "README.md",
     "factory/README.md",
     "factory/stages/*.md",
-    "docs/operating-model.md",
     "docs/glossary.md",
     "CHANGELOG.md"
   ],
   "idea": [
     "idea.md",
+    "spike.md",
     "overview.md",
     "idea-brief.md",
     "assessment.md",

@@ -222,7 +222,8 @@ def new_outcome(slug: str, root: Path | None = None) -> Path:
     if a["decision"].get("decided") != "go":
         raise lib.FactoryError(f"ideas/{slug} was not a Go at Gate 1; an outcome is written after the build")
     ratings = pipeline.ratings(a)
-    foundations = {k: {"rated": ratings[k], "held": "unchecked", "note": "<what the build showed>"} for k in pipeline.FOUNDATIONS}
+    foundations = {k: {"rated": ratings[k], "held": "unchecked", "note": "<what the build showed>"}
+                   for k in pipeline.FOUNDATIONS if k in ratings}  # a spike card rates none
     state = lib.read_json(idea / "state.json")
     template = (base / "factory/project-files" / OUTCOME).read_text(encoding="utf-8")
     text = template.replace("{foundations}", json.dumps(foundations, ensure_ascii=False)) \
@@ -433,7 +434,7 @@ def review(root: Path | None = None, threshold: int = 2) -> list[str]:
                      f"(said in {', '.join(projects)})")
     done = [r for r in outcomes(root) if r["o"]]
     for k, lens in LENS.items():
-        missed = sorted(r["slug"] for r in done if r["o"]["foundations"][k]["held"] == "no")
+        missed = sorted(r["slug"] for r in done if r["o"]["foundations"].get(k, {}).get("held") == "no")
         if len(missed) >= threshold:
             found.append(f"Review the {lens} screening questions? {pipeline.FOUNDATIONS[k]} was rated wrongly "
                          f"in {len(missed)} builds ({', '.join(missed)})")

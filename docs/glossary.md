@@ -4,44 +4,32 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 
 | Term | Means | Where |
 |---|---|---|
-| **ADLC (agentic development lifecycle)** | Building software with agents doing the drafting and building from a shared context, every step leaving an artifact, and checks running as code; people decide at the gates. The factory is our ADLC. The term isn't a settled standard. | `docs/for-technical-leaders.md` |
-| **Intent** | What someone wants built and why, captured before any design: in the factory, the idea card and brief. | `ideas/<slug>/idea.md`, `idea-brief.md` |
-| **Artifact chain** | The files each step leaves (intent, spec, plan, code and tests, review record, production signal), committed in order, so an app can be traced back to its intent. It is the audit trail. | `ideas/<slug>/` |
 | **Idea card** | Five questions anyone can answer to put an idea in. | `factory/project-files/idea-card.md` |
-| **Idea brief** | A one- to two-page write-up of the idea that the factory drafts from the card, with every assumption marked. | `factory/project-files/idea-brief.md` |
-| **Assessment** | The check on the brief that comes before any decision: knock-outs, the five foundations, a RICE score and the one thing. | `factory/stages/develop-assess.md` |
+| **Idea owner** | The person developing an idea. Anyone can use the factory to develop their own idea. | `factory/README.md` |
+| **Spike** | Tier 1: a small, time-boxed build that answers one question. It ends with grow, keep or stop. | `factory/stages/light.md` |
+| **Spike card** | A spike's one page (`spike.md`): the problem, the question, success and stop, the time box, data and protection, the challenge and the sign-off. | `factory/project-files/spike.md` |
+| **The one thing** | The single most important thing to know or fix before investing. | `factory/stages/light.md`, `develop-assess.md` |
+| **Idea brief and assessment** | For an idea developed in full rather than as a spike: a write-up with every assumption marked, then a check on it (knock-outs, the five foundations, a RICE score). | `factory/stages/develop-assess.md` |
 | **Knock-out** | A reason the idea cannot go ahead as it stands, for example it needs a kind of data the organisation does not allow. | `factory/stages/develop-assess.md` |
 | **The five foundations** | Problem, Value, Data, Risk, and People and Process, each rated green, amber (a question to answer) or red (fix it first). | `factory/stages/develop-assess.md` |
-| **RICE** | A score for ranking ideas: Reach × Impact × Confidence ÷ Effort. Higher means more value for the effort. | `factory/stages/develop-assess.md` |
-| **The one thing** | The single most important thing to know or fix before investing. | `factory/stages/develop-assess.md` |
-| **Idea owner** | The person developing an idea. Develop and Assess is theirs: anyone can use the factory to develop and harden their own idea. | `docs/operating-model.md` |
-| **Sign-off** | A gate decision made by a named gate approver for the idea's scope, never by the idea's own owner (who may only withdraw it). Recorded with who signed. | `factory/stages/develop-assess.md` |
-| **Gate** | A decision point where a named person approves, changes or stops the work. There are four: invest (1), the spec (2), the build and its audit (3), and publishing (4). | `factory/README.md` |
-| **Go / Go as a spike / Get Ready / Stop** | The four answers at Gate 1. "Get Ready" means fix the named foundations first, then look again on a set date. | `factory/stages/develop-assess.md` |
-| **Tier** | How mature a build is: 1 Spike, 2 Exploration prototype, 3 Business prototype, 4 Production app. It is chosen for each idea, and moving up a tier is a decision. | `factory/standards/tiers.md` |
-| **Scale** | Whether an idea is one app, a project (several releases or apps toward one outcome) or a programme (several projects, or a major system). | `factory/stages/roadmap.md` |
-| **Roadmap** | For a project or programme: the overall plan of how it builds out over time, from the end state back to the first step, epic by epic, with a decision after each. Gate 1 approves it as the direction. | `factory/stages/roadmap.md` |
-| **Epic (in a roadmap)** | One step of a roadmap: a spike that answers a question, a build that delivers a release, or a project delivered outside the factory. Each spike or build goes through the factory as an idea of its own. | `factory/stages/roadmap.md` |
-| **Bug** | The built app doing something other than what its approved spec says. It is fixed with a failing test first and ends with a verdict: verified, partially verified or failed. When the spec itself is wrong, it is a change request instead. | `factory/stages/bugs.md` |
-| **Spike / light route** | Tier 1: a small, time-boxed build that answers one question, with a one-page plan instead of a spec. It ends with grow, keep or stop. | `factory/stages/light.md` |
-| **Stand-in** | A fake of another system that a prototype connects to instead of the real one: built from that system's published schema, filled with made-up data, and swapped for the live connection when the app becomes a production app. | `factory/context/group/defaults.md` (DEF-24) |
+| **RICE** | A score for ranking ideas developed in full: Reach × Impact × Confidence ÷ Effort. Spikes are not scored. | `factory/stages/develop-assess.md` |
+| **Gate** | A decision point where a named person approves, changes or stops the work: invest (1), the spec (2), the build and its audit (3), publishing (4). A spike has Gates 1 and 3. | `factory/README.md` |
+| **Sign-off** | A gate decision by a named gate approver, never the idea's own owner (who may only withdraw it). Recorded with who signed, in their words. | `factory/README.md` |
+| **Go / Go as a spike / Get Ready / Stop** | The answers at Gate 1. "Get Ready" means fix the named foundations first, then look again on a set date. | `factory/stages/develop-assess.md` |
+| **Challenge** | Before a gate, a fresh agent that did not see the drafting argues against the work; each challenge is answered. | `factory/standards/challenge.md` |
+| **Tier** | How mature a build is: 1 Spike, 2 Prototype, 3 Production app. Chosen for each idea; moving up is a gate decision. | `factory/standards/tiers.md` |
+| **Dormant** | Parts of the factory no idea has used yet (Spec, Publish, roadmaps), set aside until one needs them. | `factory/dormant/README.md` |
+| **Spec pack** | The documents that specify a prototype or production app. Dormant until an idea needs one. | `factory/dormant/specification-pack.md` |
+| **Bug** | The built app doing something other than what was approved. Fixed with a failing test first. | `factory/stages/bugs.md` |
+| **Stand-in** | A fake of another system that a spike or prototype connects to instead of the real one, with made-up data. | `factory/context/group/defaults.md` (DEF-24) |
 | **Synthetic data** | Made-up records that look like the real thing, used to build and test without real people's or customers' information. | `factory/context/group/policies.md` (POL-11) |
-| **Spec pack** | The documents that specify an app at tiers 2 to 4: requirements, user experience, data, security, stories, the delivery plan and so on. It scales with the tier. | `factory/standards/specification-pack.md` |
-| **Data classes** | The kinds of information (Public, Internal, Confidential, Personal and so on) and whether each may be used in the factory, and on what conditions. | `factory/context/group/policies.md` (POL-11) |
-| **Protection level A–D** | How well an app is protected. It follows the data the app holds and who can reach it, not its tier: A is the builder only, B is Internal data or staff, C is Confidential or personal data, D is anyone outside the organisation. | `factory/standards/security.md` |
-| **POL-nn** | A policy: a rule that applies to every idea and is never broken. | `factory/context/group/policies.md` |
-| **DEF-nn** | A default: what the factory does unless an idea decides otherwise. | `factory/context/group/defaults.md` |
-| **Lens** | A set of questions from one point of view (security, operations, cost and so on), used in the assessment and, where it applies, in the spec. | `factory/context/lenses/README.md` |
-| **Architecture as Code (AaC)** | The organisation's system landscape, and increasingly its processes, described as code and kept up to date by their owners. It is the factory's source of truth for what exists. | `factory/context/group/system-landscape.md` |
-| **System landscape** | Every system the organisation runs, who owns it, the data it holds and how systems connect. | `factory/context/group/system-landscape.md` |
-| **Process model** | How a piece of work is done today, step by step and who does it, as AaC. The starting point for an idea's as-is process (doc 13). | `factory/context/group/system-landscape.md` |
-| **Reference card** | A catalogue entry for a system, process or policy that already exists. It points at its source of truth and has a maintainer who confirms it at set intervals. | `catalogue/README.md` |
-| **Catalogue** | Approved, reusable building blocks, plus reference cards for the organisation's systems, which new apps are built from where they fit. | `catalogue/README.md` |
-| **Template** | The starting point an app is built from, with its stack and standards. The templates in the registry are the organisation's approved technology list. | `templates/`, `factory/templates.json` |
-| **Factory version** | The release of the shared guardrails, approach, policies, defaults and templates an idea was built on. Improvements are released as new versions. | `VERSION`, `CHANGELOG.md` |
-| **Executable gate** | A check that runs as code before a person decides, such as the spec check or the clean-container tests. It reports; the person at the gate decides. | `factory/scripts/check_spec.py`, `verify.py` |
-| **Continuous evals** | Tests and evaluations that re-run on every change, and after release, to prove each version still does what it should. Today they run at build and audit. | `factory/standards/testing.md` |
-| **Production signal** | Evidence from a live app (an incident, an alert, a metric, a benefits review) that becomes a new idea or change. Today it comes from benefits reviews. | `factory/stages/publish.md` |
-| **Proportional human review** | People review in proportion to risk. Today every gate has a person; low-risk work may later pass some gates on executable checks alone. | `docs/for-technical-leaders.md` |
-| **Audit** | The checks before Gate 3, spec conformance first: does the app do what was specified? | `factory/stages/audit.md` |
-| **Benefits review** | A look back at set points after publishing: were the success measures met? | `factory/stages/publish.md` |
+| **Data classes** | The kinds of information (Public, Internal, Confidential, Personal and so on) and whether each may be used, and on what conditions. | `factory/context/group/policies.md` (POL-11) |
+| **Protection level A–D** | How well an app is protected. It follows the data it holds and who can reach it, not its tier. | `factory/standards/security.md` |
+| **POL-nn / DEF-nn** | A policy (a rule never broken) / a default (what the factory does unless an idea decides otherwise). | `factory/context/group/` |
+| **System landscape** | Every system the organisation runs, who owns it, the data it holds and how systems connect, kept as Architecture as Code by its owners. | `factory/context/group/system-landscape.md` |
+| **Template** | The starting point an app is built from, with its stack and standards: the approved technology list. | `templates/`, `factory/templates.json` |
+| **Catalogue** | Approved, reusable building blocks and reference cards for existing systems. | `catalogue/README.md` |
+| **Audit** | The checks before Gate 3, spec conformance first: does the app do what was approved? | `factory/stages/audit.md` |
+| **Outcome** | At Gate 3, whether the Gate 1 assessment or card held. | `factory/stages/light.md` |
+| **Factory version** | The release of the factory an idea was built on. | `VERSION`, `CHANGELOG.md` |
+| **Freeze** | Until three ideas have been through, the factory changes only to fix a problem a real idea hit, or to get simpler. | `CLAUDE.md` |

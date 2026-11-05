@@ -72,7 +72,7 @@
         "recommended": { "enum": ["undecided", "go", "get-ready", "stop"] },
         "reason": { "type": "string", "minLength": 1 },
         "fix": { "type": "array", "items": { "$ref": "#/$defs/foundation" }, "uniqueItems": true, "description": "Get Ready: the foundations to fix" },
-        "route": { "enum": ["full", "light", "roadmap"], "description": "Go: the full route (Spec, then Build and Audit, tier 2, 3 or 4), the light route (a spike, tier 1; plan in plan.md) or, for a project or programme, its roadmap (roadmap.md)" },
+        "route": { "enum": ["full", "light", "roadmap"], "description": "Go: the full route (Spec, then Build and Audit, tier 2 or 3), the light route (a spike, tier 1; its card is spike.md) or, for a project or programme, its roadmap (roadmap.md)" },
         "timebox": { "type": "number", "exclusiveMinimum": 0, "description": "The light route: the time box, person-weeks" },
         "owner": { "type": "string", "minLength": 1, "description": "Get Ready: who fixes the named foundations" },
         "review": { "type": "string", "format": "date", "description": "Get Ready: when it comes back to Gate 1, fixed or not" },

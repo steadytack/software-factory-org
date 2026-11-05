@@ -9,9 +9,8 @@ Set per idea (the factory records it in `state.json` and the spec; `factory/stan
 | Tier | For | Treatment |
 |---|---|---|
 | 1 Spike | One question, fast | Normal stack (so it can grow), the main path tested, no scanning or formal docs. Decide up front what would make you grow, keep or bin it |
-| 2 Exploration prototype | People seeing it and reacting | As a spike, plus what the people trying it will do tested; faked behind the screen where that is quicker, and said so |
-| 3 Business prototype | Real work with real users and data, to refine the idea | Everything below: per-user login, secrets out of the repo, tests per requirement and for permissions, data integrity and tricky logic, backups it can be recovered from, one README. Simple underneath (one instance, simple storage) |
-| 4 Production app | Being relied on | Add: hardening, monitoring, tested recovery, firmer test coverage (failure, concurrency, load where the spec sets it), a runbook, a named owner and support |
+| 2 Prototype | People using it and reacting, to refine the idea | Per-user login, secrets out of the repo, tests per requirement and for permissions, data integrity and tricky logic, backups it can be recovered from, one README. Simple underneath (one instance, simple storage) |
+| 3 Production app | Being relied on | Add: hardening, monitoring, tested recovery, firmer test coverage (failure, concurrency, load where the spec sets it), a runbook, a named owner and support |
 
 ## 2. Code rules
 

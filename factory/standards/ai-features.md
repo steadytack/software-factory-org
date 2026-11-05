@@ -34,7 +34,7 @@ The provider is a third-party service: approved under DEF-11 before it is used. 
 ## Evals
 Tests prove the code; **evals** measure how good the model's answers are, which no unit test can.
 - **The eval set:** realistic inputs, each with the expected output or the criteria a good answer meets, built from the FRs' RULE examples and ACs and kept in the app's repository. It includes hard and hostile cases: out of scope, empty, very long, ambiguous, and injection attempts (an input telling the model to ignore its instructions, reveal its prompt or call a tool it should not). Synthetic unless the data classes allow real records.
-- **Size by tier:** tier 1, the handful the spike's question needs; tier 2, about 20; tier 3, about 50, a fifth of them hostile; tier 4, as tier 3 plus a regression case for every failure seen in use.
+- **Size by tier:** tier 1, the handful the spike's question needs; tier 2, about 50, a fifth of them hostile; tier 3, as tier 2 plus a regression case for every failure seen in use.
 - **Grading:** exact or rule-based checks wherever the output allows (fields, values, refusals); a model grader only with a written rubric, and a sample of its grades checked by a person.
 - **When they run:** they call the real model, so they cost money and need the approved key (`testing.md`: an external service exercised because the test says so). They run before Gate 3 and after any change to the model, provider or a prompt. Below the doc 05 threshold is a failed requirement.
 - **Unit and integration tests mock the model** for the paths around it: malformed output, a refusal, a timeout, the cost cap reached, an injection that tries to call a tool. Those run in the clean container with every other test.

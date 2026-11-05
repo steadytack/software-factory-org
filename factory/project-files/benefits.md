@@ -10,7 +10,7 @@
 
 # {name}: benefits review
 
-Written at Publish (`factory/stages/publish.md`) and filled in 30 and 90 days later: did the app deliver what Gate 1 expected, now that people use it? The block above is the record (schema `factory/schemas/benefits.schema.json`). `estimated` is copied from the assessment approved at Gate 1; each review is filled in on or after its `due` date, from the owner's numbers.
+Written at Publish (`factory/dormant/publish.md`) and filled in 30 and 90 days later: did the app deliver what Gate 1 expected, now that people use it? The block above is the record (schema `factory/schemas/benefits.schema.json`). `estimated` is copied from the assessment approved at Gate 1; each review is filled in on or after its `due` date, from the owner's numbers.
 
 - **Measures:** one row per success measure in the brief and the objectives (spec doc 02): the `target`, what was `actual`ly measured (and how), and whether it was `met` (`yes`, `partly`, `no`).
 - **Reach:** the people or processes it reached per period, measured, against the estimate; 0 is a real answer.

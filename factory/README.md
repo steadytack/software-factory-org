@@ -1,61 +1,64 @@
 # How the factory works
 
-The factory turns an idea, an existing specification or an imported project into a built, audited application. An idea is first developed into a short brief and assessed against it (knock-outs, the five foundations, RICE, the one thing to know or fix), so a gate approver can sign off the investment decision at Gate 1, Go, Get Ready or Stop, before anything is specified. Develop and Assess is self-service: any member of staff can run it to develop and harden their own idea; from Spec on, the factory operators run it (`docs/operating-model.md`). It decides small things itself and records them; it stops at the gates, and for anything only the owner can decide (`context/policies.md`).
+The factory turns an idea into a built, checked app. Most ideas start as a **spike**: a one-page card, a time-boxed build, then grow, keep or stop. An idea that needs real investment from the start is developed in full (a brief and an assessment) before anything is specified. The factory decides small things itself and records them; it stops at the gates, and for anything only the owner can decide (`context/group/policies.md`).
 
 ```
-The fast route, a spike (tier 1): Develop and Assess ─gate 1 (plan.md)→ Build, time-boxed ─gate 3→ grow │ keep │ stop
-The full route (tier 2, 3 or 4):  Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
-                                  (a spike that grows joins the full route at Spec, at the tier the approver names)
-A project or programme:          Develop and Assess (roadmap.md) ─gate 1→ the roadmap: each epic (spikes first) an idea of its own
+A spike (tier 1):           spike card ─gate 1→ Build, time-boxed ─gate 3→ grow │ keep │ stop
+The full route (tier 2-3): Develop and Assess ─gate 1→ Spec ─gate 2→ Build and Audit ─gate 3→ Publish ─gate 4→ done
+                            (a spike that grows joins the full route at Spec, at the tier the approver names)
 ```
 
-Ideas come in as lines in `ideas/inbox.md` or as idea cards (`project-files/idea-card.md`) exported to `ideas/inbox.csv`. The terms are in `docs/glossary.md`, and who does what is in `docs/operating-model.md`.
+Tiers (`standards/tiers.md`, chosen per idea): **1 Spike**, **2 Prototype**, **3 Production app**. **Data** (synthetic, a real sample, real) and **protection** (levels A to D, `standards/security.md`) are separate decisions. Every tier is hosted in Docker (DEF-02).
 
-Tiers (`standards/tiers.md`, chosen per idea; no default): **1 Spike** takes the light route; **2 Exploration prototype**, **3 Business prototype** and **4 Production app** take the full route with the spec pack. **Data** (synthetic, a real sample, real) and **protection** (levels A to D, `standards/security.md`) are separate decisions, at every tier. Every tier is hosted in Docker (DEF-02).
+**Active and dormant.** What no idea has used yet (Spec and the spec pack, Publish and benefits reviews, the roadmap route for programmes, the catalogue importer) is in `dormant/`: written, tested, not loaded. Each comes back when an idea needs it (`dormant/README.md`).
 
 | Stage | Produces | Gate approves |
 |---|---|---|
-| **Develop and Assess** | Ideas captured in `ideas/pipeline.json`; per idea `idea-brief.md` (problem, outcome, today's process, data, risk, people, fit, assumptions), `assessment.md` (knock-outs, the five foundations rated red, amber or green, RICE, the one thing, the recommendation) and `overview.md` for sponsors and the team; the ranked `ideas/pipeline.md` | The investment decision: Go, Get Ready (fix the named foundations, then a light re-assessment) or Stop |
-| **Spec** | `application-definition.md` (the solution choices: tier, deployment, interfaces, design, template, candidate assets, lenses), then the spec pack in `spec/` (index plus 13 documents, the as-is and to-be business process included), `composition.json`, the component selection and gaps (doc 12), traceability | The solution choices, requirements, composition, gaps and the delivery plan |
-| **Build and Audit** | The app in `app/`, epic by epic with tests; the spec conformance audit; a verification report; `outcome.md` (did the Gate 1 assessment hold?) | The audit and readiness |
-| **Publish** | A dry-run report; on a typed confirmation, the repository; `benefits.md`, reviewed 30 and 90 days later (were the success measures met?) | The release |
-| *The light route* (`stages/light.md`) | A spike (tier 1), instead of Spec: `plan.md` (the question, success and kill criteria, the time box, the data and protection), approved with Gate 1; a time-boxed build; the outcome | Gate 3: grow (to Spec at the tier named), keep or stop |
-| *The roadmap route* (`stages/roadmap.md`) | For a project or programme: `roadmap.md`, the overall plan of how it builds out over time (the end state, phases, epics with the spikes first, what starts now), approved with Gate 1; each epic then started as an idea of its own (`pipeline.py epic`) | Gate 1: the direction; each epic has its own gates |
+| **A spike** (`stages/light.md`) | `spike.md`: the problem, the question, success and stop, the time box, data and protection, the challenge, the sign-off; a time-boxed build; `outcome.md` | Gate 1: Go as a spike or Stop. Gate 3: grow, keep or stop |
+| **Develop and Assess** (`stages/develop-assess.md`) | `idea-brief.md`, `assessment.md` (knock-outs, five foundations, RICE, the one thing), `overview.md`; the ranked `ideas/pipeline.md` | Gate 1: Go, Get Ready or Stop |
+| **Build and Audit** (`stages/build.md`, `stages/audit.md`) | The app in `app/` with tests; the spec-conformance audit; `outcome.md` | Gate 3: the audit and readiness |
+| *After a gate* | `stages/changes.md` for a change, `stages/bugs.md` for a bug in a built app | As the change needs |
+
+## Who does what
+| Role | Does | Who |
+|---|---|---|
+| **Idea owner** | Develops their own idea with `/factory`, tries the spike, owns its success measures | Any member of staff |
+| **Factory operator** | Runs `/factory` from Gate 1 on: builds spikes and apps, prepares each gate | `group.operators` in `context/scopes.json` |
+| **Gate approver** | Signs off at the gates; never an idea they own | The gate approvers in `context/scopes.json` |
+| **Factory owner** | Owns the factory: accepts or rejects proposed changes (`learned.py review`) and releases them | To be named (the group gate approver until then) |
+
+- **Sign-off is recorded with a name** (`--by`), and an owner cannot sign off their own idea while another approver could. Name a second approver before opening the factory to staff.
+- **Every idea card gets a reply:** on capture, after Gate 1 (the decision and why; for Stop, what would change it) and after a spike.
+- **At most 3 ideas in flight per operator** (DEF-23). It protects review time at the gates.
+- **A new operator** reads `SETUP.md`, this page and `stages/`, runs a first idea beside an experienced one, then is added to `group.operators`.
 
 ## Where things are
 | Path | What |
 |---|---|
-| `context/` | Who the owner is, policies, defaults, learned choices, environment, systems, lenses (`context/README.md` gives the precedence) |
-| `stages/` | What to do at each stage: `develop-assess.md`, `spec.md`, `build.md`, `audit.md`, `publish.md`, the light route (`light.md`), the roadmap route (`roadmap.md`), `changes.md` for anything after a gate, and `bugs.md` for a bug in a built app |
-| `standards/` | `PRINCIPLES.md` for every app, stack rules per template, the spec pack and its IDs, security, testing, versioning |
-| `audits/` | Audit prompts; spec conformance is mandatory before Gate 3 |
-| `schemas/` | JSON Schemas for the idea register, the assessment, the Application Definition, project state, composition, catalogue entries, source records and scopes |
+| `context/` | The owner, policies, defaults, learned choices, environment, systems, lenses (`context/README.md` gives the precedence) |
+| `stages/` | What to do: `light.md` (a spike), `develop-assess.md`, `build.md`, `audit.md`, `changes.md`, `bugs.md` |
+| `standards/` | `PRINCIPLES.md` for every app, stack rules per template, tiers, security, testing, the challenge, versioning |
+| `audits/` | The four audit prompts; spec conformance is mandatory before Gate 3 |
+| `dormant/` | Parts set aside until an idea needs them |
+| `schemas/` | JSON Schemas for the idea register, assessments and spike cards, state, outcomes, and the dormant parts |
 | `scripts/` | The deterministic tools (below) |
+| `project-files/` | Stubs copied into new ideas and apps: the spike card, the brief, the assessment, the overview, `NOTES.md` and the dormant parts' stubs |
 | `templates.json` | The template registry; the template tables are generated from it |
-| `project-files/` | Files copied into new ideas and apps: the idea brief, assessment, overview, Application Definition and spec pack stubs, `NOTES.md` |
+| `parked.md` | Ideas for the factory itself, parked during the freeze |
 
 ## Scripts
 | Script | Does |
 |---|---|
-| `pipeline.py capture / add / develop / check / render / decide / reassess / approve-data / light / epic` | Develop and Assess: captures ideas from `ideas/inbox.md`, the idea cards in `ideas/inbox.csv`, or one at a time, makes each idea's folder with its brief and assessment, validates the assessments (data classes against POL-11), computes and ranks the RICE scores into `ideas/pipeline.md`; `decide` records Gate 1, signed off by an approver other than the idea's owner (Go, Go as a spike, Go on the roadmap, Get Ready with an owner and a review date, Stop), `epic` starts an epic of an approved roadmap as an idea of its own, `reassess` reopens a Get Ready idea, `light` records a spike's Gate 3 (grow to a tier, keep, stop); overdue Get Ready ideas are flagged; `approve-data` records an approver's yes for a data class POL-11 allows only by approval |
-| `scaffold.py new <slug> --name "..."` | Creates `ideas/<slug>/` with the brief and assessment stubs (`pipeline.py develop` calls it) |
-| `scaffold.py overview <slug>` | The overview, filled from the assessment (Gate 1) |
-| `scaffold.py plan <slug>` | A spike's plan (`plan.md`), when a spike is recommended |
-| `scaffold.py roadmap <slug>` | A project or programme's roadmap (`roadmap.md`) |
-| `scaffold.py definition <slug>` | The Application Definition: the solution choices (start of Spec) |
-| `scaffold.py spec <slug>` | The spec pack stubs, filled from the definition |
-| `check_spec.py <slug> [--assessment] [--impact IDs]` | Checks the brief, the assessment and the overview (Gate 1), or the definition and the whole pack (Gate 2): blockers and warnings; writes `spec/traceability.md`; also checks a pack copied outside the factory |
-| `scaffold.py app <slug> <template>` | Copies a template into `ideas/<slug>/app/` with its standards, and starts its git repository |
-| `status.py [--write]` | Every idea, its stage, tier, template and gates; the cycle times so far (capture to Gate 1, Gate 1 to Gate 3, spikes within their time box) |
-| `dashboard.py [--port N] [--write [path]]` | Read-only web page: how the factory works, each idea's progress, published apps, documents. `--write` makes one shareable page from the documents in `factory/web/share.json` |
-| `import_source.py <file> <slug>` | A supplied document (docx, md, txt, pdf) into versioned markdown, images and source IDs in `ideas/<slug>/source/` |
-| `verify.py --template <name>` | A template's checks from the registry, in clean containers |
-| `publish.py <slug> [--fix] [--create] [--public]` | The publish dry run; creates a repository only on a typed confirmation |
-| `learned.py add / clarify / recall / review / mark / outcome / benefits / check` | The learning loop: records gate answers that differed from a recommendation, and the owner's clarifications that reach beyond one idea, in `context/learned.md`; `recall` gives an idea only the rows its scope allows; writes each built idea's `outcome.md` (Gate 3) and each published idea's `benefits.md` (30- and 90-day reviews), and `review` turns repeated overrides, foundations rated wrongly, effort or reach mis-estimated, impact or success measures missed and repeated lessons into candidate changes for an approver; nothing changes by itself |
-| `check_factory.py [--fix]` | The factory agrees with itself: registry, schemas, context, ideas, the idea register and assessments, learned entries and outcomes, catalogue, generated tables |
-| `catalogue.py list / search / show / import / validate / approve / reject` | The catalogue and its safe importer (`catalogue/README.md`) |
-| `scan.py` | Static secret, script, instruction and licence checks (used by publish and the importer) |
-
+| `pipeline.py capture / add / develop [--spike] / check / render / decide / reassess / approve-data / light` | Ideas: captured from `ideas/inbox.md` or `ideas/inbox.csv`, developed into a spike card or a brief and assessment, checked (data classes against POL-11) and ranked into `ideas/pipeline.md`; `decide` records Gate 1, `light` a spike's Gate 3, `approve-data` an approver's yes for a class POL-11 allows only by approval |
+| `check_spec.py <slug> --assessment` | Gate 1: the spike card, or the brief, assessment and overview |
+| `scaffold.py new / overview / app` | An idea's folder (`--spike` for a card), its overview, its app from a template |
+| `learned.py outcome / check / add / review / mark` | `outcome.md` at Gate 3, and the learning loop: answers that differed from a recommendation, turned into candidate changes for an approver; nothing changes by itself |
+| `status.py [--write]` | Every idea, its stage, tier and gates; cycle times |
+| `dashboard.py [--port N] [--write [path]]` | A read-only web page of the ideas and documents |
+| `verify.py --template <name>` | A template's checks, in clean containers |
+| `check_factory.py [--fix]` | The factory agrees with itself: registry, schemas, context, ideas, catalogue, generated tables |
+| `scan.py`, `scopes.py`, `import_source.py` | Secret and licence checks; the context an idea's scope allows; a supplied document into markdown |
+| Dormant | `scaffold.py definition / spec / roadmap`, `check_spec.py` on a pack, `publish.py`, `catalogue.py`, `pipeline.py epic`, `learned.py benefits` |
 
 ## Rules the scripts never break
 - Nothing outward-facing without the owner's typed confirmation (POL-01).
