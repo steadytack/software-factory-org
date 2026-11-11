@@ -44,7 +44,7 @@ Tiers (`standards/tiers.md`, chosen per idea): **1 Spike**, **2 Prototype**, **3
 | `scripts/` | The deterministic tools (below) |
 | `project-files/` | Stubs copied into new ideas and apps: the spike card, the brief, the assessment, the overview, `NOTES.md` and the dormant parts' stubs |
 | `templates.json` | The template registry; the template tables are generated from it |
-| `parked.md` | Ideas for the factory itself, parked during the freeze |
+| `parked.md` | Ideas for the factory itself, not being built now |
 
 ## Scripts
 | Script | Does |

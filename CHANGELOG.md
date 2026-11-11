@@ -3,6 +3,7 @@
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
 ## Unreleased
+- **The README explains the factory:** the problem, how an idea goes through, and what every app gets. The guides no longer say the factory is frozen, and the leaders' guide covers `usage.py` and the template's optional features.
 - **Spec and Publish improvements left in the personal repository** are listed in `factory/dormant/README.md`, with their source commits, for when those parts come back.
 - **`factory/standards/stacks/web-app.md` has its `## Security` heading again.** It was lost in 0.10.0, which left the security rules under Architecture checks.
 

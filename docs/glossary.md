@@ -32,4 +32,4 @@ The words the factory uses, in plain terms. The rules behind each one are in the
 | **Audit** | The checks before Gate 3, spec conformance first: does the app do what was approved? | `factory/stages/audit.md` |
 | **Outcome** | At Gate 3, whether the Gate 1 assessment or card held. | `factory/stages/light.md` |
 | **Factory version** | The release of the factory an idea was built on. | `VERSION`, `CHANGELOG.md` |
-| **Freeze** | Until three ideas have been through, the factory changes only to fix a problem a real idea hit, or to get simpler. | `CLAUDE.md` |
+| **Freeze** | A pause on changing the factory except to fix a problem a real idea hit, or to get simpler. One ran from 0.18.0 and was lifted at 0.20.0. | `CLAUDE.md` |
