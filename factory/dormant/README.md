@@ -11,4 +11,17 @@ Parts of the factory that no idea has used yet. They are set aside here, not del
 
 The catalogue importer (`catalogue.py import`) is dormant too: the catalogue has one asset, the `web-app` template. Its rules stay in `catalogue/README.md`.
 
+## Waiting in the personal `software-factory` repository
+When the factory's work was brought across (0.20.0 to 0.22.0), these improvements to Spec and Publish were left behind, because those parts are dormant here. When Spec or Publish comes back, read the commit in that repository (`git show <sha>`) and port it by hand, leaving out anything about its ideas.
+
+| Improvement | Source commit | Comes back with |
+|---|---|---|
+| The glossary is checked, and every journey must reach the to-be | `2add614` | Spec |
+| Change proposals with deltas merged into the pack (`sync_change.py`), and `check_spec.py --analyze` | `7dbe001` | Spec |
+| Wider `--impact` (shared data or integration, every-screen NFRs); delta audits re-verify it | `9d90737` | Spec |
+| `check_spec.py --audit`: Verified needs the real input (the rule itself is in `spec-conformance.md` already) | `9281867` | Spec |
+| The app's copy of the spec keeps up | `1c3d701` | Spec and Publish |
+| No publishing past a change request the last conformance run does not cover | `8824d37` | Publish |
+| Private terms never published: `publish.py` checks the tree and the history | `e9f51c8` | Publish |
+
 To bring one back: move it to where it was (`factory/stages/` or `factory/standards/`), point the skill and `factory/README.md` at it again, and record it in `CHANGELOG.md` with the idea that needed it.

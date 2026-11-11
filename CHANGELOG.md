@@ -3,6 +3,7 @@
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
 ## Unreleased
+- **Spec and Publish improvements left in the personal repository** are listed in `factory/dormant/README.md`, with their source commits, for when those parts come back.
 - **`factory/standards/stacks/web-app.md` has its `## Security` heading again.** It was lost in 0.10.0, which left the security rules under Architecture checks.
 
 ## 0.22.0 (2026-11-11)
