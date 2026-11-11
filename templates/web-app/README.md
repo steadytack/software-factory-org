@@ -126,6 +126,22 @@ cp /tmp/lock/poetry.lock backend/poetry.lock
 5. Fill in `DESIGN_TOKENS.md` and `COMPONENT_CATALOGUE.md` (they are in this folder).
 6. **Make fresh secrets** with `python scripts/make_env.py` (it refuses to overwrite) — never ship another project's secret files. Only `.env.example` is committed; `.env` and `secrets/` are git-ignored but travel with folder copies, so delete them from a copy.
 
+## Trims already made
+
+Most apps built on this template remove the same optional parts. Start from this list instead of working it out again; record the trim in the app's `decisions.md`, and add a row here when an app removes a part not listed (factory `audit.md` step 6). Only general trims belong here: each app's own record says what it did.
+
+| Part | What goes | Keep |
+|---|---|---|
+| Example domain | Sites and surveys: models, schemas, endpoints, pages, tests, the baseline migration (step 2 above) | The generic CRUD factories |
+| Comments, attachments and uploads | Their endpoints, panels and tables; `python-multipart` (and Pillow, if nothing else resizes images) | — |
+| Recycle bin, feedback, notifications | Their endpoints, pages, the bell and their tables | — |
+| Changelog | The changelog endpoint and page | The audit table, which other records rely on |
+| Offline mode | The offline queue and its status indicator | — |
+| Map editor and mini map | The drawing tools and the mini map | `maplibre-gl`, when the app still shows a map |
+| Maps altogether | The map page, PostGIS (a plain Postgres image) and the geo packages (`geoalchemy2`, `shapely`) | — |
+| Search palette, help drawer, dashboard | Their components and routes | — |
+| Admin page and users panel (one user) | The pages | The user API, with multi-user off |
+
 ## Gotchas
 
 - Cookies are scoped to the frontend origin through the nginx proxy (`/api/`) — don't call the backend origin directly from the browser.

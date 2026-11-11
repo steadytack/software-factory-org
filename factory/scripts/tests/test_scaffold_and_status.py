@@ -135,3 +135,97 @@ def test_cycle_times_come_from_the_dates_already_recorded(repo):
     assert line == ("Cycle times: capture to Gate 1, median 7 days over 2 idea(s); Gate 1 to Gate 3, median 17.5 days over 2; "
                     "1 of 1 spike(s) within their time box")
     assert status.cycle_line([times["new-one"]]) is None
+
+
+class FakeGh:
+    """Stands in for subprocess.run calling `gh run list`."""
+
+    def __init__(self, stdout: str = "", returncode: int = 0, stderr: str = "", error: Exception | None = None):
+        self.out, self.code, self.err, self.error, self.args = stdout, returncode, stderr, error, None
+
+    def __call__(self, args, **kwargs):
+        self.args = args
+        if self.error:
+            raise self.error
+        return type("Done", (), {"stdout": self.out, "returncode": self.code, "stderr": self.err})()
+
+
+RUNS = json.dumps([
+    {"workflowName": "Dependency Graph", "conclusion": "success", "headSha": "c5f52f1aa", "createdAt": "2026-11-06T13:00:00Z"},
+    {"workflowName": "CI", "conclusion": "failure", "headSha": "2179a9bbb", "createdAt": "2026-11-05T10:00:00Z"},
+    {"workflowName": "CI", "conclusion": "success", "headSha": "1111111cc", "createdAt": "2026-10-27T10:00:00Z"},
+])
+
+
+def test_ci_shows_each_workflows_latest_run_and_flags_a_red_one():
+    """An app's CI can fail on every push while GitHub's own workflow stays green."""
+    gh = FakeGh(RUNS)
+    line = status.ci_line("app", "owner/app", gh)
+    assert gh.args[:5] == ["gh", "run", "list", "-R", "owner/app"]
+    assert "CI failure on 2179a9b (2026-11-05)" in line and "Dependency Graph success on c5f52f1" in line
+    assert line.endswith("<-- not green")
+    green = json.dumps([{"workflowName": "CI", "conclusion": "success", "headSha": "abc1234", "createdAt": "2026-11-06"}])
+    assert not status.ci_line("app", "owner/app", FakeGh(green)).endswith("<-- not green")
+
+
+def test_ci_says_when_it_could_not_be_read():
+    assert "CI not read (FileNotFoundError" in status.ci_line("app", "o/r", FakeGh(error=FileNotFoundError()))
+    assert "CI not read (gh: HTTP 404" in status.ci_line("app", "o/r", FakeGh(returncode=1, stderr="HTTP 404: Not Found\n"))
+    assert status.ci_line("app", "o/r", FakeGh("[]")) == "app: no CI runs on o/r"
+    assert status.ci_lines([{"slug": "a"}, {"slug": "b", "app": {"repo": "o/b"}}], FakeGh("[]")) == ["b: no CI runs on o/b"]
+
+
+class FakeDocker:
+    """Stands in for subprocess.run calling `docker compose` and `git ls-files` for `status.py --stack`."""
+
+    def __init__(self, services: dict, running: list[dict], created: dict[str, str], files: list[str]):
+        self.services, self.running, self.created, self.files = services, running, created, files
+
+    def __call__(self, args, **kwargs):
+        out, code = "", 0
+        if args[:3] == ["docker", "compose", "config"]:
+            out = json.dumps({"services": self.services})
+        elif args[:3] == ["docker", "compose", "ps"]:
+            out = "\n".join(json.dumps(c) for c in self.running)
+        elif args[:3] == ["docker", "image", "inspect"]:
+            out, code = (self.created[args[-1]], 0) if args[-1] in self.created else ("", 1)
+        elif args[:2] == ["git", "ls-files"]:
+            out = "\n".join(self.files)
+        return type("Done", (), {"stdout": out, "returncode": code, "stderr": ""})()
+
+
+def _stack(tmp_path, built: str, running_image: str = "app-backend"):
+    import os
+    app = tmp_path / "app"
+    (app / "backend").mkdir(parents=True)
+    (app / "docker-compose.yml").write_text("services: {}\n", encoding="utf-8")
+    source = app / "backend" / "main.py"
+    source.write_text("x = 1\n", encoding="utf-8")
+    changed = 1_793_000_000  # 2026-10-26 07:33 UTC
+    os.utime(source, (changed, changed))
+    docker = FakeDocker(
+        {"backend": {"build": {"context": str(app / "backend")}}, "db": {"image": "postgres:17"}},
+        [{"Service": "backend", "Image": running_image, "State": "running"}, {"Service": "db", "Image": "postgres:17", "State": "running"}],
+        {"app-backend": built}, ["main.py"])
+    return app, docker
+
+
+def test_stack_flags_an_image_built_before_its_sources_changed(tmp_path):
+    """Passing tests do not change what the running build shows: a change looked at on the old build looks undone."""
+    app, docker = _stack(tmp_path, "2026-10-26T07:00:00.123456789Z")
+    line = status.stack_line("demo", app, docker)
+    assert "old build" in line and "backend built 2026-10-26 07:00, main.py changed 2026-10-26 07:33" in line
+    app, docker = _stack(tmp_path / "later", "2026-10-26T08:00:00Z")
+    assert status.stack_line("demo", app, docker) == "demo: stack current (backend)"  # the pulled db is not judged
+
+
+def test_stack_flags_a_container_whose_image_tag_moved_on(tmp_path):
+    app, docker = _stack(tmp_path, "2026-10-26T08:00:00Z", running_image="sha256:0123abcd")
+    assert "backend runs an image its tag no longer points to" in status.stack_line("demo", app, docker)
+
+
+def test_stack_says_when_it_could_not_be_read(tmp_path):
+    app, _ = _stack(tmp_path, "2026-10-26T08:00:00Z")
+    assert "stack not read (FileNotFoundError" in status.stack_line("demo", app, FakeGh(error=FileNotFoundError()))
+    assert status.stack_line("demo", app, FakeDocker({}, [], {}, [])) == "demo: stack not running"
+    assert "no compose file" in status.stack_line("demo", tmp_path / "missing", FakeGh())

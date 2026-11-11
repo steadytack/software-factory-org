@@ -4,7 +4,7 @@
 Usage: python factory/scripts/check_factory.py [--fix] [--root PATH]
 
 Checks the template registry (factory/templates.json) against the template folders, stack standards,
-workflows and module manifests; the schemas; the context files and scopes; every idea's state.json, the idea register and each assessment; learned.md and each outcome; and
+workflows and module manifests; the schemas; the context files and scopes; every idea's state.json (and that its gate files agree with it), the idea register and each assessment; learned.md and each outcome; and
 every catalogue entry and source record; and that every path factory/web/share.json lists exists. Reference cards past their review date are warnings, not
 problems. Read-only unless --fix, which only regenerates the template tables
 between <!-- templates:start --> and <!-- templates:end --> markers. Exit 0 = consistent, 1 = problems.
@@ -22,6 +22,7 @@ import factory_lib as lib  # noqa: E402
 import scopes  # noqa: E402
 import pipeline  # noqa: E402
 import learned  # noqa: E402
+import check_spec  # noqa: E402
 
 START, END = "<!-- templates:start -->", "<!-- templates:end -->"
 READY_KEYS = [
@@ -243,7 +244,7 @@ def placeholders(data: object, where: str = "") -> list[tuple[str, str]]:
     return [(where, m) for m in PLACEHOLDER.findall(data)] if isinstance(data, str) else []
 
 
-def check_ideas(root: Path, errors: list[str]) -> None:
+def check_ideas(root: Path, errors: list[str], warnings: list[str] | None = None) -> None:
     ideas = root / "ideas"
     reg = scopes.registry(root)
     for folder in sorted(p for p in ideas.iterdir() if p.is_dir()) if ideas.is_dir() else []:
@@ -258,6 +259,10 @@ def check_ideas(root: Path, errors: list[str]) -> None:
             errors.append(f"{rel}: not valid JSON ({exc})")
             continue
         errors += [f"{rel}: {p}" for p in lib.validate("state", state, root)]
+        if warnings is not None:
+            f = check_spec.Findings()
+            check_spec.check_records(folder, f)
+            warnings += [f"ideas/{folder.name}/{w}" for w in f.warnings]
         if state.get("slug") != folder.name:
             errors.append(f"{rel}: slug {state.get('slug')!r} does not match the folder")
         try:
@@ -389,7 +394,7 @@ def run(root: Path, fix: bool = False, warnings: list[str] | None = None) -> tup
     check_files(root, registry, errors)
     check_modules(root, registry, errors)
     check_context(root, errors)
-    check_ideas(root, errors)
+    check_ideas(root, errors, warnings)
     check_catalogue(root, errors, warnings)
     fixed = check_tables(root, registry, errors, fix)
     check_removed_names(root, registry, errors)

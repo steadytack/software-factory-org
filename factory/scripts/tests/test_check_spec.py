@@ -394,3 +394,46 @@ def test_tier_2_may_leave_out_the_production_documents(idea):
     assert not blocked(f, ".md  missing") and warned(f, "spec/05-non-functional-requirements.md  missing (optional at tier 2")
     (pack / "spec/07-security-and-permissions.md").unlink()
     assert blocked(findings(pack), "spec/07-security-and-permissions.md  missing")
+
+
+# ---------------------------------------------------------------- the record agrees with itself
+def record(tmp_path: Path, state: dict, gates: dict[str, str], changes: str = "") -> check_spec.Findings:
+    idea = tmp_path / "idea"
+    (idea / "gates").mkdir(parents=True)
+    (idea / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    for name, status_line in gates.items():
+        (idea / "gates" / name).write_text(f"# Gate\n\n{status_line}\n", encoding="utf-8")
+    if changes:
+        (idea / "changes.md").write_text(changes, encoding="utf-8")
+    f = check_spec.Findings()
+    check_spec.check_records(idea, f)
+    return f
+
+
+def test_a_closed_idea_with_an_open_gate_change_or_current_is_warned(tmp_path):
+    state = {"stage": "done", "status": "done", "gates": {"3": {"status": "approved"}},
+             "current": {"epic": None, "story": None, "milestone": "all epics approved; audit and final Gate 3 next"}}
+    changes = "| CR | Date | What | Outcome |\n|---|---|---|---|\n| CR-002 | 2026-10-25 | Tables | Built; verified; awaiting commit |\n"
+    f = record(tmp_path, state, {"gate-3.md": "Status: **approved 2026-10-23**", "gate-3-cr-001.md": "Status: awaiting approval. Date: 2026-10-25."}, changes)
+    assert warned(f, "gates/gate-3-cr-001.md  says awaiting approval, but state.json status is done")
+    assert warned(f, "CR-002 outcome says \"Built; verified; awaiting commit\", but the idea is done")
+    assert warned(f, "status is done but current still says \"all epics approved")
+    assert len(f.warnings) == 3
+
+
+def test_a_main_gate_file_must_match_its_state_and_an_open_gate_is_fine(tmp_path):
+    f = record(tmp_path, {"status": "awaiting-approval", "gates": {"1": {"status": "approved"}, "3": {"status": "awaiting-approval"}}},
+               {"gate-1.md": "**Status:** awaiting approval.", "gate-3.md": "Status: awaiting-approval. Date: 2026-11-01."})
+    assert f.warnings == ["gates/gate-1.md  says awaiting-approval, but state.json gate 1 is approved: correct one of them"]
+    f = record(tmp_path / "b", {"status": "in-progress", "gates": {"1": {"status": "get-ready"}}}, {"gate-1.md": "Status: Get Ready"})
+    assert f.warnings == []
+
+
+def test_check_factory_reports_a_record_that_disagrees_as_a_warning(repo):
+    import check_factory
+    idea = scaffold.new_idea("tide-times", "Tide times", root=repo)
+    (idea / "gates" / "gate-1.md").write_text("Status: changes requested\n", encoding="utf-8")
+    warnings: list[str] = []
+    check_factory.check_ideas(repo, [], warnings)
+    assert warnings == ["ideas/tide-times/gates/gate-1.md  says changes-requested, but state.json gate 1 is not-reached: "
+                        "correct one of them"]

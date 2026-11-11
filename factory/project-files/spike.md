@@ -37,6 +37,9 @@ One page for a spike (tier 1, `factory/stages/light.md`). The block above is wha
 ## Data and protection
 <Synthetic, a real sample or real data, as far as the data classes allow; the protection level (`factory/standards/security.md`); the template.>
 
+## Data sources
+<Each external source (a feed, an API, a file another system writes): its real sample under `source/` (from a test environment, or data the classes allow) and the fields used, read from the sample; or why no sample can be had yet, as a risk. "None" if the spike reads no outside data.>
+
 ## Challenge
 <A fresh reviewer's strongest challenges, one line each, with what changed or why it was kept.>
 

@@ -53,7 +53,7 @@ DECISIONS = {"reuse", "adapt", "build", "import", "redesign", "defer"}
 NEEDS_FR = {"RULE": "FR", "SCR": "FR", "DATA": "FR", "PERM": "FR", "INT": "FR"}
 BRIEF_HEADINGS = ["Problem", "Outcome and success measures", "How it's done today", "Data", "Risk", "People and process",
                   "Strategic fit", "Assumptions and unknowns"]
-CARD_HEADINGS = ["Problem", "The question", "Success and stop", "Time box", "Data and protection", "Challenge", "Sign-off"]
+CARD_HEADINGS = ["Problem", "The question", "Success and stop", "Time box", "Data and protection", "Data sources", "Challenge", "Sign-off"]
 ROADMAP_HEADINGS = ["The end state", "How it builds out", "Epics", "Starts now", "Outside the factory", "Risks to the roadmap"]
 OVERVIEW_HEADINGS = ["Executive summary", "What it is", "How it changes people's work", "In scope and out of scope", "What happens next"]
 PROCESS_SECTIONS = ("as-is", "to-be", "what changes", "transition")
@@ -400,6 +400,49 @@ def check_threats(spec: Path, live: set[str], protection: str | None, f: Finding
     if not rows and protection in THREATS_FROM:
         f.warn(path.name, f"no threats recorded: protection level {protection} lists them, STRIDE per trust boundary "
                           "(## Threats; factory/standards/security.md)")
+
+
+GATE_STATUS = re.compile(r"(?im)^\**status:?\**:?\s*\**\s*(approved|awaiting[ -]approval|changes[ -]requested|get[ -]ready|stopped)")
+CLOSED = ("done", "stopped")
+
+
+def check_records(idea: Path, f: Findings) -> None:
+    """The record agrees with itself: each gate file's Status with state.json, and nothing left open on a closed idea
+    (a change request still awaiting an outcome, or `current` still naming work)."""
+    path = idea / "state.json"
+    if not path.exists():
+        return
+    try:
+        state = lib.read_json(path)
+    except ValueError:
+        return  # check_factory reports it
+    gates = state.get("gates") if isinstance(state.get("gates"), dict) else {}
+    status = state.get("status", "")
+    for gate in sorted((idea / "gates").glob("gate-*.md")) if (idea / "gates").is_dir() else []:
+        m = GATE_STATUS.search(gate.read_text(encoding="utf-8"))
+        if not m:
+            continue
+        said = m.group(1).lower().replace(" ", "-")
+        number = re.fullmatch(r"gate-(\d)", gate.stem)
+        if number:
+            recorded = (gates.get(number.group(1)) or {}).get("status", "not-reached")
+            if recorded != said:
+                f.warn(f"gates/{gate.name}", f"says {said}, but state.json gate {number.group(1)} is {recorded}: correct one of them")
+        elif said == "awaiting-approval" and status != "awaiting-approval":
+            f.warn(f"gates/{gate.name}", f"says awaiting approval, but state.json status is {status or 'unset'}: "
+                   "record the reply in the gate file, or set the state")
+    if status not in CLOSED:
+        return
+    changes = idea / "changes.md"
+    if changes.exists():
+        for line in changes.read_text(encoding="utf-8").splitlines():
+            cells = split_row(line) if line.startswith("| CR-") else []
+            if cells and re.search(r"(?i)\bawaiting\b", cells[-1]):
+                f.warn("changes.md", f"{cells[0]} outcome says \"{cells[-1][:60]}\", but the idea is {status}: record the outcome")
+    current = state.get("current") or {}
+    left = current.get("milestone") or current.get("epic") or current.get("story")
+    if left:
+        f.warn("state.json", f"status is {status} but current still says \"{left[:60]}\": clear it")
 
 
 def factory_root(idea: Path) -> Path | None:
@@ -878,6 +921,7 @@ def run(arg: str, assessment_only: bool = False) -> tuple[Findings, str | None, 
     f = Findings()
     if assessment_only:
         check_gate_one(idea, f)
+        check_records(idea, f)
         f.done()
         return f, None, spec
     in_factory = (idea / "state.json").exists()
@@ -892,6 +936,7 @@ def run(arg: str, assessment_only: bool = False) -> tuple[Findings, str | None, 
     check_threats(spec, {i for i, it in by_id.items() if not it.withdrawn}, (data.get("protection") or {}).get("value") if data else None, f)
     if in_factory:
         check_challenge(idea, 2, f)
+        check_records(idea, f)
     f.done()
     return f, traceability(by_id, ctx), spec
 

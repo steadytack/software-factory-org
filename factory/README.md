@@ -53,7 +53,7 @@ Tiers (`standards/tiers.md`, chosen per idea): **1 Spike**, **2 Prototype**, **3
 | `check_spec.py <slug> --assessment` | Gate 1: the spike card, or the brief, assessment and overview |
 | `scaffold.py new / overview / app` | An idea's folder (`--spike` for a card), its overview, its app from a template |
 | `learned.py outcome / check / add / review / mark` | `outcome.md` at Gate 3, and the learning loop: answers that differed from a recommendation, turned into candidate changes for an approver; nothing changes by itself |
-| `status.py [--write]` | Every idea, its stage, tier and gates; cycle times |
+| `status.py [--write] [--ci]`, `status.py --stack <slug>` | Every idea, its stage, tier and gates; cycle times; with `--ci`, the latest run of each workflow in every app with its own repository (`gh`), a red one flagged; with `--stack`, whether the idea's running Docker stack is the current build (exits 1 when a built image is older than its sources) |
 | `dashboard.py [--port N] [--write [path]]` | A read-only web page of the ideas and documents |
 | `verify.py --template <name>` | A template's checks, in clean containers |
 | `check_factory.py [--fix]` | The factory agrees with itself: registry, schemas, context, ideas, catalogue, generated tables |
