@@ -3,6 +3,24 @@
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
 ## Unreleased
+
+## 0.20.0 (2026-11-11)
+Wave 1 of bringing across work proven in the personal `software-factory` repository (its 0.4.0 and later), applied by hand because the two have diverged. Idea names in comments were reworded.
+- **Freeze lifted** (`CLAUDE.md`) by the owner, so that this work can come across. `parked.md` keeps ideas not built now. Its first entry is catalogue relations and lifecycle.
+- **web-app: nginx looks the backend up again** at request time (`docker/nginx.conf`). Before this, a rebuilt backend gave a 502 on every API call until the frontend restarted.
+- **web-app: backups are checked, run by the clock and retried** (`docker/backup.sh`, `BACKUP_AT`). Each part is read back before it takes its finished name, so a failed `pg_dump` no longer leaves an empty file that passes for a backup.
+- **web-app: secrets are Compose secret files, with a database role per use** (`SECRETS_DIR`, `docker/db-init/roles.sh`, `scripts/make_env.py`, `scripts/check_secrets.py`). Apps already built are not changed.
+- **web-app: CI runs a smoke test, a port check and gitleaks** (`scripts/smoke.py`, `scripts/check_ports.py`, both workflows). `build.md` step 7 runs them on the real stack.
+- **web-app: no `any` in `useMapDraw.ts`.** The sketch store moved to `draw/persist.ts`, with a test.
+- **CI actions on Node 24** (v7) in every workflow.
+- **web-app template 1.3.0** (`templates.json`, `CAT-006`), approved by the owner after the live-stack checks. On a throwaway stack the smoke test passed 17 of 17 and Playwright with axe 19 of 19, with the backup drill both ways and a restore. The test fixture's spec pack refers to `CAT-006 1.3.0`.
+- **`verify.py` prints its summary on any console.** A cp1252 Windows console crashed on a tool's ✓ or →. A test covers it.
+- **Code before code** (`PRINCIPLES.md` §2): the reuse order and `shortcut:` comments. Adapted from Ponytail (MIT).
+- **Findings discipline** (`LOG_PROTOCOL.md` 2): no concrete case, no finding; look past the diff to every caller; state the assumed load.
+- **Tests worth keeping, operations failure paths, and a Claims and evidence table** (`testing.md`). The tests part is adapted from mattpocock/skills (MIT).
+- **Fixing a bug** (`bugs.md` steps 3 and 4): shrink the case, find a failing check before a cause, rank causes by what they predict, and fix the shared code after searching every caller. Merged into the existing steps, not added as a second method.
+- **Every claim needs evidence** (`build.md`, `audit.md`): a claim table, and only checks run in this session count. Adapted from obra/superpowers (MIT).
+- **Verified needs the real input** (`spec-conformance.md`, `audit.md` step 1): an item verified on fixtures alone is partially verified. The source's `check_spec.py --audit` was not ported, because Spec is dormant.
 - **CI fix** (`test_catalogue.py`): the over-the-limits test no longer assumes `catalogue/sources/` exists; an empty folder is not in git, so the GitHub Actions checkout lacked it and the test failed there (it passed locally).
 
 ## 0.19.0 (2026-11-04)

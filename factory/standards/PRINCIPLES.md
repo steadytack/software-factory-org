@@ -21,6 +21,8 @@ Set per idea (the factory records it in `state.json` and the spec; `factory/stan
 - Types are mandatory, in whatever form the language supports.
 - Composition over inheritance. No global mutable state. Specific exceptions. No boolean flag parameters.
 - Latest stable packages; remove unused ones. Before adding one, confirm on its registry that it exists under that exact name and is maintained and widely used (`security.md`): never install a name you have not checked. Prefer changing existing code to writing a parallel version.
+- Before writing code, take the first option that fully works: not needed at all; already in this codebase (a helper, component, pattern), used as the surrounding code uses it; the standard library or a native platform feature (`<input type="date">` before a date-picker); a dependency already installed; only then the minimum new code. Never add a dependency for a few lines. Lazy about the solution, never about its scope: the callers, tests and fixtures the change breaks are part of it, and validation, security, data-loss handling and accessibility are never cut.
+- A known limit taken on purpose gets a one-line comment `shortcut: <the limit>, <when to upgrade>` (for example `shortcut: loads the whole file, stream it past ~100 MB`). Audits treat it as a recorded decision, not a finding, unless the expected load already crosses it.
 - Document public interfaces and anything non-obvious. Skip the obvious.
 
 ## 3. Architecture

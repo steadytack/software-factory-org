@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { DrawFeature } from "../src/components/map/draw/types";
 import { csvCell, nextName, sketchesToCSV, sketchesToGeoJSON } from "../src/components/map/draw/export";
 import { addGeometry, nearestSnap, roundCoordinate, roundGeometry, type SnapIndex } from "../src/components/map/utils/snap";
-import { SKETCHES_KEY, loadSketches, saveSketches, storeFeature } from "../src/components/map/draw/persist";
+import { SKETCHES_KEY, importedStyle, loadSketches, saveSketches, storeFeature } from "../src/components/map/draw/persist";
 
 const base: Omit<DrawFeature, "id" | "kind" | "name" | "geometry"> = {
   layerId: "l",
@@ -138,5 +138,20 @@ describe("keeping sketches in the browser", () => {
   it("rounds an imported geometry to the store's precision", () => {
     const g = roundGeometry({ type: "LineString", coordinates: [[-0.123456789012, 51.1234567890123], [0, 1]] });
     expect(g.coordinates[0]).toEqual([-0.123456789, 51.123456789]);
+  });
+});
+
+describe("importedStyle", () => {
+  it("keeps a style the file gives with the right types", () => {
+    expect(importedStyle({ name: "Gate", color: "#ff0000", weight: 4, lineStyle: "dotted", fillOpacity: 0.5, label: "A" }, "#000")).toEqual({
+      name: "Gate", color: "#ff0000", weight: 4, lineStyle: "dotted", fillOpacity: 0.5, label: "A",
+    });
+  });
+
+  it("falls back to the defaults for missing or wrongly typed values", () => {
+    expect(importedStyle({ name: 7, color: null, weight: "4", lineStyle: "wavy", fillOpacity: Number.NaN, label: {} }, "#1556c0")).toEqual({
+      color: "#1556c0", weight: 2, lineStyle: "solid", fillOpacity: 0.3, label: "",
+    });
+    expect(importedStyle(null, "#1556c0")).toEqual({ color: "#1556c0", weight: 2, lineStyle: "solid", fillOpacity: 0.3, label: "" });
   });
 });

@@ -8,8 +8,8 @@ The example domain is deliberately small. It exercises every layer (model → re
 
 Set `MULTI_USER_ENABLED` in `.env`:
 
-- **`false` (single-user app)** — the common case for a personal project. Only the bootstrap admin (from `ADMIN_EMAIL`/`ADMIN_PASSWORD`) can sign in; user-management endpoints return 404 and the Admin page shows no Users panel. Any authenticated user is treated as an admin.
-- **`true` (multi-user)** — admins create accounts, give each a role, disable access and set passwords via `/api/users` and the Admin page. Disabling an account or resetting its password signs it out everywhere on its next request. The bootstrap admin is env-managed: its password is re-synced from `.env` at startup and it cannot be deactivated, demoted or password-changed through the API.
+- **`false` (single-user app)** — the common case for a personal project. Only the bootstrap admin (`ADMIN_EMAIL`, and the secret file `admin_password`) can sign in; user-management endpoints return 404 and the Admin page shows no Users panel. Any authenticated user is treated as an admin.
+- **`true` (multi-user)** — admins create accounts, give each a role, disable access and set passwords via `/api/users` and the Admin page. Disabling an account or resetting its password signs it out everywhere on its next request. The bootstrap admin is env-managed: its password is re-synced from the secret file `admin_password` at startup and it cannot be deactivated, demoted or password-changed through the API.
 
 ### Roles
 
@@ -24,14 +24,22 @@ The server enforces these (`require_role` in `backend/app/core/auth.py`); the UI
 ## Run locally
 
 ```bash
-cp .env.example .env          # then edit values
+python scripts/make_env.py    # .env from .env.example, and fresh secret files in ./secrets
 docker compose up --build
 ```
 
 - Backend: http://localhost:8001 (OpenAPI docs at `/docs`)
 - Frontend: http://localhost:5174
 
-Log in with `ADMIN_EMAIL` / `ADMIN_PASSWORD` from your `.env`.
+Log in with `ADMIN_EMAIL` from `.env` and the password in `secrets/admin_password`.
+
+### Secrets and database roles
+
+Secrets are Compose secret files, one per secret, in `SECRETS_DIR` (default `./secrets`, git-ignored; better outside the repository): `db_superuser_password`, `app_db_password`, `backup_db_password`, `admin_password`, `jwt_secret` and `smtp_password` (empty while email is off). Each service mounts only the ones it uses at `/run/secrets`, and the backend's settings read them there; `.env` holds settings only. `python scripts/check_secrets.py` checks the layout and CI runs it, with a gitleaks scan of the history and `scripts/check_ports.py` (every published port on 127.0.0.1). The scheduler loads the backend's settings, so it is given the same files.
+
+The database has a role per use (`docker/db-init/roles.sh`, run once when the volume is made): the `postgres` superuser only creates the others; `POSTGRES_USER` (default `app`) owns the database and runs the migrations but is not a superuser; `<POSTGRES_USER>_backup` can read every table and write none, and is what the nightly dump uses. A database volume made before this layout keeps its single role: recreate it (`docker compose down -v`, after a backup) or create the two roles by hand as the script does.
+
+Off Compose (tests, a shell) the settings come from the environment as before, `POSTGRES_PASSWORD` included.
 
 ## Layout
 
@@ -56,17 +64,20 @@ docker/         Dockerfiles + nginx config
 
 ### Backups
 
-The `backup` compose service writes a `pg_dump` of the database and a tarball of the uploads volume to `./backups` once a day, keeping `BACKUP_RETENTION_DAYS` (default 14) days. **Copy `./backups` off this machine as well** — a backup on the same disk doesn't survive losing the disk.
+The `backup` compose service writes a `pg_dump` of the database and a tarball of the uploads volume to `./backups` every day at `BACKUP_AT` (UTC, default 02:30), and once at start-up when the newest dump is over 20 hours old, keeping `BACKUP_RETENTION_DAYS` (default 14) days. It waits by the clock, so a machine that sleeps still backs up when it wakes. A set takes its finished name only once the dump reads back with `pg_restore --list` and the tarball with `tar -t`; a failed run leaves nothing that looks like a backup, and retries a few times a minute apart. **Copy `./backups` off this machine as well** — a backup on the same disk doesn't survive losing the disk.
 
-- Take one now: `docker compose run --rm -e BACKUP_ONCE=1 backup`
-- Restore the database (replaces current data):
+- Take one now: `docker compose run --rm -e BACKUP_ONCE=1 backup` (exits non-zero if it failed)
+- Restore the database (replaces current data). The `postgres` superuser makes the database again for the app's role, and the dump is restored as that role, so it owns what it restores (inside the db container, on its local socket, neither needs a password):
   ```bash
-  docker compose stop backend
-  docker compose exec -T db dropdb -U $POSTGRES_USER $POSTGRES_DB
-  docker compose exec -T db createdb -U $POSTGRES_USER $POSTGRES_DB
+  set -a && . ./.env && set +a
+  docker compose stop backend scheduler
+  docker compose exec -T db dropdb -U postgres $POSTGRES_DB
+  docker compose exec -T db createdb -U postgres -O $POSTGRES_USER $POSTGRES_DB
+  docker compose exec -T db psql -U postgres -d $POSTGRES_DB -c "CREATE EXTENSION postgis; ALTER SCHEMA public OWNER TO $POSTGRES_USER"
   docker compose exec -T db pg_restore -U $POSTGRES_USER -d $POSTGRES_DB --no-owner < backups/db-<stamp>.dump
-  docker compose start backend
+  docker compose start backend scheduler
   ```
+  To check a dump without touching the live data, restore it into a scratch database (`createdb -U postgres restore_check`, `pg_restore -U postgres -d restore_check --no-owner`) and compare row counts.
 - Restore the files: `docker compose run --rm -v "$PWD/backups:/backups" --entrypoint sh backup -c "tar -xzf /backups/uploads-<stamp>.tar.gz -C /uploads"` (drop `:ro` from the backup service's uploads mount first).
 
 ### Recycle bin and export
@@ -113,7 +124,7 @@ cp /tmp/lock/poetry.lock backend/poetry.lock
 3. Update `frontend/src/routes`, the pages and nav, or delete the map page.
 4. Regenerate the OpenAPI types (below).
 5. Fill in `DESIGN_TOKENS.md` and `COMPONENT_CATALOGUE.md` (they are in this folder).
-6. **Regenerate all credentials in `.env`** (DB password, `ADMIN_PASSWORD`, `JWT_SECRET`) — never ship the template's values into a new project. Only `.env.example` should be committed; `.env` is gitignored but travels with folder copies.
+6. **Make fresh secrets** with `python scripts/make_env.py` (it refuses to overwrite) — never ship another project's secret files. Only `.env.example` is committed; `.env` and `secrets/` are git-ignored but travel with folder copies, so delete them from a copy.
 
 ## Gotchas
 
@@ -122,10 +133,10 @@ cp /tmp/lock/poetry.lock backend/poetry.lock
 - `DOCS_ENABLED` defaults to `true` for local development. Set it to `false` in any deployment reachable from the internet so the OpenAPI schema isn't publicly exposed.
 - All compose ports are bound to `127.0.0.1` (db 5434, backend 8001, frontend 5174 by default; set `DB_PORT` / `BACKEND_PORT` / `FRONTEND_PORT` to change them) so nothing is reachable from the LAN. Remove the `127.0.0.1:` prefix only when you deliberately want external access.
 - The login rate limiter keys on the client IP; the backend runs with `--proxy-headers` (trusting only private/docker addresses) and nginx **sets** `X-Forwarded-For` to the connecting address, so it sees the real client and a client can't spoof one. A locked account still lets the correct password in from an address that hasn't been failing, so an attacker can't lock the real user out.
-- `ENVIRONMENT=production` forces `COOKIE_SECURE=true`, `DOCS_ENABLED=false` and `SEED_ENABLED=false`, and the backend refuses to start with a short or placeholder `JWT_SECRET` / `ADMIN_PASSWORD`.
+- `ENVIRONMENT=production` forces `COOKIE_SECURE=true`, `DOCS_ENABLED=false` and `SEED_ENABLED=false`, and the backend refuses to start with a short or placeholder `jwt_secret` / `admin_password`.
 - Attachment uploads are restricted to an allowlist of content types (`ALLOWED_CONTENT_TYPES` in `backend/app/core/storage.py`) and capped at 10 MB.
 - Alembic migrations run automatically on backend container start; create new ones with `alembic revision --autogenerate -m "..."`.
-- Rotating `JWT_SECRET` invalidates all existing sessions (users must log in again). Rotating the database password requires updating `.env` **and** the Postgres role inside the volume (or recreating the volume with `docker compose down -v`).
+- Rotating `jwt_secret` invalidates all existing sessions (users must log in again). Rotating a database password means changing its secret file **and** the role inside the volume (`ALTER ROLE ... PASSWORD` as `postgres`), then restarting the services that use it.
 - **Reads require authentication.** Every list/get endpoint (sites, surveys, comments, attachments, changelog, stats) returns 401 to an anonymous caller; writes additionally require a role (see Roles). This is enforced at the router level, so new routes inherit it.
 - **The changelog is append-only and system-written.** There is no delete endpoint and no manual-create endpoint — entries are recorded by the services with the real actor. An admin-writable audit log is not an audit log.
 - **Notifications are system-generated.** Your code creates them with `services.notification.notify()` (deduplicated by `link`); there is no manual-create endpoint (an app cannot forge its own alerts). Mark-read / mark-all-read / delete are user-scoped — a user only ever sees and modifies their own rows.

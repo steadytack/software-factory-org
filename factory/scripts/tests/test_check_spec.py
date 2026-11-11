@@ -98,12 +98,12 @@ def test_an_idea_without_a_definition_is_a_blocker(pack):
         ("01-overview.md", "(FR-003)", "(FR-099)", "mentions FR-099, which is not defined"),
         ("02-product-definition.md", "| JRN-002 | Keep", "| JRN-001 | Keep", "duplicate ID JRN-001"),
         ("README.md", "[01-overview.md](01-overview.md)", "[01-overview.md](01-overwiew.md)", "broken link to 01-overwiew.md"),
-        ("10-architecture-and-deployment.md", "| CAT-006 1.2.0 | Browser |", "| home-made | Browser |", "must be a catalogue asset (CAT-nnn), custom, or external"),
+        ("10-architecture-and-deployment.md", "| CAT-006 1.3.0 | Browser |", "| home-made | Browser |", "must be a catalogue asset (CAT-nnn), custom, or external"),
         ("11-delivery-plan.md", "| FR-001, FR-002, FR-003, FR-004 | US-001, US-002, US-003, US-004 | CMP-001 |", "| - | - | CMP-001 |", "EPIC-001 delivers no FR or story"),
-        ("12-component-selection-and-gaps.md", "| CAT-006 1.2.0 | reuse |", "| CAT-006 1.2.0 | borrow |", "decision must be one of"),
-        ("12-component-selection-and-gaps.md", "| CAT-006 1.2.0 | reuse |", "| - | reuse |", "reuse needs the selected catalogue asset"),
+        ("12-component-selection-and-gaps.md", "| CAT-006 1.3.0 | reuse |", "| CAT-006 1.3.0 | borrow |", "decision must be one of"),
+        ("12-component-selection-and-gaps.md", "| CAT-006 1.3.0 | reuse |", "| - | reuse |", "reuse needs the selected catalogue asset"),
         ("12-component-selection-and-gaps.md", "| FR-001, FR-002, FR-003, FR-004, NFR-001 |", "| - |", "CAP-001 supports no requirement"),
-        ("12-component-selection-and-gaps.md", "| CAT-006 1.2.0 | reuse | Has storage", "| CAT-999 1.0.0 | reuse | Has storage", "refers to CAT-999, which is not in the catalogue"),
+        ("12-component-selection-and-gaps.md", "| CAT-006 1.3.0 | reuse | Has storage", "| CAT-999 1.0.0 | reuse | Has storage", "refers to CAT-999, which is not in the catalogue"),
     ],
 )
 def test_each_blocker(pack, doc, old, new, fragment):
@@ -180,11 +180,11 @@ def test_a_could_requirement_without_a_story_is_only_a_warning(pack):
     [
         ("05-non-functional-requirements.md", "| Every FR with the network off | TEST-004 |", "| | |", "NFR-001 has no threshold"),
         ("10-architecture-and-deployment.md", "Deployment category: simple", "Deployment category: hosted", "differs from the Application Definition (simple)"),
-        ("12-component-selection-and-gaps.md", "| CAT-006 1.2.0 | reuse |", "| CAT-006 0.9.0 | reuse |", "version 0.9.0 differs from the catalogue (1.2.0)"),
+        ("12-component-selection-and-gaps.md", "| CAT-006 1.3.0 | reuse |", "| CAT-006 0.9.0 | reuse |", "version 0.9.0 differs from the catalogue (1.3.0)"),
         ("01-overview.md", "Next: Gate 2.", "Next: <the next gate>.", "placeholder text left"),
         ("02-product-definition.md", "| Two weeks of brews without reaching for a calculator |", "| |", "OBJ-001 has no success measure"),
         ("09-assumptions-risks-decisions.md", "| open | owner | none |", "| open | | none |", "ASM-001 has no owner"),
-        ("10-architecture-and-deployment.md", "| CAT-006 1.2.0 | Browser |", "| external (a browser) | Browser |", "external component not yet in the catalogue"),
+        ("10-architecture-and-deployment.md", "| CAT-006 1.3.0 | Browser |", "| external (a browser) | Browser |", "external component not yet in the catalogue"),
     ],
 )
 def test_each_warning(pack, doc, old, new, fragment):

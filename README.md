@@ -20,5 +20,5 @@ Turns an idea into a built, checked app with `/factory` in Claude Code. Most ide
 <!-- templates:start -->
 | Template | Version | Status | For |
 |---|---|---|---|
-| `web-app` | 1.2.0 | ready, verified (see its README) | a web application with a frontend and backend, geospatial-capable |
+| `web-app` | 1.3.0 | ready, verified (see its README) | a web application with a frontend and backend, geospatial-capable |
 <!-- templates:end -->

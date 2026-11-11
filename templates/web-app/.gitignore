@@ -28,3 +28,6 @@ test-results/
 *.tsbuildinfo
 # Audit run logs are records, not noise.
 !audits/runs/**/harness.log
+
+# Compose secret files (SECRETS_DIR default)
+secrets/

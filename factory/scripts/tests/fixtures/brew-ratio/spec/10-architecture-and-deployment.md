@@ -9,7 +9,7 @@ Deployment category: simple
 ## Components
 | CMP | Component | Role | Built from | Runtime |
 |---|---|---|---|---|
-| CMP-001 | Calculator page | The whole app | CAT-006 1.2.0 | Browser |
+| CMP-001 | Calculator page | The whole app | CAT-006 1.3.0 | Browser |
 
 ## Integrations
 Not applicable: no outside systems and one component.

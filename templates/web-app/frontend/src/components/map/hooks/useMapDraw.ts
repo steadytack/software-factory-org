@@ -42,7 +42,7 @@ import type { DrawFeature, DrawLayer, DrawTool } from "../draw/types";
 import { EMPTY_INDEX, addGeometry, nearestSnap, roundCoordinate, roundGeometry, type SnapIndex } from "../utils/snap";
 import { drawToolInfo } from "../draw/tools";
 import { nextName, sketchesToCSV, sketchesToGeoJSON } from "../draw/export";
-import { loadSketches, saveSketches, storeFeature } from "../draw/persist";
+import { importedStyle, loadSketches, saveSketches, storeFeature } from "../draw/persist";
 import { DRAW_DEFAULT, INK } from "../layers/colors";
 
 // Public types are re-exported so existing imports (MapRightPanel) keep
@@ -234,8 +234,7 @@ export function useMapDraw({ mapRef, onToast }: UseMapDrawOptions) {
       ensureMeasureLayers(map);
 
       // Listen for finished features
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      draw.on("finish", (id: any, context: any) => {
+      draw.on("finish", (id, context) => {
         // Only a sketch just drawn is new. Picking one in the select mode, or dragging a corner of it, also
         // finishes (with its own selection handles), and those are not sketches.
         if (!id || context?.mode === "select") return;
@@ -522,7 +521,7 @@ export function useMapDraw({ mapRef, onToast }: UseMapDrawOptions) {
     const draw = drawRef.current;
     for (const id of ids) {
       if (draw) {
-        try { draw.removeFeatures([id as any]); } catch { /* ignore */ }
+        try { draw.removeFeatures([id]); } catch { /* ignore */ }
       }
       measurementIdsRef.current.delete(id);
     }
@@ -551,10 +550,10 @@ export function useMapDraw({ mapRef, onToast }: UseMapDrawOptions) {
     // TerraDraw doesn't expose getSelected directly in all versions, iterate
     const all = draw.getSnapshot();
     const selectedIds = all
-      .filter((f: GeoJSONStoreFeatures) => (f.properties as any)?.selected === true)
+      .filter((f: GeoJSONStoreFeatures) => f.properties.selected === true)
       .map((f: GeoJSONStoreFeatures) => String(f.id));
     selectedIds.forEach((id: string) => {
-      try { draw.removeFeatures([id as any]); } catch { /* ignore */ }
+      try { draw.removeFeatures([id]); } catch { /* ignore */ }
       measurementIdsRef.current.delete(id);
     });
     setFeatures((prev) => prev.filter((f) => !selectedIds.includes(f.id)));
@@ -577,9 +576,9 @@ export function useMapDraw({ mapRef, onToast }: UseMapDrawOptions) {
   const zoomToFeature = useCallback((feature: DrawFeature) => {
     const map = mapRef.current;
     if (!map) return;
-    const { type, coordinates } = feature.geometry as any;
-    if (type === "Point") {
-      map.flyTo({ center: coordinates, zoom: 16, duration: 500 });
+    if (feature.geometry.type === "Point") {
+      const [lng, lat] = feature.geometry.coordinates;
+      map.flyTo({ center: [lng, lat], zoom: 16, duration: 500 });
     } else {
       const bounds = getBoundsFromGeometry(feature.geometry);
       if (bounds) map.fitBounds(bounds, { padding: 80, maxZoom: 18, duration: 500 });
@@ -623,7 +622,7 @@ export function useMapDraw({ mapRef, onToast }: UseMapDrawOptions) {
     const draw = drawRef.current;
     if (draw) {
       idsInLayer.forEach((fid) => {
-        try { draw.removeFeatures([fid as any]); } catch { /* ignore */ }
+        try { draw.removeFeatures([fid]); } catch { /* ignore */ }
         measurementIdsRef.current.delete(fid);
       });
     }
@@ -698,7 +697,7 @@ export function useMapDraw({ mapRef, onToast }: UseMapDrawOptions) {
               id: featId,
               geometry: f.geometry,
               properties: { mode: f.geometry.type === "Point" ? "point" : f.geometry.type === "LineString" ? "linestring" : "polygon" },
-            } as any,
+            } as GeoJSONStoreFeatures,
           ]);
           // The store refused it (an invalid shape): skip it rather than list a sketch that isn't on the map.
           if (added && added.valid === false) return;
@@ -709,20 +708,15 @@ export function useMapDraw({ mapRef, onToast }: UseMapDrawOptions) {
               : f.geometry.type === "LineString"
               ? "polyline"
               : "polygon";
+          const style = importedStyle(f.properties, DRAW_DEFAULT);
           importedFeatures.push({
             id: String(id),
             layerId: activeLayerIdRef.current,
             kind,
-            name: (f.properties as any)?.name ?? `${kind} ${featureCounter++}`,
+            ...style,
+            name: style.name ?? `${kind} ${featureCounter++}`,
             visible: true,
-            color: (f.properties as any)?.color ?? DRAW_DEFAULT,
-            weight: (f.properties as any)?.weight ?? 2,
-            lineStyle: ["solid", "dashed", "dotted", "longdash", "shortdash"].includes((f.properties as any)?.lineStyle)
-              ? (f.properties as any).lineStyle
-              : "solid",
-            fillOpacity: (f.properties as any)?.fillOpacity ?? 0.3,
             hatch: "none",
-            label: (f.properties as any)?.label ?? "",
             labelSize: 13,
             labelColor: INK,
             geometry: f.geometry,
@@ -736,7 +730,7 @@ export function useMapDraw({ mapRef, onToast }: UseMapDrawOptions) {
       setFeatures((prev) => [...prev, ...importedFeatures]);
       onToast?.(`Imported ${importedFeatures.length} features`);
     },
-    [activeLayerId, onToast]
+    [onToast]
   );
 
   return {

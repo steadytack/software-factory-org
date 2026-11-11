@@ -222,7 +222,7 @@ async def change_password(
     if subject == get_settings().admin_email.strip().lower():
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            "The bootstrap admin's password is managed via ADMIN_PASSWORD in .env",
+            "The bootstrap admin's password is managed in the secret file admin_password",
         )
     await check_rate_limit(session, request, subject)
     user = (await session.execute(select(User).where(User.email == subject))).scalar_one()

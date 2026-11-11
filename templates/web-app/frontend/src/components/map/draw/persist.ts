@@ -1,5 +1,6 @@
 /** Sketches are kept in this browser, so a reload (or closing the tab) doesn't lose them. Reading is defensive: a saved value
  *  that isn't what we wrote (an older version, hand-edited, another app on the same origin) is dropped, never trusted. */
+import type { GeoJsonProperties } from "geojson";
 import type { GeoJSONStoreFeatures } from "terra-draw";
 
 import type { DrawFeature } from "./types";
@@ -81,4 +82,21 @@ export function storeFeature(f: DrawFeature): GeoJSONStoreFeatures {
     geometry: f.geometry,
     properties: { mode, ...(circle ? { radiusKilometers } : {}) },
   } as GeoJSONStoreFeatures;
+}
+
+/** The style an imported GeoJSON feature asks for in its properties. A value of the wrong type (a weight given as text, say)
+ *  falls back to the default, as a saved sketch does in `loadSketches`. `name` is left out when the file gives none. */
+export function importedStyle(
+  properties: GeoJsonProperties,
+  defaultColor: string,
+): Pick<DrawFeature, "color" | "weight" | "lineStyle" | "fillOpacity" | "label"> & { name?: string } {
+  const p: Record<string, unknown> = properties ?? {};
+  return {
+    ...(typeof p.name === "string" ? { name: p.name } : {}),
+    color: typeof p.color === "string" ? p.color : defaultColor,
+    weight: isNumber(p.weight) ? p.weight : 2,
+    lineStyle: LINE_STYLES.includes(p.lineStyle as string) ? (p.lineStyle as DrawFeature["lineStyle"]) : "solid",
+    fillOpacity: isNumber(p.fillOpacity) ? p.fillOpacity : 0.3,
+    label: typeof p.label === "string" ? p.label : "",
+  };
 }

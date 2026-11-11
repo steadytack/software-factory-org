@@ -23,14 +23,28 @@ env:
   APP: templates/web-app
 
 jobs:
+  checks:
+    # Secrets are Compose secret files,
+    # and every published port binds to 127.0.0.1.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/web-app
+    steps:
+      - uses: actions/checkout@v7
+      - name: Secrets are Compose secret files
+        run: python3 scripts/check_secrets.py
+      - name: Every port on 127.0.0.1
+        run: cp .env.example .env && python3 scripts/check_ports.py
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: templates/web-app/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -50,8 +64,8 @@ jobs:
       run:
         working-directory: templates/web-app/backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install ruff
@@ -82,8 +96,8 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install dependencies
@@ -128,24 +142,16 @@ jobs:
       run:
         working-directory: templates/web-app
     steps:
-      - uses: actions/checkout@v4
-      - name: Write a CI .env for the stack
-        run: |
-          cat > .env <<EOF
-          POSTGRES_USER=app
-          POSTGRES_PASSWORD=$(openssl rand -hex 16)
-          POSTGRES_DB=app
-          ADMIN_EMAIL=admin@example.com
-          ADMIN_PASSWORD=ci-admin-$(openssl rand -hex 8)
-          MULTI_USER_ENABLED=true
-          JWT_SECRET=$(openssl rand -hex 32)
-          CORS_ORIGINS=http://localhost:5174
-          COOKIE_SECURE=false
-          SEED_ENABLED=false
-          EOF
+      - uses: actions/checkout@v7
+      - name: Write a CI .env and secret files for the stack
+        # Fresh random secrets in ./secrets (git-ignored), never printed; the journeys
+        # read the admin password from secrets/admin_password.
+        run: >-
+          python3 scripts/make_env.py --set MULTI_USER_ENABLED=true --set SEED_ENABLED=false
+          --set CORS_ORIGINS=http://localhost:5174 --set COOKIE_SECURE=false
       - name: Start the stack
         run: docker compose up -d --build --wait db backend frontend
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -164,7 +170,7 @@ jobs:
           PLAYWRIGHT_BASE_URL: http://localhost:5174
       - name: Upload the report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: templates/web-app/frontend/test-results

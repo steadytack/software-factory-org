@@ -1,16 +1,30 @@
 name: web-app-template
 
+# Secrets are Compose secret files in SECRETS_DIR (one file each, written by
+# `python scripts/make_env.py`), mounted at /run/secrets in the services that need
+# them; `.env` holds settings only. Each service gets only its own secrets, and the
+# database has a role per use (docker/db-init/roles.sh). Proven in an app built from this template.
+x-app-secrets: &app-secrets
+  - app_db_password
+  - admin_password
+  - jwt_secret
+  - smtp_password
+
 services:
   db:
     image: postgis/postgis:17-3.5
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # The superuser runs docker/db-init/roles.sh once; the app connects as POSTGRES_USER's role.
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_superuser_password
       POSTGRES_DB: ${POSTGRES_DB}
+      APP_DB_USER: ${POSTGRES_USER}
+    secrets: [db_superuser_password, app_db_password, backup_db_password]
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./docker/db-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -29,6 +43,7 @@ services:
       additional_contexts:
         docker: ./docker
     env_file: .env
+    secrets: *app-secrets
     depends_on:
       db:
         condition: service_healthy
@@ -83,6 +98,7 @@ services:
       additional_contexts:
         docker: ./docker
     env_file: .env
+    secrets: *app-secrets
     depends_on:
       backend:
         condition: service_healthy
@@ -101,18 +117,34 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # The read-only backup role (docker/db-init/roles.sh), with its own secret.
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_DB_USER: ${POSTGRES_USER}_backup
       POSTGRES_DB: ${POSTGRES_DB}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_AT: ${BACKUP_AT:-02:30}
     volumes:
       - uploads:/uploads:ro
       - ./backups:/backups
       - ./docker/backup.sh:/backup.sh:ro
+    secrets: [backup_db_password]
     entrypoint: ["sh", "/backup.sh"]
     restart: unless-stopped
 
 volumes:
   pgdata:
   uploads:
+
+secrets:
+  db_superuser_password:
+    file: ${SECRETS_DIR:-./secrets}/db_superuser_password
+  app_db_password:
+    file: ${SECRETS_DIR:-./secrets}/app_db_password
+  backup_db_password:
+    file: ${SECRETS_DIR:-./secrets}/backup_db_password
+  admin_password:
+    file: ${SECRETS_DIR:-./secrets}/admin_password
+  jwt_secret:
+    file: ${SECRETS_DIR:-./secrets}/jwt_secret
+  smtp_password:
+    file: ${SECRETS_DIR:-./secrets}/smtp_password

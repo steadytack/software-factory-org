@@ -147,13 +147,19 @@ Each detailed status maps to exactly one of the factory's five outcomes, which
 the report and the gate use (factory spec section 17.3):
 | Outcome | Detailed statuses |
 |---|---|
-| Verified | WORKING, verified dynamically (or by a test that ran) |
-| Partially verified | WORKING traced only; PARTIAL |
+| Verified | WORKING, verified dynamically (or by a test that ran) on the real input it will receive |
+| Partially verified | WORKING traced only; PARTIAL; WORKING on fixtures, a hand-made input or only some of its sources |
 | Not verified | UNVERIFIABLE; anything whose check did not run |
 | Failed | BROKEN, SCAFFOLDED, ABSENT, CONTRADICTED |
 | Not applicable | an item the approved spec marks not applicable, with its reason |
 Never report an item as Verified because related tests passed: the test must
-exercise that item's acceptance criteria.
+exercise that item's acceptance criteria. And never on fixtures alone: an item
+is Verified only on evidence from the real input it will receive (the live
+feed, every source it reads, the newest backup as found, a real browser for
+what a browser computes). Otherwise it is Partially verified, with the gap
+named ("verified on fixtures; the live feed not seen"). Logic that reads no
+outside input may be Verified by tests: say so in Verified how as "no outside
+input".
 
 Specific evidence of SCAFFOLDED that you must actively search for:
 - Handlers, stages, or commands that are empty, return void, log only, or
@@ -240,7 +246,8 @@ STEP 4 — REPORT (produce this before writing any code)
 Assemble the final report from the log files you have been writing all along
 (01_traceability.md, 02_out_of_spec.md) — do not re-derive it from memory:
 1. Traceability matrix: Ref | Requirement | Status | Verified how (static /
-   dynamic / both) | Evidence (file:line) | What's missing | Severity | Effort
+   dynamic / both, and on what input: tests, live, real browser, drill, or no
+   outside input) | Evidence (file:line) | What's missing | Severity | Effort
    | Confidence
 2. Out-of-spec register: Capability | Location | Classification | Rationale |
    Recommendation

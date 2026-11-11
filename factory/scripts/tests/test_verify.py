@@ -24,6 +24,19 @@ def test_the_summary_reports_each_part_and_the_total():
     assert "OK     a: p" in text and "FAILED b: q" in text and "verify: FAILED (1 of 2 parts)" in text
 
 
+def test_the_summary_prints_on_a_console_that_cannot_show_every_character(monkeypatch):
+    # a Windows console (cp1252) crashed on a tool's ✓ or →
+    import io
+
+    out = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
+    monkeypatch.setattr(verify.sys, "stdout", out)
+    monkeypatch.setattr(verify, "verify_parts_file", lambda path, only=None: [
+        verify.PartResult("app", "tests", True, "12 passed ✓ → done")])
+    assert verify.main(["verify.py", "--parts", "verify.json"]) == 0
+    out.flush()
+    assert "12 passed ? ? done" in out.buffer.getvalue().decode("cp1252")
+
+
 def test_each_test_runs_pass_fail_line_shows_above_the_tail():
     backend = "== python -m pytest -q\n........\n8 passed, 1 warning in 2.31s"
     frontend = ("== npx vitest run\n \x1b[32m✓\x1b[39m src/a.test.ts (3 tests)\n Test Files  2 passed (2)\n      Tests  \x1b[32m5 passed\x1b[39m (5)\n"

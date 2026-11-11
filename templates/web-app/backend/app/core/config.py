@@ -2,13 +2,19 @@ from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote
 
-from pydantic import model_validator
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # .env lives at the project root (next to docker-compose.yml), not the cwd —
 # resolve it from this file's location (backend/app/core/config.py → parents[3]
 # is the project root) so the app/tests work from any cwd.
 _ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
+# Secrets are Compose secret files (docker-compose.yml, `secrets:`), mounted at /run/secrets:
+# one file per secret, named as the setting (admin_password, jwt_secret, app_db_password,
+# smtp_password).
+# `.env` holds settings, not secrets. Off Compose (tests, a developer's shell) there is no such
+# folder and the environment is read as before. Proven in an app built from the template.
+_SECRETS_DIR = "/run/secrets" if Path("/run/secrets").is_dir() else None
 
 MIN_JWT_SECRET = 32
 MIN_ADMIN_PASSWORD = 12
@@ -19,7 +25,7 @@ PLACEHOLDERS = ("change-me", "changeme", "change_me", "replace-me", "your-secret
 class Settings(BaseSettings):
     """Application config. Fails fast at startup on anything missing/invalid."""
 
-    model_config = SettingsConfigDict(env_file=_ENV_FILE, extra="ignore")
+    model_config = SettingsConfigDict(env_file=_ENV_FILE, extra="ignore", secrets_dir=_SECRETS_DIR)
 
     # ── Database ────────────────────────────────────────────────────────────
     # the password was written TWICE in .env — once as
@@ -34,7 +40,11 @@ class Settings(BaseSettings):
     # take that away.
     database_url: str = ""
     postgres_user: str = ""
-    postgres_password: str = ""
+    # The app's own database role's password: the secret file app_db_password under Compose,
+    # POSTGRES_PASSWORD in a plain environment (tests, a managed database).
+    postgres_password: str = Field(
+        default="", validation_alias=AliasChoices("app_db_password", "postgres_password")
+    )
     postgres_db: str = ""
     postgres_host: str = "db"
     postgres_port: int = 5432
@@ -127,13 +137,15 @@ class Settings(BaseSettings):
         lowered = secret.lower()
         if len(secret) < MIN_JWT_SECRET or any(p in lowered for p in PLACEHOLDERS):
             raise ValueError(
-                f"JWT_SECRET must be a random value of at least {MIN_JWT_SECRET} characters "
+                "jwt_secret (the secret file, or JWT_SECRET off Compose) must be a random value"
+                f" of at least {MIN_JWT_SECRET} characters "
                 '(e.g. `python -c "import secrets; print(secrets.token_urlsafe(48))"`).'
             )
         password = self.admin_password
         if len(password) < MIN_ADMIN_PASSWORD or any(p in password.lower() for p in PLACEHOLDERS):
             raise ValueError(
-                f"ADMIN_PASSWORD must be at least {MIN_ADMIN_PASSWORD} characters "
+                "admin_password (the secret file, or ADMIN_PASSWORD off Compose) must be"
+                f" at least {MIN_ADMIN_PASSWORD} characters "
                 "and not a placeholder."
             )
         if self.is_production:

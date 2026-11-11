@@ -1,12 +1,24 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { expect, request, type APIRequestContext, type BrowserContext, type Page } from "@playwright/test";
 
+/** The admin's password: ADMIN_PASSWORD if set, else the file ADMIN_PASSWORD_FILE names, else the
+ *  stack's own secret file (SECRETS_DIR/admin_password, relative to the project; Playwright runs in frontend/). */
+function adminPassword(): string {
+  if (process.env.ADMIN_PASSWORD) return process.env.ADMIN_PASSWORD;
+  const file =
+    process.env.ADMIN_PASSWORD_FILE ??
+    resolve(process.cwd(), "..", process.env.SECRETS_DIR ?? "secrets", "admin_password");
+  return existsSync(file) ? readFileSync(file, "utf8").trim() : "";
+}
+
 /** E2E runs against a running stack (see playwright.config.ts). The admin
- *  comes from the environment; the viewer and editor are created (or
+ *  comes from the environment or the stack's secret file; the viewer and editor are created (or
  *  reset) here with throwaway passwords, so a run never depends on hand-
  *  made accounts. Requires MULTI_USER_ENABLED=true. */
 export const ADMIN = {
   email: process.env.ADMIN_EMAIL ?? "admin@example.com",
-  password: process.env.ADMIN_PASSWORD ?? "",
+  password: adminPassword(),
 };
 export const VIEWER = { email: "e2e-viewer@example.com", password: "E2E#Viewer#Pass1" };
 export const EDITOR = { email: "e2e-editor@example.com", password: "E2E#Editor#Pass1" };

@@ -186,6 +186,9 @@ def summarise(results: list[PartResult]) -> str:
 
 
 def main(argv: list[str]) -> int:
+    for stream in (sys.stdout, sys.stderr):  # a Windows console (cp1252) cannot show a tool's ✓ or →
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
     if "-h" in argv[1:] or "--help" in argv[1:]:
         print(__doc__)
         return 0

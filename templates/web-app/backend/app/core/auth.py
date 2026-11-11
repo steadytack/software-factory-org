@@ -1,7 +1,7 @@
 """Multi-user authentication.
 
 Accounts live in the `users` table (bcrypt hashes). The env-configured
-ADMIN_EMAIL/ADMIN_PASSWORD is the bootstrap admin: ensure_bootstrap_admin()
+ADMIN_EMAIL and the secret admin_password are the bootstrap admin: ensure_bootstrap_admin()
 seeds it at startup when the table is empty (or resets its password when the
 env value changes), so a fresh deployment can always sign in.
 
@@ -71,7 +71,10 @@ async def ensure_bootstrap_admin(session: AsyncSession) -> None:
             entity_id=str(existing.id),
             action="updated",
             actor="system",
-            summary="Bootstrap admin password reset from ADMIN_PASSWORD and account re-activated",
+            summary=(
+                "Bootstrap admin password reset from its secret (admin_password)"
+                " and account re-activated"
+            ),
         )
     await session.commit()
 

@@ -213,7 +213,7 @@ async def set_password(
     if user.email == _bootstrap_email():
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            "The bootstrap admin's password is managed via ADMIN_PASSWORD in .env",
+            "The bootstrap admin's password is managed in the secret file admin_password",
         )
     user.password_hash = hash_password(data.password)
     user.token_version += 1  # signs the user out everywhere
