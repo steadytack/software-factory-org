@@ -1,4 +1,4 @@
-# Organisation A software factory
+# Organisation software factory
 
 **Good ideas turned into working apps quickly, built one consistent way, safely, by AI with people deciding.**
 
