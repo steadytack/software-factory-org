@@ -1,11 +1,16 @@
 import { createElement, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Monitor, Moon, Plus, Sun } from "lucide-react";
+import { Plus } from "lucide-react";
+// feature:theme:start
+import { Monitor, Moon, Sun } from "lucide-react";
+// feature:theme:end
 import { registerSearchItem, unregisterSearchItem, type SearchItem } from "./registry";
 import { useSearchStore } from "./searchStore";
 import { useCan } from "../hooks/useCan";
 import { useStartNewRecord } from "../hooks/useNewRecord";
+// feature:theme:start
 import { useTheme } from "../components/theme-provider";
+// feature:theme:end
 
 const PAGE_ITEMS = [
   { id: "page-dashboard", label: "Dashboard", to: "/" },
@@ -34,7 +39,9 @@ export function useSearch() {
   const start = useStartNewRecord();
   const startNewRecord = useRef(start);
   startNewRecord.current = start;
+  // feature:theme:start
   const { setTheme } = useTheme();
+  // feature:theme:end
 
   useEffect(() => {
     const commands: SearchItem[] = [
@@ -48,6 +55,7 @@ export function useSearch() {
             action: () => startNewRecord.current(c.to),
           }))
         : []),
+      // feature:theme:start
       ...(
         [
           ["light", "Light theme", Sun],
@@ -62,10 +70,15 @@ export function useSearch() {
         icon: icon(Icon),
         action: () => setTheme(theme),
       })),
+      // feature:theme:end
     ];
     commands.forEach(registerSearchItem);
     return () => commands.forEach((c) => unregisterSearchItem(c.id));
+  // feature:theme:start
   }, [can.edit, setTheme]);
+  // feature:theme:else
+  // }, [can.edit]);
+  // feature:theme:end
 
   useEffect(() => {
     for (const item of PAGE_ITEMS) {

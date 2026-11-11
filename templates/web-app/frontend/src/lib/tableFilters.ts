@@ -2,7 +2,15 @@
  *  configures it. Deliberately AND-only (no OR/grouping) — matches "multiple
  *  conditions" without a full boolean-expression builder. */
 
-export type FilterOperator = "contains" | "equals" | "is" | "is_not";
+export type FilterOperator =
+  | "contains"
+  | "equals"
+  | "is"
+  | "is_not"
+  | "at_least"
+  | "at_most"
+  | "after"
+  | "before";
 
 export interface FilterCondition {
   id: string;
@@ -14,7 +22,7 @@ export interface FilterCondition {
 export interface FilterableColumn<T> {
   id: string;
   label: string;
-  type: "text" | "select";
+  type: "text" | "select" | "number" | "date";
   /** Required when `type === "select"`. */
   options?: readonly string[];
   accessor: (row: T) => string | null | undefined;
@@ -24,6 +32,8 @@ export interface FilterableColumn<T> {
 export const OPERATORS_BY_TYPE: Record<FilterableColumn<unknown>["type"], FilterOperator[]> = {
   text: ["contains", "equals"],
   select: ["is", "is_not"],
+  number: ["at_least", "at_most"],
+  date: ["after", "before"],
 };
 
 export const OPERATOR_LABELS: Record<FilterOperator, string> = {
@@ -31,6 +41,10 @@ export const OPERATOR_LABELS: Record<FilterOperator, string> = {
   equals: "is",
   is: "is any of",
   is_not: "is none of",
+  at_least: "at least",
+  at_most: "at most",
+  after: "on or after",
+  before: "on or before",
 };
 
 /** Select conditions hold several values ("is any of"), stored in `value`
@@ -69,6 +83,22 @@ export function matchesCondition<T>(
       return splitValues(needle).includes(raw);
     case "is_not":
       return !splitValues(needle).includes(raw);
+    case "at_least":
+    case "at_most": {
+      const value = Number(column.accessor(row));
+      const limit = Number(needle);
+      if (column.accessor(row) == null || Number.isNaN(value) || Number.isNaN(limit)) return false;
+      return condition.operator === "at_least" ? value >= limit : value <= limit;
+    }
+    case "after":
+    case "before": {
+      const moment = Date.parse(String(column.accessor(row) ?? ""));
+      const limit = Date.parse(needle);
+      if (Number.isNaN(moment) || Number.isNaN(limit)) return false;
+      // a bare date is the whole day
+      const end = /^\d{4}-\d{2}-\d{2}$/.test(needle) ? limit + 86_400_000 - 1 : limit;
+      return condition.operator === "after" ? moment >= limit : moment <= end;
+    }
     default:
       return true;
   }

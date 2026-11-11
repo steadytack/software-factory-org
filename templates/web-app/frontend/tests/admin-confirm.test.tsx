@@ -5,7 +5,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { __stubResponse } from "./setup";
-import { HelpProvider } from "../src/help/HelpContext";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { AdminPage } from "../src/pages/AdminPage";
 
@@ -23,13 +22,11 @@ function renderAdmin() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <HelpProvider>
         <TooltipProvider>
           <MemoryRouter>
             <AdminPage />
           </MemoryRouter>
         </TooltipProvider>
-      </HelpProvider>
     </QueryClientProvider>,
   );
 }

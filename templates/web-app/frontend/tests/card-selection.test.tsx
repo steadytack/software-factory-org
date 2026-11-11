@@ -62,7 +62,8 @@ describe("card selection", () => {
     const onOpen = renderCards();
     longPress(screen.getByText("Alpha"));
     fireEvent.click(screen.getByText("Alpha"));
-    expect(card("Alpha")).toHaveAttribute("aria-selected", "true");
+    expect(card("Alpha")).toHaveAttribute("data-selected", "true");
+    expect(card("Alpha")).toHaveTextContent("Selected"); // said to screen readers, not only drawn
     expect(onOpen).not.toHaveBeenCalled();
     expect(screen.getByRole("toolbar", { name: "Selected rows" })).toHaveTextContent("1 selected");
   });
@@ -72,7 +73,7 @@ describe("card selection", () => {
     longPress(screen.getByText("Alpha"));
     fireEvent.click(screen.getByText("Alpha")); // the click that ends the press
     fireEvent.click(screen.getByText("Bravo"));
-    expect(card("Bravo")).toHaveAttribute("aria-selected", "true");
+    expect(card("Bravo")).toHaveAttribute("data-selected", "true");
     expect(onOpen).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByLabelText("Clear selection"));
@@ -86,6 +87,6 @@ describe("card selection", () => {
     fireEvent.pointerDown(el, { button: 0, clientX: 10, clientY: 10 });
     fireEvent.pointerMove(el, { clientX: 10, clientY: 60 });
     act(() => vi.advanceTimersByTime(500));
-    expect(card("Alpha")).toHaveAttribute("aria-selected", "false");
+    expect(card("Alpha")).toHaveAttribute("data-selected", "false");
   });
 });

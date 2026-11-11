@@ -102,14 +102,34 @@ class Settings(BaseSettings):
     # Outgoing email (Help → Report or suggest). Any SMTP server or relay:
     # Microsoft 365, Gmail, SendGrid, Mailgun… Port 465 uses implicit TLS;
     # otherwise STARTTLS when smtp_starttls. Unset host = email off (reports
-    # are still stored and listed under Admin → Feedback). Where reports go
-    # is set in the app by an admin, not here.
+    # are still stored and listed under Admin → Feedback). Where each type
+    # of report goes is FEEDBACK_* below, which an admin can change in the app.
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = ""
     smtp_starttls: bool = True
+    # The app's name, used in email subjects and exports. Keep in step with
+    # frontend/src/lib/brand.ts.
+    app_name: str = "Web App Template"
+    # Where each type of Help → Feedback report goes: `email:<address>`
+    # (stored and emailed; a bare `email:` uses the address an admin set under
+    # Admin → Feedback), `store` (kept for the admins only) or `off` (the
+    # type isn't offered). An admin can change these in the app; these are
+    # the defaults until they do.
+    feedback_problem: str = "store"
+    feedback_suggestion: str = "store"
+    feedback_question: str = "store"
+    # feature:heartbeat:start
+    # Outbound heartbeat (app/heartbeat.py, run by the scheduler service): a
+    # dead-man's-switch URL (healthchecks.io, an Uptime Kuma push monitor),
+    # pinged every heartbeat_every_seconds while heartbeat_health_url answers
+    # 200. Empty = off. HTTPS only.
+    heartbeat_url: str = ""
+    heartbeat_every_seconds: int = Field(default=300, ge=30)
+    heartbeat_health_url: str = "http://backend:8000/api/health"
+    # feature:heartbeat:end
 
     @property
     def is_production(self) -> bool:
@@ -128,6 +148,29 @@ class Settings(BaseSettings):
             ) from exc
         return self
 
+    @model_validator(mode="after")
+    def _check_feedback_routes(self) -> "Settings":
+        for name in ("feedback_problem", "feedback_suggestion", "feedback_question"):
+            value = getattr(self, name).strip()
+            if not value:
+                value = "store"
+            if value not in ("store", "off") and not value.startswith("email:"):
+                raise ValueError(
+                    f"{name.upper()} must be `email:<address>`, `store` or `off` (got {value!r})."
+                )
+            object.__setattr__(self, name, value)
+        return self
+
+    # feature:heartbeat:start
+    @model_validator(mode="after")
+    def _check_heartbeat(self) -> "Settings":
+        url = self.heartbeat_url.strip()
+        if url and not url.startswith("https://"):
+            raise ValueError("HEARTBEAT_URL must start with https:// (or be empty for off).")
+        object.__setattr__(self, "heartbeat_url", url)
+        return self
+
+    # feature:heartbeat:end
     @model_validator(mode="after")
     def _check_secrets(self) -> "Settings":
         """Refuse to start on secrets that would make every session forgeable

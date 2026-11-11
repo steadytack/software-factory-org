@@ -5,7 +5,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { __stubResponse } from "./setup";
-import { HelpProvider } from "../src/help/HelpContext";
 import { SidebarProvider } from "../src/components/ui/sidebar";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { LoginPage } from "../src/pages/LoginPage";
@@ -19,13 +18,11 @@ function renderWithProviders(ui: React.ReactElement) {
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <HelpProvider>
         <TooltipProvider>
           <SidebarProvider>
             <MemoryRouter>{ui}</MemoryRouter>
           </SidebarProvider>
         </TooltipProvider>
-      </HelpProvider>
     </QueryClientProvider>,
   );
 }

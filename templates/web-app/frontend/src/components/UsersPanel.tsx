@@ -32,8 +32,25 @@ import {
 import { ROLE_HINTS, USER_ROLES, vocabularyLabel, type UserRole } from "../lib/vocabularies";
 import { LoadError } from "./LoadError";
 import { TableSkeleton } from "./ui/table-skeleton";
+import type { FilterableColumn } from "../lib/tableFilters";
+import { formatDateTime } from "../lib/format";
+import { TABLE_PANEL } from "../lib/tablePanel";
 
 type User = components["schemas"]["UserRead"];
+
+/** Every field of an account is a column; these are hidden until the person adds them from Columns. */
+const USER_HIDDEN_BY_DEFAULT = { is_admin: false, is_bootstrap: false, created_at: false };
+
+const USER_FILTERS: FilterableColumn<User>[] = [
+  { id: "email", label: "Email", type: "text", accessor: (u) => u.email },
+  { id: "display_name", label: "Name", type: "text", accessor: (u) => u.display_name },
+  { id: "role", label: "Role", type: "select", options: [...USER_ROLES], accessor: (u) => u.role },
+  { id: "status", label: "Status", type: "select", options: ["active", "disabled"], accessor: (u) => (u.is_active ? "active" : "disabled") },
+  { id: "last_login_at", label: "Last login", type: "date", accessor: (u) => u.last_login_at },
+  { id: "is_admin", label: "Admin", type: "select", options: ["yes", "no"], accessor: (u) => (u.is_admin ? "yes" : "no") },
+  { id: "is_bootstrap", label: "Bootstrap", type: "select", options: ["yes", "no"], accessor: (u) => (u.is_bootstrap ? "yes" : "no") },
+  { id: "created_at", label: "Added", type: "date", accessor: (u) => u.created_at },
+];
 
 const EMPTY_NEW_USER = { email: "", password: "", displayName: "", role: "editor" as UserRole };
 
@@ -150,6 +167,25 @@ export function UsersPanel({ myEmail }: { myEmail: string }) {
           );
         },
       },
+      // Every other field of an account is a column too, hidden until chosen (USER_HIDDEN_BY_DEFAULT).
+      {
+        id: "is_admin",
+        accessorFn: (u) => (u.is_admin ? "yes" : "no"),
+        header: "Admin",
+        cell: (info) => vocabularyLabel(info.getValue<string>()),
+      },
+      {
+        id: "is_bootstrap",
+        accessorFn: (u) => (u.is_bootstrap ? "yes" : "no"),
+        header: "Bootstrap",
+        cell: (info) => vocabularyLabel(info.getValue<string>()),
+      },
+      {
+        id: "created_at",
+        accessorKey: "created_at",
+        header: "Added",
+        cell: (info) => <span className="tnum text-muted-foreground">{formatDateTime(info.getValue<string>())}</span>,
+      },
       {
         id: "actions",
         header: "",
@@ -202,14 +238,18 @@ export function UsersPanel({ myEmail }: { myEmail: string }) {
       {users.isPending ? (
         <TableSkeleton rows={3} />
       ) : (
+        // Scrolls inside the page past min(34rem, 70vh), header in view (lib/tablePanel.ts).
+        <div className={TABLE_PANEL}>
         <ManagedDataTable
           data={users.data ?? []}
           columns={columns}
           exportName="users"
+          initialVisibility={USER_HIDDEN_BY_DEFAULT}
+          filterableColumns={USER_FILTERS}
           emptyMessage="No users yet."
-          autoHeight
           primaryAction={{ label: "Add user", icon: <UserPlus />, onClick: () => setCreateOpen(true) }}
         />
+        </div>
       )}
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>

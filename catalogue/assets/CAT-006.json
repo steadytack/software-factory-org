@@ -16,7 +16,7 @@
     "files",
     "web"
   ],
-  "version": "1.3.0",
+  "version": "1.4.0",
   "status": "approved",
   "source": {
     "ref": "templates/web-app",
@@ -79,6 +79,24 @@
       "check": "A throwaway Compose stack from a copy of the template (MULTI_USER_ENABLED=true, secrets from scripts/make_env.py, its own project name and spare ports)",
       "result": "passed",
       "detail": "scripts/smoke.py --backup 17 of 17; scripts/check_ports.py 3 ports, all on 127.0.0.1; scripts/check_secrets.py 0 findings; backup with the database stopped (--no-deps) exited 1 and left no file; the newest dump restored into a scratch database with exit 0 and matching row counts; Playwright 19 of 19 passed incl. accessibility.spec.ts (a first run failed 9 of 10 because the copy's CORS_ORIGINS did not name the spare port; fixed in the copy's .env, not the template)"
+    },
+    {
+      "date": "2026-11-11",
+      "check": "factory/scripts/verify.py --template web-app (clean containers)",
+      "result": "passed",
+      "detail": "1.4.0 (ported from the personal software-factory: managed tables with header filters, a saved view, every field a column and server mode; collapsible cards and segmented keys; template features chosen at Gate 1 with feature markers and Markdown guides; the outbound heartbeat option); backend ruff clean and 279 passed after table_query.py was split for the complexity and boolean-argument rules; frontend tsc, eslint and 271 vitest tests passed"
+    },
+    {
+      "date": "2026-11-11",
+      "check": "verify.py on a copy stripped by template_options.apply with every option off",
+      "result": "passed",
+      "detail": "no option marker left; backend 252 passed (after the feedback cases in test_data_integrity_r3.py were put inside help.feedback markers), frontend 254 vitest tests passed"
+    },
+    {
+      "date": "2026-11-11",
+      "check": "A throwaway Compose stack from a copy of the template (MULTI_USER_ENABLED=true, secrets from scripts/make_env.py, its own project name, spare ports, CORS_ORIGINS on the spare frontend port)",
+      "result": "passed",
+      "detail": "scripts/smoke.py --backup 17 of 17; scripts/check_ports.py 3 ports, all on 127.0.0.1; scripts/check_secrets.py 0 findings; the scheduler logged heartbeat_off with HEARTBEAT_URL empty; Playwright 19 of 19 passed incl. accessibility.spec.ts; torn down with down -v"
     }
   ],
   "risks": [],

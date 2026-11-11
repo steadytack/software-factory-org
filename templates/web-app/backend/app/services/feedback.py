@@ -1,5 +1,10 @@
-"""Feedback (Help → Report or suggest): store the report, then email it to
-the address an admin set, with the screenshot attached.
+"""Feedback (Help → Feedback): store the report, then email it when its
+type is routed to email, with the screenshot attached.
+
+Each type (problem, suggestion, question) has a route: `email:<address>`,
+`store` (kept for the admins only) or `off` (not offered, refused). The
+defaults are FEEDBACK_PROBLEM / FEEDBACK_SUGGESTION / FEEDBACK_QUESTION in
+config; an admin's choice (an AppSetting) wins over them.
 
 A report is always stored first, so it survives a missing email setup or a
 failed send; admins see every report, sent or not, under Admin → Feedback.
@@ -16,6 +21,7 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.core.storage import save_upload
 from app.models.feedback import AppSetting, FeedbackReport
@@ -30,6 +36,20 @@ KIND_LABELS = {
     "idea": "Feature idea",
     "other": "Other",
 }
+# The stored kind → the route it follows. `confusing` is an older kind, kept
+# for reports sent before the three types; it is a problem.
+ROUTE_FOR_KIND = {
+    "bug": "problem",
+    "confusing": "problem",
+    "idea": "suggestion",
+    "other": "question",
+}
+# Route → the kind the form sends for it.
+KIND_FOR_ROUTE = {"problem": "bug", "suggestion": "idea", "question": "other"}
+ROUTES = ("problem", "suggestion", "question")
+ROUTE_LABELS = {"problem": "Problem", "suggestion": "Suggestion", "question": "Question"}
+# AppSetting key for an admin's choice of route; empty or missing = config default.
+ROUTE_KEYS = {name: f"feedback_route_{name}" for name in ROUTES}
 MAX_PER_HOUR = 10
 MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 MAX_CONTEXT_CHARS = 30_000
@@ -42,6 +62,34 @@ class FeedbackError(Exception):
 
 class TooManyReports(FeedbackError):
     pass
+
+
+class FeedbackOff(FeedbackError):
+    """This type of report is turned off."""
+
+
+@dataclass(frozen=True)
+class Route:
+    destination: str  # "email" | "store" | "off"
+    address: str = ""  # only for email; empty = the default address
+
+    def encode(self) -> str:
+        return f"email:{self.address}" if self.destination == "email" else self.destination
+
+
+def parse_route(value: str | None) -> Route:
+    """`email:<address>` | `store` | `off` → Route. Anything else is `store`,
+    the safe choice: the report is kept and nobody is emailed by mistake."""
+    value = (value or "").strip()
+    if value.startswith("email:"):
+        return Route("email", value.removeprefix("email:").strip())
+    if value == "off":
+        return Route("off")
+    return Route("store")
+
+
+def default_route(name: str) -> Route:
+    return parse_route(getattr(get_settings(), f"feedback_{name}"))
 
 
 def valid_email(value: str) -> bool:
@@ -61,6 +109,20 @@ async def set_setting(session: AsyncSession, key: str, value: str, actor: str) -
         row.value = value
         row.updated_by = actor
     await session.flush()
+
+
+async def get_route(session: AsyncSession, name: str) -> Route:
+    override = await get_setting(session, ROUTE_KEYS[name])
+    return parse_route(override) if override else default_route(name)
+
+
+async def get_routes(session: AsyncSession) -> dict[str, Route]:
+    return {name: await get_route(session, name) for name in ROUTES}
+
+
+async def route_address(session: AsyncSession, route: Route) -> str:
+    """Where an email route sends: its own address, else the default one."""
+    return route.address or await get_setting(session, FEEDBACK_EMAIL_KEY)
 
 
 @dataclass
@@ -157,7 +219,7 @@ def build_mail(report: FeedbackReport, to: str, screenshot: Screenshot | None) -
     )
     return Mail(
         to=to,
-        subject=f"[Fieldline] {kind}: {report.summary}",
+        subject=f"[{get_settings().app_name}] {kind}: {report.summary}",
         text=text,
         html=body_html,
         reply_to=report.reporter_email if valid_email(report.reporter_email) else None,
@@ -176,7 +238,11 @@ async def submit(
     reporter_email: str,
     reporter_role: str,
 ) -> FeedbackReport:
-    """Store the report, then try to email it. Never fails because email did."""
+    """Store the report, then email it if its type is routed to email.
+    Never fails because email did. Refuses a type that is turned off."""
+    route = await get_route(session, ROUTE_FOR_KIND.get(kind, "problem"))
+    if route.destination == "off":
+        raise FeedbackOff("This type of feedback is turned off.")
     since = datetime.now(UTC) - timedelta(hours=1)
     recent = await session.scalar(
         select(func.count())
@@ -200,7 +266,11 @@ async def submit(
     await session.flush()
     await session.refresh(report)
 
-    to = await get_setting(session, FEEDBACK_EMAIL_KEY)
+    if route.destination != "email":
+        # Store only: kept for the admins, nothing to send.
+        logger.info("feedback_received", report_id=str(report.id), kind=kind, emailed=False)
+        return report
+    to = await route_address(session, route)
     if not to:
         report.email_error = "No address set under Admin → Feedback."
     elif not smtp_configured():
@@ -217,14 +287,16 @@ async def submit(
     return report
 
 
-async def send_test(to: str, actor: str) -> None:
+async def send_test(to: str, actor: str, route: str | None = None) -> None:
+    app = get_settings().app_name
+    what = f"{ROUTE_LABELS[route]} reports" if route else "Reports"
     await send_mail(
         Mail(
             to=to,
-            subject="[Fieldline] Test email",
+            subject=f"[{app}] Test email",
             text=(
-                f"This is a test from Fieldline, sent by {actor}.\n\n"
-                "Reports from Help → Report or suggest will arrive at this address."
+                f"This is a test from {app}, sent by {actor}.\n\n"
+                f"{what} from Help → Feedback will arrive at this address."
             ),
         )
     )

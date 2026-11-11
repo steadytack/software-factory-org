@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  CircleHelp,
-  ClipboardList,
-  LogOut,
-  MapPin,
-  Menu,
-  Monitor,
-  Moon,
-  Plus,
-  Sun,
-} from "lucide-react";
+import { ClipboardList, LogOut, MapPin, Menu, Plus } from "lucide-react";
+// feature:help:start
+import { CircleHelp } from "lucide-react";
+// feature:help:end
+// feature:theme:start
+import { Monitor, Moon, Sun } from "lucide-react";
+// feature:theme:end
 
 import { useAuth } from "../hooks/useAuth";
 import { useCan } from "../hooks/useCan";
 import { useStartNewRecord } from "../hooks/useNewRecord";
+// feature:help:start
 import { useHelpContext } from "../help/HelpContext";
+// feature:help:end
+// feature:theme:start
 import { useTheme, type Theme } from "../components/theme-provider";
+// feature:theme:end
 import {
   Sheet,
   SheetContent,
@@ -27,11 +27,13 @@ import {
 import { cn } from "../lib/utils";
 import { MOBILE_TABS, NAV_ACCOUNT, isNavActive } from "./nav";
 
+// feature:theme:start
 const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
   { value: "light", label: "Light", icon: Sun },
   { value: "dark", label: "Dark", icon: Moon },
   { value: "system", label: "System", icon: Monitor },
 ];
+// feature:theme:end
 
 /** One tab in the floating pill: icon-only and the same width as its neighbours. The current page
  *  sits in a soft capsule (and carries `aria-current`, so it is not shown by colour alone). */
@@ -64,8 +66,12 @@ export function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, email, logout } = useAuth();
+  // feature:help:start
   const { openHelp } = useHelpContext();
+  // feature:help:end
+  // feature:theme:start
   const { theme, setTheme } = useTheme();
+  // feature:theme:end
   const [moreOpen, setMoreOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const can = useCan();
@@ -189,6 +195,7 @@ export function MobileNav() {
                 {item.label}
               </button>
             ))}
+            {/* feature:help:start */}
             <button
               type="button"
               onClick={() => {
@@ -198,9 +205,15 @@ export function MobileNav() {
               className={SHEET_ROW}
             >
               <CircleHelp className="size-4 text-muted-foreground" />
+              {/* feature:help.feedback:start */}
               Help &amp; feedback
+              {/* feature:help.feedback:else */}
+              {/* Help */}
+              {/* feature:help.feedback:end */}
             </button>
+            {/* feature:help:end */}
 
+            {/* feature:theme:start */}
             <div className="mt-1 flex items-center justify-between gap-3 px-3 py-1">
               <span className="text-sm font-medium text-foreground">Theme</span>
               <div role="radiogroup" aria-label="Theme" className="flex rounded-lg border border-border p-0.5">
@@ -219,6 +232,7 @@ export function MobileNav() {
                 ))}
               </div>
             </div>
+            {/* feature:theme:end */}
 
             <div className="my-1 h-px bg-border" />
             <button

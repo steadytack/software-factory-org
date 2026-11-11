@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, CircleHelp, Keyboard, LogOut, Search, UserRound } from "lucide-react";
+import { ChevronDown, Keyboard, LogOut, Search, UserRound } from "lucide-react";
+// feature:help:start
+import { CircleHelp } from "lucide-react";
+// feature:help:end
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
 import { loadPrefs } from "../lib/prefs";
 import { useSearchStore } from "../search/searchStore";
+// feature:help:start
 import { useHelpContext } from "../help/HelpContext";
+// feature:help:end
 import { useShortcutsStore } from "../hooks/useGlobalShortcuts";
 import { NotificationsBell } from "../components/NotificationsBell";
 import { OutboxIndicator } from "../components/OutboxIndicator";
+// feature:theme:start
 import { ThemeToggle } from "../components/ThemeToggle";
+// feature:theme:end
+// feature:share:start
 import { ShareButton } from "../components/ShareButton";
+// feature:share:end
 import { LogoMark } from "../components/brand/Logo";
 import { BRAND } from "../lib/brand";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
@@ -43,7 +52,9 @@ export function Header() {
   const { email, logout } = useAuth();
   const navigate = useNavigate();
   const setModalOpen = useSearchStore((s) => s.setModalOpen);
+  // feature:help:start
   const { openHelp } = useHelpContext();
+  // feature:help:end
   const openShortcuts = useShortcutsStore((s) => s.setOpen);
   const [displayName, setDisplayName] = useState("");
 
@@ -104,8 +115,13 @@ export function Header() {
         >
           <Search />
         </IconButton>
+        {/* feature:share:start */}
         <ShareButton className={HEADER_BTN} />
+        {/* feature:share:end */}
+        {/* feature:theme:start */}
         <ThemeToggle triggerClassName={`hidden md:inline-flex ${HEADER_BTN}`} />
+        {/* feature:theme:end */}
+        {/* feature:help:start */}
         <IconButton
           label="Help"
           onClick={() => openHelp()}
@@ -113,6 +129,7 @@ export function Header() {
         >
           <CircleHelp />
         </IconButton>
+        {/* feature:help:end */}
         {email && <OutboxIndicator />}
         {email && <NotificationsBell triggerClassName={HEADER_BTN} />}
         {email && (
@@ -157,10 +174,16 @@ export function Header() {
                 Keyboard shortcuts
                 <span className="ml-auto text-xs text-muted-foreground">?</span>
               </DropdownMenuItem>
+              {/* feature:help:start */}
               <DropdownMenuItem onClick={() => openHelp()}>
                 <CircleHelp />
+                {/* feature:help.feedback:start */}
                 Help &amp; feedback
+                {/* feature:help.feedback:else */}
+                {/* Help */}
+                {/* feature:help.feedback:end */}
               </DropdownMenuItem>
+              {/* feature:help:end */}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"

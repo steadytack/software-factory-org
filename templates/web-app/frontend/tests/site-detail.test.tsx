@@ -5,7 +5,6 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
 import { __stubResponse } from "./setup";
-import { HelpProvider } from "../src/help/HelpContext";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { SiteDetailPage } from "../src/pages/SiteDetailPage";
 import { sitesListHref } from "../src/lib/listContext";
@@ -49,11 +48,9 @@ function renderSite(initialState?: unknown, role = "editor") {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <HelpProvider>
         <TooltipProvider>
           <RouterProvider router={router} />
         </TooltipProvider>
-      </HelpProvider>
     </QueryClientProvider>,
   );
   return router;

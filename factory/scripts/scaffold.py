@@ -14,8 +14,10 @@ one-page spike card, spike.md, in their place), decisions.md,
 changes.md and empty gates/, source/ and spec/ folders, at the start of Develop and Assess (an idea
 captured in ideas/pipeline.json is made by `pipeline.py develop`, which calls it). `app` copies templates/<template> into ideas/<slug>/app
 (without build output or the factory's own files), adds NOTES.md and the standards it is built to,
-and starts the app's own git repository. Ports, secrets and removing a template's example domain are
-done afterwards, during Build.
+and starts the app's own git repository. A template's optional features (factory/templates.json `options`)
+are applied as chosen at Gate 1 (`template_options` in the card or assessment block, or the definition's
+`template.options`): the ones turned off are removed (template_options.py). Ports, secrets and removing a
+template's example domain are done afterwards, during Build.
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import factory_lib as lib  # noqa: E402
+import template_options  # noqa: E402
 
 # What an app copy leaves out. A bare name matches any file or folder of that name; "./x" only the top level.
 COPY_EXCLUDES = [
@@ -261,6 +264,20 @@ def new_spec(slug: str, root: Path | None = None) -> Path:
     return spec
 
 
+def template_choices(idea: Path, root: Path | None = None) -> dict:
+    """The Gate 1 template options: the definition's `template.options`, else the card or assessment
+    block's `template_options`, else none (every option takes its default)."""
+    import check_spec
+    import pipeline
+
+    definition, _problems = check_spec.read_definition(idea)
+    chosen = ((definition or {}).get("template") or {}).get("options")
+    if chosen is None:
+        assessment, _problems = pipeline.read_assessment(idea, root)
+        chosen = (assessment or {}).get("template_options")
+    return dict(chosen or {})
+
+
 def new_app(slug: str, template: str, root: Path | None = None) -> Path:
     base = root or lib.ROOT
     state = lib.load_state(slug, root)
@@ -270,8 +287,14 @@ def new_app(slug: str, template: str, root: Path | None = None) -> Path:
     stack = base / "factory" / "standards" / "stacks" / f"{entry['stack']}.md"
     if not stack.exists():
         raise lib.FactoryError(f"no stack standards for {template} ({stack.relative_to(base).as_posix()})")
+    chosen = template_choices(lib.idea_dir(slug, root), root)
+    try:
+        template_options.resolve(entry, chosen)
+    except template_options.OptionError as exc:
+        raise lib.FactoryError(f"template options chosen at Gate 1: {exc}") from exc
     app = lib.idea_dir(slug, root) / "app"
     copy_template(base / "templates" / template, app)
+    template_options.apply(app, entry, chosen)
     shutil.copy(base / "factory" / "project-files" / "NOTES.md", app / "NOTES.md")
     (app / "standards").mkdir(exist_ok=True)
     for name in ("PRINCIPLES.md", "ai-features.md"):

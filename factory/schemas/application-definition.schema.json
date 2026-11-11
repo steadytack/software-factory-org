@@ -44,7 +44,20 @@
     "brand": { "$ref": "#/$defs/choice", "properties": { "value": { "enum": ["personal", "organisation", "existing-product", "unbranded", "none"] } } },
     "design_system": { "$ref": "#/$defs/choice" },
     "interaction_style": { "$ref": "#/$defs/choice" },
-    "template": { "$ref": "#/$defs/choice" },
+    "template": {
+      "allOf": [
+        { "$ref": "#/$defs/choice" },
+        {
+          "properties": {
+            "options": {
+              "type": "object",
+              "description": "The choice for each of the template's optional features (factory/templates.json `options`), keyed by option id: true/false for a feature, a string for a route (feedback: email:<address>, email:, store or off). A missing id takes the template's default (DEF-26).",
+              "additionalProperties": { "type": ["boolean", "string"] }
+            }
+          }
+        }
+      ]
+    },
     "lenses": {
       "type": "object",
       "required": ["active", "skipped"],

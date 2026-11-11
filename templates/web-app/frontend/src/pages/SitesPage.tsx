@@ -15,8 +15,6 @@ import { ManagedDataTable } from "../components/ui/ManagedDataTable";
 import { RecordFormDialog } from "../components/RecordFormDialog";
 import { DeleteConfirmDialog } from "../components/DeleteConfirmDialog";
 import { PageHeader } from "../components/PageHeader";
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { SITES_HELP_TOPICS } from "../help/pageTopics";
 import { RowActionButton, RowActions } from "../components/ui/row-actions";
 import { SiteLocationFields } from "../components/SiteLocationFields";
 import { TableSkeleton } from "../components/ui/table-skeleton";
@@ -30,7 +28,7 @@ import {
   type SiteFormValues,
 } from "../lib/siteForm";
 import { StatusBadge } from "../components/StatusBadge";
-import { NO_VALUE, formatCoordinate } from "../lib/format";
+import { NO_VALUE, formatCoordinate, formatDateTime } from "../lib/format";
 import { vocabularyLabel } from "../lib/vocabularies";
 import type { FilterableColumn } from "../lib/tableFilters";
 import { RecordPeek } from "../components/RecordPeek";
@@ -41,10 +39,19 @@ type Site = components["schemas"]["SiteRead"];
 
 const FORM_FIELDS = SITE_FORM_FIELDS;
 
+/** Every field of a site is a column; these are hidden until the person adds them from Columns. The
+ *  default set is what a person scans a list of sites for: name, type, status, address, postcode, where. */
+const SITE_HIDDEN_BY_DEFAULT = {
+  notes: false,
+  latitude: false,
+  longitude: false,
+  created_at: false,
+  updated_at: false,
+};
+
 
 export function SitesPage() {
   const navigate = useNavigate();
-  useRegisterHelpTopics(SITES_HELP_TOPICS);
   const { data, isPending, error, refetch } = useAllSites();
   const createSite = useCreateSite();
   const updateSite = useUpdateSite();
@@ -160,6 +167,42 @@ export function SitesPage() {
           </span>
         ),
       },
+      // Every other field of a site is a column too, hidden until chosen (SITE_HIDDEN_BY_DEFAULT).
+      {
+        id: "notes",
+        accessorFn: (s) => s.notes ?? "",
+        header: "Notes",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.notes || NO_VALUE}</span>
+        ),
+        meta: { editable: true, type: "text", maxWidth: "24rem" },
+      },
+      {
+        id: "latitude",
+        accessorKey: "latitude",
+        header: "Latitude",
+        cell: (info) => <span className="font-mono text-xs">{formatCoordinate(info.getValue<number>())}</span>,
+        meta: { align: "right" },
+      },
+      {
+        id: "longitude",
+        accessorKey: "longitude",
+        header: "Longitude",
+        cell: (info) => <span className="font-mono text-xs">{formatCoordinate(info.getValue<number>())}</span>,
+        meta: { align: "right" },
+      },
+      {
+        id: "created_at",
+        accessorKey: "created_at",
+        header: "Added",
+        cell: (info) => <span className="tnum text-muted-foreground">{formatDateTime(info.getValue<string>())}</span>,
+      },
+      {
+        id: "updated_at",
+        accessorKey: "updated_at",
+        header: "Updated",
+        cell: (info) => <span className="tnum text-muted-foreground">{formatDateTime(info.getValue<string>())}</span>,
+      },
       ...(can.edit
         ? [
             {
@@ -203,6 +246,11 @@ export function SitesPage() {
       { id: "name", label: "Name", type: "text", accessor: (s) => s.name },
       { id: "address", label: "Address", type: "text", accessor: (s) => s.address },
       { id: "postcode", label: "Postcode", type: "text", accessor: (s) => s.postcode ?? null },
+      { id: "notes", label: "Notes", type: "text", accessor: (s) => s.notes },
+      { id: "latitude", label: "Latitude", type: "number", accessor: (s) => String(s.latitude) },
+      { id: "longitude", label: "Longitude", type: "number", accessor: (s) => String(s.longitude) },
+      { id: "created_at", label: "Added", type: "date", accessor: (s) => s.created_at },
+      { id: "updated_at", label: "Updated", type: "date", accessor: (s) => s.updated_at },
     ],
     [],
   );
@@ -243,6 +291,7 @@ export function SitesPage() {
           data={visibleSites ?? []}
           columns={columns}
           exportName="sites"
+          initialVisibility={SITE_HIDDEN_BY_DEFAULT}
           emptyMessage="No sites yet — add one to get started."
           savedViews={savedViews}
           totalRows={data.total}

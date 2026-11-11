@@ -5,7 +5,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { __stubResponse } from "./setup";
-import { HelpProvider } from "../src/help/HelpContext";
 import { SidebarProvider } from "../src/components/ui/sidebar";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { SitesPage } from "../src/pages/SitesPage";
@@ -31,7 +30,6 @@ function renderPage() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <HelpProvider>
         <TooltipProvider>
           <SidebarProvider>
             <MemoryRouter>
@@ -39,7 +37,6 @@ function renderPage() {
             </MemoryRouter>
           </SidebarProvider>
         </TooltipProvider>
-      </HelpProvider>
     </QueryClientProvider>,
   );
 }

@@ -5,8 +5,11 @@ kind, summary, details, the browser's diagnostics and an optional
 screenshot (a data URL, so an offline report can wait in the outbox as
 plain JSON). The reporter is the session's user — never the request body.
 
-Admin routes set where reports are emailed, send a test email and list
-reports (with their screenshots).
+`GET /feedback/config` tells the form which types are on and where each
+goes (email or kept in the app); only admins see the addresses.
+
+Admin routes set where each type goes, send a test email and list reports
+(with their screenshots).
 """
 
 import json
@@ -33,6 +36,8 @@ router = APIRouter(tags=["feedback"])
 admin_router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
 FeedbackKind = Literal["bug", "confusing", "idea", "other"]
+RouteName = Literal["problem", "suggestion", "question"]
+Destination = Literal["email", "store", "off"]
 
 
 class FeedbackCreate(BaseModel):
@@ -77,21 +82,87 @@ class FeedbackList(BaseModel):
     items: list[FeedbackRead]
 
 
+def _checked_email(value: str) -> str:
+    value = value.strip()
+    if value and not svc.valid_email(value):
+        raise ValueError("Enter one email address, e.g. support@example.com")
+    return value
+
+
+class FeedbackRoute(BaseModel):
+    """Where one type of report goes. `address` is only used for email;
+    empty means the default address (`feedback_email`)."""
+
+    destination: Destination
+    address: str = Field(default="", max_length=200)
+
+    @field_validator("address")
+    @classmethod
+    def _address(cls, value: str) -> str:
+        return _checked_email(value)
+
+
+class FeedbackRoutes(BaseModel):
+    problem: FeedbackRoute
+    suggestion: FeedbackRoute
+    question: FeedbackRoute
+
+
 class FeedbackSettings(BaseModel):
     feedback_email: str
     smtp_configured: bool
+    routes: FeedbackRoutes
 
 
 class FeedbackSettingsUpdate(BaseModel):
-    feedback_email: str = Field(max_length=200)
+    """Either part can be left out to keep it as it is."""
+
+    feedback_email: str | None = Field(default=None, max_length=200)
+    routes: FeedbackRoutes | None = None
 
     @field_validator("feedback_email")
     @classmethod
-    def _email(cls, value: str) -> str:
-        value = value.strip()
-        if value and not svc.valid_email(value):
-            raise ValueError("Enter one email address, e.g. support@example.com")
-        return value
+    def _email(cls, value: str | None) -> str | None:
+        return None if value is None else _checked_email(value)
+
+
+class FeedbackTypeConfig(BaseModel):
+    """One type the form offers. `destination` is where it actually goes:
+    `email` only when it will be emailed (an address and SMTP are set),
+    otherwise `store`. `address` is filled for admins only."""
+
+    type: RouteName
+    kind: FeedbackKind
+    destination: Literal["email", "store"]
+    address: str | None = None
+
+
+class FeedbackConfig(BaseModel):
+    types: list[FeedbackTypeConfig]
+
+
+@router.get("/feedback/config", response_model=FeedbackConfig)
+async def feedback_config(
+    session: AsyncSession = SessionDep,
+    subject: str = Depends(get_current_subject),
+) -> FeedbackConfig:
+    user = (await session.execute(select(User).where(User.email == subject))).scalar_one_or_none()
+    is_admin = effective_role(user) == "admin"
+    types: list[FeedbackTypeConfig] = []
+    for name, route in (await svc.get_routes(session)).items():
+        if route.destination == "off":
+            continue
+        address = await svc.route_address(session, route) if route.destination == "email" else ""
+        emailed = bool(address) and smtp_configured()
+        types.append(
+            FeedbackTypeConfig(
+                type=name,  # type: ignore[arg-type]
+                kind=svc.KIND_FOR_ROUTE[name],  # type: ignore[arg-type]
+                destination="email" if emailed else "store",
+                address=address if emailed and is_admin else None,
+            )
+        )
+    return FeedbackConfig(types=types)
 
 
 @router.post("/feedback", response_model=FeedbackResult, status_code=status.HTTP_201_CREATED)
@@ -139,12 +210,23 @@ def _read(r: FeedbackReport) -> FeedbackRead:
     )
 
 
-@admin_router.get("/settings", response_model=FeedbackSettings)
-async def get_feedback_settings(session: AsyncSession = SessionDep) -> FeedbackSettings:
+async def _settings(session: AsyncSession) -> FeedbackSettings:
+    routes = await svc.get_routes(session)
     return FeedbackSettings(
         feedback_email=await svc.get_setting(session, svc.FEEDBACK_EMAIL_KEY),
         smtp_configured=smtp_configured(),
+        routes=FeedbackRoutes(
+            **{
+                name: FeedbackRoute(destination=r.destination, address=r.address)  # type: ignore[arg-type]
+                for name, r in routes.items()
+            }
+        ),
     )
+
+
+@admin_router.get("/settings", response_model=FeedbackSettings)
+async def get_feedback_settings(session: AsyncSession = SessionDep) -> FeedbackSettings:
+    return await _settings(session)
 
 
 @admin_router.put("/settings", response_model=FeedbackSettings)
@@ -153,20 +235,35 @@ async def update_feedback_settings(
     session: AsyncSession = SessionDep,
     actor: str = Depends(get_current_subject),
 ) -> FeedbackSettings:
-    await svc.set_setting(session, svc.FEEDBACK_EMAIL_KEY, data.feedback_email, actor)
-    return FeedbackSettings(feedback_email=data.feedback_email, smtp_configured=smtp_configured())
+    if data.feedback_email is not None:
+        await svc.set_setting(session, svc.FEEDBACK_EMAIL_KEY, data.feedback_email, actor)
+    if data.routes is not None:
+        for name in svc.ROUTES:
+            route: FeedbackRoute = getattr(data.routes, name)
+            value = svc.Route(route.destination, route.address).encode()
+            await svc.set_setting(session, svc.ROUTE_KEYS[name], value, actor)
+    return await _settings(session)
 
 
 @admin_router.post("/settings/test-email", status_code=status.HTTP_204_NO_CONTENT)
 async def send_test_email(
+    route: RouteName | None = Query(default=None, description="Test this type's address"),
     session: AsyncSession = SessionDep,
     actor: str = Depends(get_current_subject),
 ) -> None:
-    to = await svc.get_setting(session, svc.FEEDBACK_EMAIL_KEY)
+    """Without `route`, tests the default address; with it, the address
+    that type of report is emailed to."""
+    if route is None:
+        to = await svc.get_setting(session, svc.FEEDBACK_EMAIL_KEY)
+    else:
+        chosen = await svc.get_route(session, route)
+        if chosen.destination != "email":
+            raise HTTPException(status.HTTP_409_CONFLICT, "This type isn't sent by email.")
+        to = await svc.route_address(session, chosen)
     if not to:
         raise HTTPException(status.HTTP_409_CONFLICT, "Set an address to send reports to first.")
     try:
-        await svc.send_test(to, actor)
+        await svc.send_test(to, actor, route)
     except MailError as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
 

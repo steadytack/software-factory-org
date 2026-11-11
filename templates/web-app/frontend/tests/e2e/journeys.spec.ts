@@ -59,7 +59,8 @@ test("an editor records a survey, then adds a photo and a comment", async ({ pag
   await surveyDialog.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Survey added.")).toBeVisible();
 
-  await page.getByRole("link", { name: /^Survey / }).first().click();
+  // The site's surveys are a managed table: open the new one from its row's date link.
+  await page.getByRole("row", { name: new RegExp(surveyorName) }).getByRole("link").first().click();
   await expect(page.getByRole("heading", { name: /^Survey · / })).toBeVisible();
   surveyPath = new URL(page.url()).pathname;
 

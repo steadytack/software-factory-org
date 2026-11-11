@@ -11,10 +11,10 @@ import { SearchModal } from "../search/SearchModal";
 import { useSearch } from "../search/useSearch";
 import { useSiteSearchItems } from "../search/useSiteSearchItems";
 import { useSearchStore } from "../search/searchStore";
+// feature:help:start
 import { HelpProvider } from "../help/HelpContext";
 import { HelpDrawer } from "../help/HelpDrawer";
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { CORE_HELP_TOPICS } from "../help/coreTopics";
+// feature:help:end
 import { applyDensity, loadPrefs } from "../lib/prefs";
 import { useGlobalShortcuts } from "../hooks/useGlobalShortcuts";
 import { ShortcutsDialog } from "../components/ShortcutsDialog";
@@ -22,11 +22,6 @@ import { useBackgroundSync } from "../lib/backgroundSync";
 
 interface AppLayoutProps {
   children?: React.ReactNode;
-}
-
-function HelpTopicsRegistrar() {
-  useRegisterHelpTopics(CORE_HELP_TOPICS);
-  return null;
 }
 
 /** App shell: fixed header, collapsible sidebar, scrollable content area.
@@ -98,9 +93,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, []);
 
   return (
-    <HelpProvider>
-      <HelpTopicsRegistrar />
+    <>
+      {/* feature:help:start */}
+      <HelpProvider>
       <HelpDrawer />
+      {/* feature:help:end */}
       <TooltipProvider delayDuration={0}>
         <SidebarProvider>
           <a
@@ -155,6 +152,9 @@ export function AppLayout({ children }: AppLayoutProps) {
           <Toaster position="bottom-center" mobileOffset={{ bottom: "calc(6rem + env(safe-area-inset-bottom))" }} />
         </SidebarProvider>
       </TooltipProvider>
-    </HelpProvider>
+      {/* feature:help:start */}
+      </HelpProvider>
+      {/* feature:help:end */}
+    </>
   );
 }

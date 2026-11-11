@@ -51,6 +51,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.database import SessionFactory
 from app.core.logging import get_logger
 from app.models.site import Site
@@ -62,7 +63,7 @@ logger = get_logger(__name__)
 
 POSTCODES_IO = "https://api.postcodes.io/postcodes"
 NOMINATIM_REVERSE = "https://nominatim.openstreetmap.org/reverse"
-USER_AGENT = "Fieldline location backfill (self-hosted site register)"
+USER_AGENT = "location backfill (self-hosted site register)"  # after the app name
 ACTOR = "location-backfill"
 BATCH = 100  # postcodes.io bulk reverse limit
 
@@ -78,7 +79,7 @@ async def http_json(method: str, url: str, body: Any = None) -> Any:
             data=data,
             method=method,
             headers={
-                "User-Agent": USER_AGENT,
+                "User-Agent": f"{get_settings().app_name} {USER_AGENT}",
                 "Accept": "application/json",
                 "Accept-Language": "en",
                 **({"Content-Type": "application/json"} if data else {}),

@@ -6,7 +6,9 @@ import { formatSize } from "../lib/utils";
 import { PageHeader } from "../components/PageHeader";
 import { ExportButtons, RecycleBinPanel } from "../components/RecycleBinPanel";
 import { UsersPanel } from "../components/UsersPanel";
+// feature:help.feedback:start
 import { FeedbackAdminPanel } from "../components/FeedbackAdminPanel";
+// feature:help.feedback:end
 import { useAuth } from "../hooks/useAuth";
 import { Button } from "../components/ui/button";
 import { ShieldCheck } from "lucide-react";
@@ -14,8 +16,6 @@ import { PanelCard } from "../components/PanelCard";
 import { StatusBadge } from "../components/StatusBadge";
 import { EmptyState } from "../components/ui/empty-state";
 import { Skeleton } from "../components/ui/skeleton";
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { ADMIN_HELP_TOPICS } from "../help/pageTopics";
 import { LoadError } from "../components/LoadError";
 import { WithTooltip } from "../components/ui/with-tooltip";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -28,7 +28,6 @@ import { SETTINGS_COLUMNS } from "../components/SettingsLayout";
  *  or `as` casts are needed. */
 
 export function AdminPage() {
-  useRegisterHelpTopics(ADMIN_HELP_TOPICS);
   const { email: myEmail, multiUser, isAdmin } = useAuth();
 
   // Non-admins have no business here (the server enforces this per request;
@@ -106,7 +105,7 @@ function AdminContent({ myEmail, multiUser }: { myEmail: string; multiUser: bool
         </PanelCard>
       )}
       <div className={SETTINGS_COLUMNS}>
-        <PanelCard title="Environment">
+        <PanelCard title="Environment" collapsible={{ defaultOpen: false, key: "admin-environment" }}>
           <dl className="divide-y divide-border text-dense">
             <div className="flex justify-between gap-4 py-2">
               <dt className="text-muted-foreground">API base</dt>
@@ -218,9 +217,11 @@ function AdminContent({ myEmail, multiUser }: { myEmail: string; multiUser: bool
         <PanelCard title="Recycle bin">
           <RecycleBinPanel />
         </PanelCard>
+        {/* feature:help.feedback:start */}
         <PanelCard title="Feedback">
           <FeedbackAdminPanel />
         </PanelCard>
+        {/* feature:help.feedback:end */}
         <PanelCard title="Export">
           <ExportButtons />
         </PanelCard>

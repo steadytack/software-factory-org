@@ -5,8 +5,6 @@ import { ClipboardCheck, ClipboardPen, Pencil, Trash2, User } from "lucide-react
 
 import { useDeleteSurvey, useSurvey, useUpdateSurvey } from "../hooks/useSurveys";
 import { useCan } from "../hooks/useCan";
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { SURVEY_DETAIL_HELP_TOPICS } from "../help/pageTopics";
 import { PageHeader } from "../components/PageHeader";
 import { PendingBadge } from "../components/PendingBadge";
 import { StatusBadge } from "../components/StatusBadge";
@@ -35,7 +33,6 @@ export function SurveyDetailPage() {
   const { surveyId = "" } = useParams<{ surveyId: string }>();
   const navigate = useNavigate();
   const can = useCan();
-  useRegisterHelpTopics(SURVEY_DETAIL_HELP_TOPICS);
   const { data: survey, isPending, isError, refetch } = useSurvey(surveyId);
   const updateSurvey = useUpdateSurvey();
   const deleteSurvey = useDeleteSurvey();

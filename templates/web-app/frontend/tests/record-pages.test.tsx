@@ -5,7 +5,6 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { describe, expect, it, vi } from "vitest";
 
 import { __stubResponse } from "./setup";
-import { HelpProvider } from "../src/help/HelpContext";
 import { SidebarProvider } from "../src/components/ui/sidebar";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { ManagedDataTable } from "../src/components/ui/ManagedDataTable";
@@ -41,11 +40,9 @@ function renderPage(path: string, route: string, element: React.ReactElement, ro
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <HelpProvider>
         <TooltipProvider>
           <RouterProvider router={router} />
         </TooltipProvider>
-      </HelpProvider>
     </QueryClientProvider>,
   );
   return router;

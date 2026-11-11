@@ -16,9 +16,7 @@ import { SurveyFormDialog } from "../components/SurveyFormDialog";
 import { StatusBadge } from "../components/StatusBadge";
 import { RowActionButton, RowActions } from "../components/ui/row-actions";
 import { TableSkeleton } from "../components/ui/table-skeleton";
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { SURVEYS_HELP_TOPICS } from "../help/pageTopics";
-import { NO_VALUE, formatDate } from "../lib/format";
+import { NO_VALUE, formatDate, formatDateTime } from "../lib/format";
 import { SURVEY_STATUSES, vocabularyLabel } from "../lib/vocabularies";
 import type { FilterableColumn } from "../lib/tableFilters";
 import type { components } from "../types/openapi";
@@ -26,11 +24,14 @@ import { LoadError } from "../components/LoadError";
 
 type Survey = components["schemas"]["SurveyRead"];
 
+/** Every field of a survey is a column; these are hidden until the person adds them from Columns. The
+ *  default set is what a person scans a list of surveys for: date, site, surveyor, status, summary. */
+const SURVEY_HIDDEN_BY_DEFAULT = { created_at: false, updated_at: false };
+
 /** Every survey across every site: filter, edit status/surveyor inline,
  *  or jump to the site. */
 export function SurveysPage() {
   const navigate = useNavigate();
-  useRegisterHelpTopics(SURVEYS_HELP_TOPICS);
   const { data, isPending, error, refetch } = useAllSurveys();
   const updateSurvey = useUpdateSurvey();
   const deleteSurvey = useDeleteSurvey();
@@ -110,6 +111,19 @@ export function SurveysPage() {
           <span className="text-muted-foreground">{row.original.summary || NO_VALUE}</span>
         ),
       },
+      // Every other field of a survey is a column too, hidden until chosen (SURVEY_HIDDEN_BY_DEFAULT).
+      {
+        id: "created_at",
+        accessorKey: "created_at",
+        header: "Added",
+        cell: (info) => <span className="tnum text-muted-foreground">{formatDateTime(info.getValue<string>())}</span>,
+      },
+      {
+        id: "updated_at",
+        accessorKey: "updated_at",
+        header: "Updated",
+        cell: (info) => <span className="tnum text-muted-foreground">{formatDateTime(info.getValue<string>())}</span>,
+      },
       // Row actions only for roles that can use them (viewers get none).
       ...(can.edit
         ? [
@@ -156,6 +170,9 @@ export function SurveysPage() {
       { id: "site_name", label: "Site", type: "text", accessor: (s) => s.site_name },
       { id: "surveyor", label: "Surveyor", type: "text", accessor: (s) => s.surveyor },
       { id: "summary", label: "Summary", type: "text", accessor: (s) => s.summary },
+      { id: "survey_date", label: "Date", type: "date", accessor: (s) => s.survey_date },
+      { id: "created_at", label: "Added", type: "date", accessor: (s) => s.created_at },
+      { id: "updated_at", label: "Updated", type: "date", accessor: (s) => s.updated_at },
     ],
     [],
   );
@@ -186,6 +203,7 @@ export function SurveysPage() {
             data={rows ?? []}
             columns={columns}
             exportName="surveys"
+            initialVisibility={SURVEY_HIDDEN_BY_DEFAULT}
             emptyMessage="No surveys yet — add one to get started."
             savedViews={savedViews}
             totalRows={data.total}

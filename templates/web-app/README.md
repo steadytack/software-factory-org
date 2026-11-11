@@ -105,6 +105,16 @@ The `scheduler` compose service runs the daily jobs at `SCHEDULE_AT` (default 07
 
 `GET /api/health` runs `SELECT 1` and returns 503 when the database is unreachable; the backend container's healthcheck uses it and the frontend waits for it.
 
+<!-- feature:heartbeat:start -->
+### Heartbeat (who notices when it is down)
+
+The app's ports are bound to 127.0.0.1, so an outside monitor can't reach it. Instead it reports out: set `HEARTBEAT_URL` in `.env` to a dead-man's-switch URL (a healthchecks.io check, or an Uptime Kuma push monitor) and the `scheduler` service calls `/api/health` every `HEARTBEAT_EVERY_SECONDS` (default 300) and, only on a 200, sends a GET to that URL. When the pings stop (the app, the database, the scheduler or the machine is down), the service alerts you. Set the monitor's period to match, with some grace.
+
+- Empty `HEARTBEAT_URL` turns it off; nothing is sent. Only `https://` URLs are accepted (start-up refuses others).
+- A GET with no body, a generic User-Agent and a 10 s timeout. A failed ping is logged (`heartbeat_failed`, with the URL's host only, never the full URL, which holds the check's key) and the loop carries on.
+- The code is `backend/app/heartbeat.py`; it is the Gate 1 option `heartbeat`.
+
+<!-- feature:heartbeat:end -->
 ### Dependencies
 
 `backend/poetry.lock` pins every backend dependency; the Docker build installs exactly that. To upgrade, run `poetry lock` **inside a Linux container on a copy of the two files** — never with `backend/` mounted, or poetry can replace your local `.venv` with a Linux one — and commit the lock:
@@ -126,9 +136,18 @@ cp /tmp/lock/poetry.lock backend/poetry.lock
 5. Fill in `DESIGN_TOKENS.md` and `COMPONENT_CATALOGUE.md` (they are in this folder).
 6. **Make fresh secrets** with `python scripts/make_env.py` (it refuses to overwrite) — never ship another project's secret files. Only `.env.example` is committed; `.env` and `secrets/` are git-ignored but travel with folder copies, so delete them from a copy.
 
+## Optional header features
+
+The **Share** button, the **Theme** changer and **Help** (its **Guides** and **Feedback** tabs) are optional. The factory asks about them at Gate 1, along with where each feedback type goes. `scaffold.py app` then removes the ones turned off, so the app carries no unused code. The list is in `factory/templates.json` (`options`), and `factory/scripts/template_options.py` applies it.
+- In the source, each optional part sits between `feature:<id>:start` and `feature:<id>:end` comment lines. A `feature:<id>:else` part holds commented-out lines that are used instead when the feature is off.
+- Keep the markers balanced when you edit these files. `check_factory.py` checks them.
+- **Guides** are markdown files in `frontend/src/help/guides/`. Each file holds one group, and front-matter `pages:` limits it to some routes. Each `##` heading becomes one collapsible section.
+- **Feedback** routes are `FEEDBACK_PROBLEM`, `FEEDBACK_SUGGESTION` and `FEEDBACK_QUESTION` in `.env.example`. Each takes `email:<address>`, `email:` (the admin's address), `store` or `off`. Admins can change them under Admin → Feedback.
+- Turning Feedback off leaves the `feedback_reports` and `app_settings` tables in the baseline migration, and the `modern-screenshot` package. Remove them when you rewrite the migration (step 2 above).
+
 ## Trims already made
 
-Most apps built on this template remove the same optional parts. Start from this list instead of working it out again; record the trim in the app's `decisions.md`, and add a row here when an app removes a part not listed (factory `audit.md` step 6). Only general trims belong here: each app's own record says what it did.
+The header features above are now removed at scaffold. Most apps built on this template remove the same optional parts. Start from this list instead of working it out again; record the trim in the app's `decisions.md`, and add a row here when an app removes a part not listed (factory `audit.md` step 6). Only general trims belong here: each app's own record says what it did.
 
 | Part | What goes | Keep |
 |---|---|---|

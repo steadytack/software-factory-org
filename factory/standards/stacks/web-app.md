@@ -35,6 +35,17 @@ Use alongside `standards/PRINCIPLES.md`. This covers a project with both a front
 
 Dropped from the enterprise stack as unnecessary weight for solo projects: Redux Toolkit (TanStack Query covers most state needs), MapServer (MapLibre GL JS is lighter and does the job), MSAL/Entra ID (see Security below).
 
+### Record data is in managed tables
+
+Every list of records, and any set of records shown on a page, is the template's `ManagedDataTable`: no ad-hoc `<table>`, `<ul>` of rows or card grid of records. Proven in an app built from this template, where lists outside it had to be moved onto it after build.
+
+- **Header filters.** Each column a person might narrow by is in the table's `filterableColumns`, so its header carries a filter button (values for a short list, text, a from/to for a number or a date).
+- **The view is saved per table.** The columns shown, their order, widths, sort and filters come back on the next visit (in this browser). A table shown for each record (a record's own sub-list) sets `layoutKey` so one view serves them all, and `rememberedFilterFields` to keep only the filters that make sense on the next record.
+- **Every field is a column; a relevant few show by default.** The column set covers every field of the record a person can read (ids are links, not columns). `initialVisibility` hides the rest, which the person adds from Columns. Choose the default set as what a person scans that list for.
+- **A list that can outgrow a page runs on the server** (`ServerTable`, `backend/app/core/table_query.py`): search, sort, filters, paging and the CSV cover every row, not the loaded page. A list a person needs offline stays client-side. Record which in the app's `decisions.md`.
+- **Exceptions:** a single record's own facts (a key/value card), a chart's data view, a dashboard preview of a few rows with no toolbar that links to the full table, and the template's Comments thread, Attachments gallery and History timeline. Record any other in the app's `decisions.md`.
+- **Checked by** `tests/no-plain-tables.test.ts` (no `<table>` outside the managed table), `tests/record-tables.test.tsx` (the sample lists cover every field), and the UI polish audit (lists drawn as anything else).
+
 ## Architecture checks
 
 The rules in `standards/PRINCIPLES.md` 2 and 3 are checked by the template's own lint, so a change that breaks them fails `verify.py` rather than waiting for a review:

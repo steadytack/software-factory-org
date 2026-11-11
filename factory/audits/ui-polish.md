@@ -155,6 +155,16 @@ Readability
 - Insufficient visual hierarchy — everything competing for attention
 - Poor grouping/proximity; missing separation between logical sections
 
+Record data (web-app stack: `factory/standards/stacks/web-app.md`, "Record data is in managed tables")
+- Records shown as a plain table, a list of rows or a card grid instead of the
+  managed table (outside the exceptions that standard names)
+- A table whose columns miss fields of its record, or that shows them all by
+  default instead of a relevant few with the rest in Columns
+- A column a person would narrow by with no filter button in its header; a
+  header filter with no accessible name or not reachable by keyboard
+- A table that forgets its columns, order, sort or filters on reload, or a
+  per-record table that carries one record's filters to the next
+
 Responsiveness (mobile → desktop)
 - Horizontal overflow at 320px width
 - Inconsistent or arbitrary breakpoints; non-mobile-first assumptions

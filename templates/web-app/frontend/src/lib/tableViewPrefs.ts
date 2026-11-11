@@ -105,3 +105,89 @@ export function saveColumnWidths(table: string, widths: ColumnWidths): void {
     // Storage unavailable (private mode): the change still applies this session.
   }
 }
+
+/** A table's columns as the person left them: which they turned on or off (only those that differ from
+ *  the table's own defaults, so a default changed later still reaches the columns they never touched) and
+ *  the order they dragged them to. Remembered per table in this browser. */
+export interface ColumnLayout {
+  visibility: Record<string, boolean>;
+  order: string[];
+}
+
+const layoutKeyFor = (table: string) => `table-columns:${table}`;
+
+export function loadColumnLayout(table: string): ColumnLayout {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(layoutKeyFor(table)) ?? "{}") as Partial<ColumnLayout>;
+    const visibility =
+      parsed.visibility && typeof parsed.visibility === "object"
+        ? Object.fromEntries(Object.entries(parsed.visibility).filter((e): e is [string, boolean] => typeof e[1] === "boolean"))
+        : {};
+    const order = Array.isArray(parsed.order) ? parsed.order.filter((id): id is string => typeof id === "string") : [];
+    return { visibility, order };
+  } catch {
+    return { visibility: {}, order: [] };
+  }
+}
+
+/** Saves the layout, or forgets it when it is the table's defaults again. */
+export function saveColumnLayout(table: string, layout: ColumnLayout): void {
+  try {
+    if (Object.keys(layout.visibility).length === 0 && layout.order.length === 0) {
+      localStorage.removeItem(layoutKeyFor(table));
+    } else {
+      localStorage.setItem(layoutKeyFor(table), JSON.stringify(layout));
+    }
+  } catch {
+    // Storage unavailable (private mode): the change still applies this session.
+  }
+}
+
+/** The order to use: the remembered one for the columns that still exist, then any new column in its
+ *  own place at the end. */
+export function reconcileOrder(remembered: string[], current: string[]): string[] {
+  const kept = remembered.filter((id) => current.includes(id));
+  return [...kept, ...current.filter((id) => !kept.includes(id))];
+}
+
+/** A table's sort and filters as the person left them (the search text is not kept: it is for now). */
+export interface TableState {
+  sorting: { id: string; desc: boolean }[];
+  conditions: { id: string; field: string; operator: string; value: string }[];
+}
+
+const stateKeyFor = (table: string) => `table-state:${table}`;
+
+export function loadTableState(table: string): TableState {
+  const empty: TableState = { sorting: [], conditions: [] };
+  try {
+    const parsed = JSON.parse(localStorage.getItem(stateKeyFor(table)) ?? "{}") as Partial<TableState>;
+    const sorting = Array.isArray(parsed.sorting)
+      ? parsed.sorting.filter((s) => s && typeof s.id === "string" && typeof s.desc === "boolean")
+      : [];
+    const conditions = Array.isArray(parsed.conditions)
+      ? parsed.conditions.filter(
+          (c) =>
+            c &&
+            typeof c.id === "string" &&
+            typeof c.field === "string" &&
+            typeof c.operator === "string" &&
+            typeof c.value === "string" &&
+            c.value.trim() !== "",
+        )
+      : [];
+    return { sorting, conditions };
+  } catch {
+    return empty;
+  }
+}
+
+/** Saves the sort and filters, or forgets them when there are none. */
+export function saveTableState(table: string, state: TableState): void {
+  try {
+    if (state.sorting.length === 0 && state.conditions.length === 0) localStorage.removeItem(stateKeyFor(table));
+    else localStorage.setItem(stateKeyFor(table), JSON.stringify(state));
+  } catch {
+    // Storage unavailable (private mode): the change still applies this session.
+  }
+}

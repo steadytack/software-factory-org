@@ -41,7 +41,7 @@ The solution choices, made at the start of Spec and approved with the spec at Ga
 <How it is run, updated and backed up; who notices when it breaks. Or "Not applicable: reason".>
 
 ## Template and candidate catalogue assets
-<The recommended template (or none fits), the runner-up, and what each candidate asset would contribute; the initial composition hypothesis.>
+<The recommended template (or none fits), the runner-up, and what each candidate asset would contribute; the initial composition hypothesis. Template features: when the template declares `options`, the choices go in the block above as `template.options`, keyed by option id (for example `"options": {"share": false, "feedback.question": "store"}`); a missing id keeps its default (DEF-26). Copy them from the card or assessment's `template_options`.>
 
 ## Lenses
 <Which lenses were used and why; each skipped lens with its reason.>

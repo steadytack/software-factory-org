@@ -188,6 +188,23 @@ export interface paths {
         patch: operations["update_entity_api_surveys__entity_id__patch"];
         trace?: never;
     };
+    "/api/surveys.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Surveys Csv */
+        get: operations["surveys_csv_api_surveys_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/changelog": {
         parameters: {
             query?: never;
@@ -712,6 +729,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/feedback/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feedback Config */
+        get: operations["feedback_config_api_feedback_config_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/feedback": {
         parameters: {
             query?: never;
@@ -1081,17 +1115,63 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** FeedbackRoute */
+        FeedbackRoute: {
+            /**
+             * Destination
+             * @enum {string}
+             */
+            destination: "email" | "store" | "off";
+            /**
+             * Address
+             * @default
+             */
+            address?: string;
+        };
+        /** FeedbackRoutes */
+        FeedbackRoutes: {
+            problem: components["schemas"]["FeedbackRoute"];
+            suggestion: components["schemas"]["FeedbackRoute"];
+            question: components["schemas"]["FeedbackRoute"];
+        };
         /** FeedbackSettings */
         FeedbackSettings: {
             /** Feedback Email */
             feedback_email: string;
             /** Smtp Configured */
             smtp_configured: boolean;
+            routes: components["schemas"]["FeedbackRoutes"];
         };
         /** FeedbackSettingsUpdate */
         FeedbackSettingsUpdate: {
             /** Feedback Email */
-            feedback_email: string;
+            feedback_email?: string | null;
+            routes?: components["schemas"]["FeedbackRoutes"] | null;
+        };
+        /** FeedbackTypeConfig */
+        FeedbackTypeConfig: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "problem" | "suggestion" | "question";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "bug" | "confusing" | "idea" | "other";
+            /**
+             * Destination
+             * @enum {string}
+             */
+            destination: "email" | "store";
+            /** Address */
+            address?: string | null;
+        };
+        /** FeedbackConfig */
+        FeedbackConfig: {
+            /** Types */
+            types: components["schemas"]["FeedbackTypeConfig"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1858,6 +1938,8 @@ export interface operations {
                 date_from?: string | null;
                 date_to?: string | null;
                 q?: string | null;
+                sort?: string | null;
+                where?: string[];
             };
             header?: never;
             path?: never;
@@ -2001,6 +2083,38 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SurveyRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    surveys_csv_api_surveys_csv_get: {
+        parameters: {
+            query?: {
+                site_id?: string | null;
+                q?: string | null;
+                sort?: string | null;
+                where?: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -2850,6 +2964,26 @@ export interface operations {
             };
         };
     };
+    feedback_config_api_feedback_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackConfig"];
+                };
+            };
+        };
+    };
     send_feedback_api_feedback_post: {
         parameters: {
             query?: never;
@@ -2938,7 +3072,10 @@ export interface operations {
     };
     send_test_email_api_admin_settings_test_email_post: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Test this type's address */
+                route?: "problem" | "suggestion" | "question" | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2951,6 +3088,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

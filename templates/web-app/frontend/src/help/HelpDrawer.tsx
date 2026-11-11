@@ -1,8 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+// feature:help.guides:start
+import { useMemo } from "react";
 import { ChevronDown, Search } from "lucide-react";
+import Markdown from "react-markdown";
+import { useLocation } from "react-router-dom";
+// feature:help.guides:end
 
-import { useHelpContext } from "./HelpContext";
+import { useHelpContext, type HelpTab } from "./HelpContext";
+// feature:help.guides:start
 import type { HelpTopic } from "./types";
+import { guidesFor } from "./guides";
+// feature:help.guides:end
 import {
   Sheet,
   SheetContent,
@@ -10,6 +18,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "../components/ui/sheet";
+// feature:help.guides:start
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,16 +26,23 @@ import {
 } from "../components/ui/collapsible";
 import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
+// feature:help.guides:end
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+// feature:help.feedback:start
 import { FeedbackForm } from "./FeedbackForm";
+// feature:help.feedback:end
+// feature:help.guides:start
 import { handleArrowNav } from "../lib/arrowNav";
+// feature:help.guides:end
 
+// feature:help.guides:start
 const TOPIC_TRIGGER = "[data-help-topic-trigger]";
 
 function topicMatches(topic: HelpTopic, query: string): boolean {
   const q = query.toLowerCase();
   if (topic.title.toLowerCase().includes(q)) return true;
   if (topic.group.toLowerCase().includes(q)) return true;
+  if (topic.body.toLowerCase().includes(q)) return true;
   return (topic.keywords ?? []).some((k) => k.toLowerCase().includes(q));
 }
 
@@ -44,27 +60,36 @@ function TopicCard({
         {topic.badge && <Badge variant="secondary">{topic.badge}</Badge>}
         <ChevronDown className="size-4 text-muted-foreground transition-transform group-data-[state=open]/topic:rotate-180" />
       </CollapsibleTrigger>
-      <CollapsibleContent className="px-4 pb-3 text-sm leading-relaxed text-muted-foreground">
-        {topic.body}
+      <CollapsibleContent className="help-markdown space-y-2 px-4 pb-3 text-sm leading-relaxed text-muted-foreground [&_a]:text-primary [&_a]:underline [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-xs [&_li]:ml-4 [&_ol]:list-decimal [&_strong]:text-foreground [&_ul]:list-disc">
+        <Markdown skipHtml>{topic.body}</Markdown>
       </CollapsibleContent>
     </Collapsible>
   );
 }
 
+// feature:help.guides:end
 /** Right-hand slide-over: searchable help topics (Guides), and a form to
  *  send feedback (Feedback). */
 export function HelpDrawer() {
-  const { open, closeHelp, topics, initialTopicId, initialTab } = useHelpContext();
+  const { open, closeHelp, initialTab } = useHelpContext();
+  // feature:help.guides:start
+  const { initialTopicId } = useHelpContext();
+  const { pathname } = useLocation();
+  const topics = useMemo(() => guidesFor(pathname), [pathname]);
   const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<"guides" | "report">("guides");
+  // feature:help.guides:end
+  const [tab, setTab] = useState<HelpTab>(initialTab);
 
   useEffect(() => {
     if (open) {
+      // feature:help.guides:start
       setQuery("");
-      setTab(initialTab ?? "guides");
+      // feature:help.guides:end
+      setTab(initialTab);
     }
   }, [open, initialTab]);
 
+  // feature:help.guides:start
   const filtered = useMemo(() => {
     const list = query.trim()
       ? topics.filter((t) => topicMatches(t, query))
@@ -85,23 +110,29 @@ export function HelpDrawer() {
     return [...map.entries()];
   }, [filtered]);
 
+  // feature:help.guides:end
   return (
     <Sheet open={open} onOpenChange={(o) => !o && closeHelp()}>
       <SheetContent className="gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:w-[400px] data-[side=right]:sm:max-w-[400px]">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as "guides" | "report")} className="flex min-h-0 flex-1 flex-col gap-0">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as HelpTab)} className="flex min-h-0 flex-1 flex-col gap-0">
           <SheetHeader className="border-b border-border pb-0">
             <SheetTitle>Help</SheetTitle>
             <SheetDescription>Guides for the page you're on, or send us feedback.</SheetDescription>
             <TabsList variant="line" className="mt-1 w-full justify-start">
+              {/* feature:help.guides:start */}
               <TabsTrigger value="guides" className="flex-none px-3">
                 Guides
               </TabsTrigger>
+              {/* feature:help.guides:end */}
+              {/* feature:help.feedback:start */}
               <TabsTrigger value="report" className="flex-none px-3">
                 Feedback
               </TabsTrigger>
+              {/* feature:help.feedback:end */}
             </TabsList>
           </SheetHeader>
 
+          {/* feature:help.guides:start */}
           <TabsContent value="guides" className="flex min-h-0 flex-1 flex-col">
             <div className="relative border-b border-border p-3">
               <Search className="pointer-events-none absolute top-1/2 left-5.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -145,11 +176,14 @@ export function HelpDrawer() {
               )}
             </div>
           </TabsContent>
+          {/* feature:help.guides:end */}
 
+          {/* feature:help.feedback:start */}
           <TabsContent value="report" className="min-h-0 flex-1 overflow-y-auto">
             {/* Mounted only while shown, so the screenshot is of the page as it is now. */}
             {tab === "report" && <FeedbackForm onSent={closeHelp} />}
           </TabsContent>
+          {/* feature:help.feedback:end */}
         </Tabs>
       </SheetContent>
     </Sheet>

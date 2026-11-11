@@ -191,6 +191,7 @@ export function TableFilterSort<T>({
                         {type === "select" ? null : (
                           <input
                             aria-label="Filter value"
+                            type={type === "number" ? "number" : type === "date" ? "date" : "text"}
                             value={condition.value}
                             onChange={(e) =>
                               updateCondition(condition.id, {

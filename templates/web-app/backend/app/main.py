@@ -16,7 +16,9 @@ from app.api.endpoints import (
     auth,
     changelog,
     comments,
+    # feature:help.feedback:start
     feedback,
+    # feature:help.feedback:end
     map_layers,
     notifications,
     sites,
@@ -252,6 +254,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix="/api")
     app.include_router(sites.router, prefix="/api")
     app.include_router(surveys.router, prefix="/api")
+    app.include_router(surveys.csv_router, prefix="/api")
     app.include_router(changelog.router, prefix="/api")
     app.include_router(notifications.router, prefix="/api")
     app.include_router(comments.router, prefix="/api")
@@ -259,8 +262,10 @@ def create_app() -> FastAPI:
     app.include_router(admin.router, prefix="/api")
     app.include_router(users.router, prefix="/api")
     app.include_router(map_layers.router, prefix="/api")
+    # feature:help.feedback:start
     app.include_router(feedback.router, prefix="/api")
     app.include_router(feedback.admin_router, prefix="/api")
+    # feature:help.feedback:end
     register_origin_check(app, origins)
     register_security_headers(app)
     register_error_handler(app)

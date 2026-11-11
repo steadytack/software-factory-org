@@ -11,7 +11,9 @@ import "@fontsource/jetbrains-mono/700.css";
 
 import { queryClient } from "./api/client";
 import { startOutbox } from "./lib/outbox";
+// feature:help.feedback:start
 import { startErrorLog } from "./lib/errorLog";
+// feature:help.feedback:end
 import { startStaleBuildRecovery } from "./lib/staleBuild";
 import { persistOptions } from "./lib/persistence";
 import { router } from "./routes";
@@ -21,8 +23,10 @@ import "./styles.css";
 
 // Changes made offline are sent as soon as the connection returns.
 startOutbox();
+// feature:help.feedback:start
 // Recent errors, for bug reports (Help & feedback).
 startErrorLog();
+// feature:help.feedback:end
 
 // A tab still on an old build after a deploy reloads itself once (chunks the
 // server no longer has), instead of showing a broken page.

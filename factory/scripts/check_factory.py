@@ -23,6 +23,7 @@ import scopes  # noqa: E402
 import pipeline  # noqa: E402
 import learned  # noqa: E402
 import check_spec  # noqa: E402
+import template_options  # noqa: E402
 
 START, END = "<!-- templates:start -->", "<!-- templates:end -->"
 READY_KEYS = [
@@ -147,6 +148,14 @@ def check_files(root: Path, registry: dict, errors: list[str]) -> None:
             errors.append(f"templates/{folder.name}: not in templates.json")
     errors += [f"factory/standards/stacks/{s.name}: no template uses this stack file" for s in sorted(stacks.glob("*.md")) if s.stem not in known_stacks]
     errors += [f".github/workflows/{f.name}: no template uses this workflow" for f in sorted(workflows.glob("*.yml")) if f.stem not in known_flows]
+
+
+def check_options(root: Path, registry: dict, errors: list[str]) -> None:
+    """A template's optional features: declared well, their files present, their markers balanced."""
+    for t in ready(registry):
+        folder = root / "templates" / t["name"]
+        if folder.is_dir():
+            errors += template_options.check(folder, t)
 
 
 def check_modules(root: Path, registry: dict, errors: list[str]) -> None:
@@ -393,6 +402,7 @@ def run(root: Path, fix: bool = False, warnings: list[str] | None = None) -> tup
         return errors, []
     check_files(root, registry, errors)
     check_modules(root, registry, errors)
+    check_options(root, registry, errors)
     check_context(root, errors)
     check_ideas(root, errors, warnings)
     check_catalogue(root, errors, warnings)

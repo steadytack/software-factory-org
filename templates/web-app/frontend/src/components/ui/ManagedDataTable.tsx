@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FocusEvent, KeyboardEvent, MouseEvent, ReactNode } from "react";
 import {
   Check,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Inbox,
   Pencil,
@@ -34,7 +36,16 @@ import { EmptyState } from "./empty-state";
 import { TableFilterSort } from "./table-filter-sort";
 import { useIsMobile } from "../../hooks/use-mobile";
 import { readScroll, writeScroll } from "../../lib/listContext";
-import { rowHeightFor, rowPaddingFor } from "../../lib/tableViewPrefs";
+import {
+  loadColumnLayout,
+  loadTableState,
+  reconcileOrder,
+  rowHeightFor,
+  rowPaddingFor,
+  saveColumnLayout,
+  saveTableState,
+} from "../../lib/tableViewPrefs";
+import { ColumnFilterMenu } from "./table/ColumnFilterMenu";
 import { useTableDisplayPrefs } from "../../hooks/useTableDisplayPrefs";
 import { Checkbox } from "./checkbox";
 import { ColumnsMenu } from "./table/ColumnsMenu";
@@ -72,6 +83,27 @@ const WRAP_MAX_WIDTH = "20rem";
 const TOOLBAR_BTN_ON =
   "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent";
 
+/** A table whose rows live on the server: search, sort and filters are sent to it and come back as
+ *  `data` (one page), so they cover every row, not the page. The table keeps its toolbar; the page
+ *  reads the state from `onStateChange`, queries (`lib/serverTable.ts` makes the parameters), and
+ *  passes the page in. The backend's side is `core/table_query.py`. Proven in an app built from
+ *  this template. Use it when a list can outgrow one page; keep a list a person needs offline client-side. */
+export interface ServerTable {
+  /** Rows matching the current search and filters, across every page. */
+  total: number;
+  page: number;
+  size: number;
+  onPageChange: (page: number) => void;
+  /** Where the server writes every matching row as a CSV, for the table's current state. */
+  exportHref: (state: {
+    search: string;
+    sorting: { id: string; desc: boolean }[];
+    conditions: FilterCondition[];
+  }) => string;
+  /** True while the next page or state is loading, so the rows can dim rather than jump. */
+  loading?: boolean;
+}
+
 export interface ManagedDataTableProps<T extends { id: string }> {
   data: T[];
   columns: ColumnDef<T, unknown>[];
@@ -81,6 +113,14 @@ export interface ManagedDataTableProps<T extends { id: string }> {
   globalFilterFn?: (row: Row<T>, columnId: string, value: string) => boolean;
   /** Filename for the CSV export (without extension). */
   exportName?: string;
+  /** What this table's remembered columns, sort and filters are filed under, when its export name
+   *  varies (one table shown for every record of a kind). Defaults to the export name. */
+  layoutKey?: string;
+  /** The sort when the person has not left one (an `initialSorting` from the address wins, then theirs). */
+  defaultSorting?: SortingState;
+  /** The filters on these fields are remembered between visits; the others are for now (a filter on
+   *  something particular to one record would make the next record look empty). Default: all of them. */
+  rememberedFilterFields?: string[];
   /** Message shown when the filtered table is empty. */
   emptyMessage?: string;
   /** When provided, enables the saved-views controls (save current / apply). */
@@ -164,6 +204,8 @@ export interface ManagedDataTableProps<T extends { id: string }> {
   /** Grow with the rows instead of filling the parent's height. Use when
    *  the table isn't inside a fixed-height page region. */
   autoHeight?: boolean;
+  /** Rows live on the server: see `ServerTable`. */
+  server?: ServerTable;
 }
 
 /** Half-controlled TanStack Table: internal sorting/filter/visibility/order
@@ -175,6 +217,9 @@ export function ManagedDataTable<T extends { id: string }>({
   initialVisibility = {},
   globalFilterFn,
   exportName = "export",
+  layoutKey,
+  defaultSorting = [],
+  rememberedFilterFields,
   emptyMessage = "No matching rows.",
   savedViews,
   totalRows,
@@ -195,6 +240,7 @@ export function ManagedDataTable<T extends { id: string }>({
   hideToolbar,
   bare,
   autoHeight,
+  server,
 }: ManagedDataTableProps<T>) {
   const isMobile = useIsMobile();
   const cardMode = Boolean(renderMobileCard && isMobile);
@@ -241,12 +287,36 @@ export function ManagedDataTable<T extends { id: string }>({
     commitEdit,
     closeEditor,
   } = useCellEditing<T>(onCellEdit);
-  const [sorting, setSorting] = useState<SortingState>(initialSorting);
+  // The sort and filters start as the page gave them (its address), else as the person left them last
+  // time, else as the table's default; ones for a column that no longer exists are dropped.
+  const layoutId = layoutKey ?? exportName;
+  const [leftBefore] = useState(() => loadTableState(layoutId));
+  const knownColumn = (id: string) => columns.some((c) => (c.id ?? (c as { accessorKey?: string }).accessorKey) === id);
+  const [sorting, setSorting] = useState<SortingState>(() =>
+    initialSorting.length > 0
+      ? initialSorting
+      : leftBefore.sorting.filter((s) => knownColumn(s.id)).length > 0
+        ? leftBefore.sorting.filter((s) => knownColumn(s.id))
+        : defaultSorting,
+  );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState(initialSearch);
-  const [conditions, setConditions] = useState<FilterCondition[]>(initialConditions);
-  const [visibility, setVisibility] = useState<VisibilityState>(initialVisibility);
-  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
+  const [conditions, setConditions] = useState<FilterCondition[]>(() =>
+    initialConditions.length > 0
+      ? initialConditions
+      : (leftBefore.conditions as FilterCondition[]).filter(
+          (c) =>
+            (filterableColumns ?? []).some((f) => f.id === c.field) &&
+            (rememberedFilterFields === undefined || rememberedFilterFields.includes(c.field)),
+        ),
+  );
+  // The columns the person chose and ordered last time come back (per table, in this browser).
+  const [remembered] = useState(() => loadColumnLayout(layoutId));
+  const [visibility, setVisibility] = useState<VisibilityState>(() => ({
+    ...initialVisibility,
+    ...remembered.visibility,
+  }));
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(remembered.order);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // Selection is keyed by the row's real id (`getRowId` below) — once the
@@ -294,16 +364,19 @@ export function ManagedDataTable<T extends { id: string }>({
   // automatically respects them, same as if the rows never existed.
   const conditionFiltered = useMemo(
     () =>
-      !filterableColumns || conditions.length === 0
+      server || !filterableColumns || conditions.length === 0
         ? data
         : data.filter((row) => matchesAllConditions(row, conditions, filterableColumns)),
-    [data, conditions, filterableColumns],
+    [data, conditions, filterableColumns, server],
   );
 
   const table = useReactTable({
     data: conditionFiltered,
     columns: tableColumns,
     getRowId: (row) => row.id,
+    // on the server, the rows arrive already searched, filtered and sorted
+    manualSorting: Boolean(server),
+    manualFiltering: Boolean(server),
     state: {
       sorting,
       columnFilters,
@@ -360,7 +433,8 @@ export function ManagedDataTable<T extends { id: string }>({
 
   // Keep column order in sync with the (possibly dynamic) column list.
   useEffect(() => {
-    setColumnOrder(table.getAllLeafColumns().map((c) => c.id));
+    const ids = table.getAllLeafColumns().map((c) => c.id);
+    setColumnOrder((was) => reconcileOrder(was, ids));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columns]);
 
@@ -398,7 +472,7 @@ export function ManagedDataTable<T extends { id: string }>({
     frozenProps,
   } = useColumnLayout({
     table,
-    exportName,
+    exportName: layoutId,
     hideToolbar,
     freezeFirstColumn: view.freezeFirstColumn,
   });
@@ -406,8 +480,9 @@ export function ManagedDataTable<T extends { id: string }>({
   // "Reset columns": this table's default column order, visibility and
   // widths. The display options are shared by every table, so they're left
   // alone; search, filters and sorting have their own clear.
-  // Definition order, which TanStack keeps regardless of `columnOrder`.
-  const defaultOrder = table.getAllLeafColumns().map((c) => c.id);
+  // Definition order. (`getAllLeafColumns` follows the current `columnOrder`, so it cannot be the default;
+  // `getAllColumns` keeps the order the table's columns were defined in.)
+  const defaultOrder = table.getAllColumns().flatMap((c) => c.getLeafColumns()).map((c) => c.id);
   const hiddenIds = (v: VisibilityState) =>
     Object.keys(v)
       .filter((id) => v[id] === false)
@@ -422,6 +497,34 @@ export function ManagedDataTable<T extends { id: string }>({
     setVisibility(initialVisibility);
     clearWidths();
   }
+
+  // Remember the sort and filters, so the table comes back as it was left (the search is for now).
+  useEffect(() => {
+    saveTableState(layoutId, {
+      sorting: JSON.stringify(sorting) === JSON.stringify(defaultSorting) ? [] : sorting.map((s) => ({ id: s.id, desc: s.desc })),
+      conditions: conditions.filter(
+        (c) =>
+          c.value.trim() !== "" && (rememberedFilterFields === undefined || rememberedFilterFields.includes(c.field)),
+      ),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sorting, conditions, layoutId]);
+
+  // Remember the column choice and order: only what differs from this table's defaults, so a table
+  // with its defaults again forgets it, and a default changed later reaches columns never touched.
+  useEffect(() => {
+    if (columnOrder.length === 0) return;
+    const changed: Record<string, boolean> = {};
+    for (const id of new Set([...Object.keys(initialVisibility), ...Object.keys(visibility)])) {
+      const now = visibility[id] !== false;
+      if (now !== (initialVisibility[id] !== false)) changed[id] = now;
+    }
+    saveColumnLayout(layoutId, {
+      visibility: changed,
+      order: columnOrder.join(",") === defaultOrder.join(",") ? [] : columnOrder,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibility, columnOrder, layoutId]);
 
   // Saved views: let the page snapshot the current table state.
   useEffect(() => {
@@ -476,6 +579,20 @@ export function ManagedDataTable<T extends { id: string }>({
   }, [exportName, hideToolbar]);
 
   function exportCsv() {
+    if (server) {
+      // the server writes every matching row; the browser downloads it with the person's session
+      const link = document.createElement("a");
+      link.href = server.exportHref({
+        search: globalFilter,
+        sorting: sorting.map((s) => ({ id: s.id, desc: s.desc })),
+        conditions,
+      });
+      link.download = "";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return;
+    }
     downloadTableCsv(table, exportName, exportColumns);
   }
 
@@ -577,7 +694,7 @@ export function ManagedDataTable<T extends { id: string }>({
   // "there is no data" and "your filter matched nothing" were the
   // same message, so a user who had forgotten a filter was told the table
   // was empty. The second case now says so, and offers the way out.
-  const emptyNode = data.length > 0 ? (
+  const emptyNode = data.length > 0 || (server && (globalFilter || conditions.length > 0)) ? (
     <EmptyState
       icon={<SearchX className="size-8" />}
       title="No matching rows"
@@ -595,7 +712,7 @@ export function ManagedDataTable<T extends { id: string }>({
             setConditions([]);
           }}
         >
-          Clear the filter to see all {data.length} rows
+          {server ? "Clear the filter to see every row" : `Clear the filter to see all ${data.length} rows`}
         </button>
       }
     />
@@ -753,12 +870,18 @@ export function ManagedDataTable<T extends { id: string }>({
           <div className="ml-auto flex items-center gap-1">{selectionControls}</div>
         ) : (
           <span
-            title={`${table.getFilteredRowModel().rows.length} of ${data.length} rows`}
+            title={
+              server
+                ? `${server.total.toLocaleString("en-GB")} matching rows`
+                : `${table.getFilteredRowModel().rows.length} of ${data.length} rows`
+            }
             className="ml-auto text-xs text-tertiary tnum"
           >
-            {globalFilter || conditions.length > 0
-              ? `${table.getFilteredRowModel().rows.length} / ${data.length}`
-              : `${data.length} rows`}
+            {server
+              ? `${server.total.toLocaleString("en-GB")} ${server.total === 1 ? "row" : "rows"}`
+              : globalFilter || conditions.length > 0
+                ? `${table.getFilteredRowModel().rows.length} / ${data.length}`
+                : `${data.length} rows`}
           </span>
         )}
           </>
@@ -773,6 +896,7 @@ export function ManagedDataTable<T extends { id: string }>({
         className={cn(
           autoHeight ? "overflow-x-auto" : "flex-initial min-h-0 overflow-auto",
           !cardMode && !bare && "rounded-lg border border-border bg-card shadow-sm",
+          server?.loading && "opacity-60 transition-opacity",
         )}
       >
         {cardMode ? (
@@ -785,7 +909,9 @@ export function ManagedDataTable<T extends { id: string }>({
                   key={row.id}
                   {...rowFocusProps(index, row)}
                   {...cardPressProps(row)}
-                  aria-selected={enableSelection ? row.getIsSelected() : undefined}
+                  // A list item cannot carry aria-selected (axe: aria-allowed-attr), so the state is
+                  // said in words below and kept as data for styling and tests.
+                  data-selected={enableSelection ? String(row.getIsSelected()) : undefined}
                   className={cn(
                     "relative rounded-lg outline-none select-none [-webkit-touch-callout:none] focus-visible:ring-2 focus-visible:ring-ring",
                     // While selecting, cards shift over to show a check column.
@@ -795,6 +921,7 @@ export function ManagedDataTable<T extends { id: string }>({
                   )}
                 >
                   {renderMobileCard!(row.original)}
+                  {enableSelection && row.getIsSelected() && <span className="sr-only">Selected</span>}
                   {selecting && (
                     <span
                       aria-hidden
@@ -840,9 +967,14 @@ export function ManagedDataTable<T extends { id: string }>({
                         )}
                       >
                         <div
-                          className={cn(width !== undefined && "overflow-hidden")}
+                          className={cn(
+                            width !== undefined && "overflow-hidden",
+                            width !== undefined && meta?.align === "right" && "ml-auto",
+                          )}
                           style={width !== undefined ? { width } : undefined}
                         >
+                        {!col.columnDef.header && <span className="sr-only">{label}</span>}
+                        <div className={cn("flex items-center gap-1", meta?.align === "right" && "justify-end")}>
                         {col.getCanSort() ? (
                           <button
                             onClick={col.getToggleSortingHandler()}
@@ -879,6 +1011,14 @@ export function ManagedDataTable<T extends { id: string }>({
                             header.getContext(),
                           )
                         )}
+                        {filterableColumns?.find((f) => f.id === col.id) && (
+                          <ColumnFilterMenu
+                            column={filterableColumns.find((f) => f.id === col.id)!}
+                            conditions={conditions}
+                            onConditionsChange={setConditions}
+                          />
+                        )}
+                        </div>
                         </div>
                         {resizable && (
                           <ColumnResizeHandle
@@ -998,7 +1138,10 @@ export function ManagedDataTable<T extends { id: string }>({
                             // ignore max-width. Truncates, or wraps with
                             // "Wrap text" on.
                             <div
-                              className={view.wrap ? "whitespace-normal break-words" : "truncate"}
+                              className={cn(
+                                view.wrap ? "whitespace-normal break-words" : "truncate",
+                                meta?.align === "right" && "ml-auto",
+                              )}
                               style={{ width: widthFor(cell.column.id) }}
                               title={
                                 !view.wrap && typeof cell.getValue() === "string"
@@ -1010,9 +1153,14 @@ export function ManagedDataTable<T extends { id: string }>({
                             </div>
                           ) : view.wrap && meta?.width !== "shrink" ? (
                             // Sized to the content up to a cap, so short values
-                            // keep their width and only long ones wrap.
+                            // keep their width and only long ones wrap. A box
+                            // ignores text-align, so a right-aligned one is
+                            // pushed over by its margin.
                             <div
-                              className="w-max whitespace-normal break-words"
+                              className={cn(
+                                "w-max whitespace-normal break-words",
+                                meta?.align === "right" && "ml-auto",
+                              )}
                               style={{ maxWidth: meta?.maxWidth ?? WRAP_MAX_WIDTH }}
                             >
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -1062,6 +1210,30 @@ export function ManagedDataTable<T extends { id: string }>({
           onOpenFullPage={onRowOpen}
           onRestoreFocus={() => rowRefs.current[activeRow]?.focus()}
         />
+      )}
+
+      {server && Math.ceil(server.total / server.size) > 1 && (
+        <nav aria-label="Pages" className="flex shrink-0 items-center justify-end gap-2 text-xs text-muted-foreground">
+          <IconButton
+            label="Previous page"
+            variant="ghost"
+            disabled={server.page <= 1}
+            onClick={() => server.onPageChange(server.page - 1)}
+          >
+            <ChevronLeft />
+          </IconButton>
+          <span className="tnum">
+            Page {server.page} of {Math.ceil(server.total / server.size)}
+          </span>
+          <IconButton
+            label="Next page"
+            variant="ghost"
+            disabled={server.page >= Math.ceil(server.total / server.size)}
+            onClick={() => server.onPageChange(server.page + 1)}
+          >
+            <ChevronRight />
+          </IconButton>
+        </nav>
       )}
     </div>
   );

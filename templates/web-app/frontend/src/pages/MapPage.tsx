@@ -45,8 +45,6 @@ import { MapStatusBar, type MapStatus } from "../components/map/MapStatusBar";
 import { MapRightPanel, type MapPanelTab } from "../components/map/MapRightPanel";
 import { useMapSearch } from "../components/map/hooks/useMapSearch";
 import { useMapContextMenu } from "../components/map/MapContextMenu";
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { MAP_HELP_TOPICS } from "../help/pageTopics";
 import { useMapDraw } from "../components/map/hooks/useMapDraw";
 import { useMapLayers } from "../components/map/hooks/useMapLayers";
 import { useMapUrlState } from "../components/map/hooks/useMapUrlState";
@@ -84,7 +82,6 @@ const PANEL_WIDTH = 320;
 const SNAP_LIMIT = 60_000;
 
 export function MapPage() {
-  useRegisterHelpTopics(MAP_HELP_TOPICS);
   useEffect(() => {
     document.title = pageTitle("Map");
   }, []);

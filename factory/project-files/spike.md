@@ -37,6 +37,9 @@ One page for a spike (tier 1, `factory/stages/light.md`). The block above is wha
 ## Data and protection
 <Synthetic, a real sample or real data, as far as the data classes allow; the protection level (`factory/standards/security.md`); the template.>
 
+## Template features
+<When the template declares `options` (`factory/templates.json`): each one with its default (DEF-26), for the approver to change at Gate 1. Changes go in the block's `template_options` (for example `"template_options": {"share": false}`). "None" when the template has none.>
+
 ## Data sources
 <Each external source (a feed, an API, a file another system writes): its real sample under `source/` (from a test environment, or data the classes allow) and the fields used, read from the sample; or why no sample can be had yet, as a risk. "None" if the spike reads no outside data.>
 

@@ -19,6 +19,7 @@ from geoalchemy2 import Geometry
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.csvsafe import BOM, safe_csv_text
 from app.core.storage import storage_root
 from app.models.changelog import ChangelogEntry
@@ -97,7 +98,7 @@ async def build_export(session: AsyncSession, *, include_files: bool) -> Path:
                     zf.write(source, f"files/{attachment_id}/{Path(filename).name}")
         zf.writestr(
             "README.txt",
-            "Fieldline export. One CSV per table; site locations as "
+            f"{get_settings().app_name} export. One CSV per table; site locations as "
             "latitude/longitude. Rows with deleted_at set were in the recycle bin. "
             "Text starting with = + - or @ is prefixed with an apostrophe so a "
             "spreadsheet shows it instead of running it. "

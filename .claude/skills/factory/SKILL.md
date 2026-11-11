@@ -39,7 +39,7 @@ The routes, tiers and roles are in `factory/README.md`; every rule is in plain f
 
 ## Gate protocol
 1. Before Gate 1, have the work challenged by a fresh subagent that did not draft it (`factory/standards/challenge.md`) and answer each challenge (in the card's Challenge section for a spike, `gates/challenge-1.md` otherwise). Run the check: `check_spec.py <slug> --assessment` at Gate 1; the audit and `learned.py check <slug>` at Gate 3.
-2. Show **one short page**: done (checks exactly as run), recommended, decisions for you (numbered, each with an unconditional recommendation: ask for a fact rather than recommend "A if X"), risks, next. Set `state.json` to `awaiting-approval`.
+2. Show **one short page**: done (checks exactly as run), recommended, decisions for you (numbered, each with an unconditional recommendation: ask for a fact rather than recommend "A if X"), at Gate 1 the template features when the template has options (each pre-filled from DEF-26, changed only where the approver wants), risks, next. Set `state.json` to `awaiting-approval`.
 3. **Stop for sign-off.** From a gate approver: `approve`, `change 2 to B`, `go`, `get ready`, `stop`, `back to <stage>`; at a spike's Gate 3 `grow to 2|3`, `keep`, `stop`. From the owner, only `stop`. Ask again otherwise.
 4. Record the reply exactly, with `[meaning: ...]` when it points at numbered decisions: Gate 1 with `pipeline.py decide --by <approver>`, a spike's Gate 3 with `pipeline.py light --by <approver>`. Each answer goes in `decisions.md`; one that differs from the recommendation also goes in `learned.md` with `learned.py add`.
 5. Never report a check as passed unless it ran in this session. Say "not run".

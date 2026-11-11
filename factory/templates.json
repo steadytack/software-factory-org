@@ -6,7 +6,7 @@
       "name": "web-app",
       "status": "ready",
       "order": 6,
-      "version": "1.3.0",
+      "version": "1.4.0",
       "runtime": "python+node",
       "readme_status": "ready, verified (see its README)",
       "readme_for": "a web application with a frontend and backend, geospatial-capable",
@@ -73,6 +73,102 @@
       ],
       "compose_project": "web-app-template",
       "modules": [],
+      "options": [
+        {
+          "id": "share",
+          "kind": "feature",
+          "label": "Share button in the header (share sheet, copy link, email link)",
+          "default": true,
+          "files": [
+            "frontend/src/components/ShareButton.tsx",
+            "frontend/tests/share-button.test.tsx"
+          ]
+        },
+        {
+          "id": "theme",
+          "kind": "feature",
+          "label": "Theme changer in the header (light, dark, system); off follows the device",
+          "default": true,
+          "files": [
+            "frontend/src/components/ThemeToggle.tsx"
+          ]
+        },
+        {
+          "id": "help.guides",
+          "kind": "feature",
+          "label": "Help > Guides: markdown guides, one collapsible section per heading, chosen by page",
+          "default": true,
+          "files": [
+            "frontend/src/help/guides",
+            "frontend/src/help/guides.ts",
+            "frontend/src/help/types.ts",
+            "frontend/tests/help-guides.test.tsx"
+          ]
+        },
+        {
+          "id": "help.feedback",
+          "kind": "feature",
+          "label": "Help > Feedback: Problem, Suggestion and Question reports, with an optional screenshot",
+          "default": true,
+          "files": [
+            "frontend/src/help/FeedbackForm.tsx",
+            "frontend/src/components/FeedbackAdminPanel.tsx",
+            "frontend/src/lib/screenshot.ts",
+            "frontend/src/lib/diagnostics.ts",
+            "frontend/src/lib/errorLog.ts",
+            "frontend/tests/feedback.test.tsx",
+            "backend/app/api/endpoints/feedback.py",
+            "backend/app/services/feedback.py",
+            "backend/tests/test_feedback.py"
+          ]
+        },
+        {
+          "id": "help",
+          "kind": "group",
+          "label": "Help button in the header (on while Guides or Feedback is on)",
+          "on_if_any": [
+            "help.guides",
+            "help.feedback"
+          ],
+          "files": [
+            "frontend/src/help"
+          ]
+        },
+        {
+          "id": "feedback.problem",
+          "kind": "route",
+          "label": "Where Problem reports go: email:<address>, email: (the admin's address), store (kept in the app only) or off",
+          "default": "email:",
+          "env": "FEEDBACK_PROBLEM",
+          "needs": "help.feedback"
+        },
+        {
+          "id": "feedback.suggestion",
+          "kind": "route",
+          "label": "Where Suggestions go: email:<address>, email:, store or off",
+          "default": "email:",
+          "env": "FEEDBACK_SUGGESTION",
+          "needs": "help.feedback"
+        },
+        {
+          "id": "feedback.question",
+          "kind": "route",
+          "label": "Where Questions go: email:<address>, email:, store or off",
+          "default": "email:",
+          "env": "FEEDBACK_QUESTION",
+          "needs": "help.feedback"
+        },
+        {
+          "id": "heartbeat",
+          "kind": "feature",
+          "label": "Heartbeat: the scheduler pings a dead-man's-switch URL (HEARTBEAT_URL; healthchecks.io, Uptime Kuma push) while /api/health answers 200, so you are alerted when the app is down where nothing outside can reach it",
+          "default": true,
+          "files": [
+            "backend/app/heartbeat.py",
+            "backend/tests/test_heartbeat.py"
+          ]
+        }
+      ],
       "deployment": [
         "local",
         "hosted"

@@ -52,11 +52,7 @@ async def run_jobs() -> dict[str, int]:
     return result
 
 
-async def main() -> int:
-    configure_logging()
-    if os.environ.get("NOTIFY_ONCE") == "1":
-        print(await run_jobs())
-        return 0
+async def daily_jobs_forever() -> None:
     while True:
         wait = seconds_until(_run_at(), datetime.now(app_zone()))
         logger.info("scheduler_sleeping", seconds=int(wait))
@@ -65,6 +61,22 @@ async def main() -> int:
             await run_jobs()
         except Exception:  # noqa: BLE001 — log and try again tomorrow
             logger.exception("scheduled_jobs_failed")
+
+
+async def main() -> int:
+    configure_logging()
+    if os.environ.get("NOTIFY_ONCE") == "1":
+        print(await run_jobs())
+        return 0
+    loops = [daily_jobs_forever()]
+    # feature:heartbeat:start
+    # Beside the daily jobs: the outbound heartbeat (idles when HEARTBEAT_URL is empty).
+    from app.heartbeat import run_forever as heartbeat_forever
+
+    loops.append(heartbeat_forever(get_settings()))
+    # feature:heartbeat:end
+    await asyncio.gather(*loops)
+    return 0
 
 
 if __name__ == "__main__":

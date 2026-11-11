@@ -65,8 +65,10 @@ async def test_nul_byte_is_rejected_on_every_text_field(client, admin_auth):
             "password": PASSWORD,
             "display_name": NUL,
         },
+        # feature:help.feedback:start
         ("POST", "/api/feedback", "details"): {"kind": "bug", "summary": "s", "details": NUL},
         ("POST", "/api/feedback", "summary"): {"kind": "bug", "summary": NUL},
+        # feature:help.feedback:end
     }
     for (method, url, field), body in cases.items():
         response = await client.request(method, url, json=body)

@@ -1,37 +1,43 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ClipboardList,
-  ClipboardPlus,
-  Pencil,
-  ArrowUpDown,
-  ListFilter,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { ClipboardList, ClipboardPlus, Pencil, Trash2 } from "lucide-react";
 
 import { useCan } from "../hooks/useCan";
 import { useAllSurveys, useDeleteSurvey, useUpdateSurvey } from "../hooks/useSurveys";
-import { formatDate } from "../lib/format";
+import { NO_VALUE, formatDate, formatDateTime } from "../lib/format";
+import type { FilterableColumn } from "../lib/tableFilters";
 import { SURVEY_STATUSES, vocabularyLabel } from "../lib/vocabularies";
 import type { components } from "../types/openapi";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
-import { PageCapBanner } from "./PageCapBanner";
 import { StatusBadge } from "./StatusBadge";
 import { SurveyFormDialog } from "./SurveyFormDialog";
 import { LoadError } from "./LoadError";
 import { Button } from "./ui/button";
 import { EmptyState } from "./ui/empty-state";
+import { ManagedDataTable } from "./ui/ManagedDataTable";
 import { RowActions, RowActionsMenu } from "./ui/row-actions";
-import { Skeleton } from "./ui/skeleton";
-import { IconButton } from "./ui/icon-button";
-import { IconSelect } from "./ui/icon-select";
-import { SearchToggle } from "./ui/search-toggle";
+import { TableSkeleton } from "./ui/table-skeleton";
+import { TABLE_PANEL } from "../lib/tablePanel";
 
 type Survey = components["schemas"]["SurveyRead"];
 
-const ALL = "all";
+/** Every field of a survey is a column (the site is this page's own, so it is not one); these are
+ *  hidden until the person adds them from Columns. */
+const HIDDEN_BY_DEFAULT = { created_at: false, updated_at: false };
+
+const FILTERS: FilterableColumn<Survey>[] = [
+  { id: "survey_date", label: "Date", type: "date", accessor: (s) => s.survey_date },
+  { id: "status", label: "Status", type: "select", options: [...SURVEY_STATUSES], accessor: (s) => s.status },
+  { id: "surveyor", label: "Surveyor", type: "text", accessor: (s) => s.surveyor },
+  { id: "summary", label: "Summary", type: "text", accessor: (s) => s.summary },
+  { id: "created_at", label: "Added", type: "date", accessor: (s) => s.created_at },
+  { id: "updated_at", label: "Updated", type: "date", accessor: (s) => s.updated_at },
+];
+
+/** The status filter carries from one site to the next; a surveyor, a summary or a date is about this
+ *  site's surveys, and kept would make the next site's tab look empty. */
+const REMEMBERED_FILTERS = ["status"];
 
 interface SiteSurveysPanelProps {
   site: { id: string; name: string };
@@ -39,49 +45,122 @@ interface SiteSurveysPanelProps {
   onAddSurvey: () => void;
 }
 
-/** The site page's Surveys tab: every survey for the site, searchable and
- *  filterable, with add / edit / status / delete in place. */
+/** The site page's Surveys tab: every survey for the site in a managed table (search, header filters,
+ *  sort, columns, CSV), with add / edit / status / delete in place. One saved view serves every site. */
 export function SiteSurveysPanel({ site, onAddSurvey }: SiteSurveysPanelProps) {
   const can = useCan();
   const surveysQuery = useAllSurveys({ siteId: site.id });
   const updateSurvey = useUpdateSurvey();
   const deleteSurvey = useDeleteSurvey();
 
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState<string>(ALL);
-  const [sortKey, setSortKey] = useState<"newest" | "oldest">("newest");
-
   const [editSurvey, setEditSurvey] = useState<Survey | null>(null);
   const [removeSurvey, setRemoveSurvey] = useState<Survey | null>(null);
 
   const surveys = useMemo(() => surveysQuery.data?.items ?? [], [surveysQuery.data]);
-  const filtering = q.trim() !== "" || status !== ALL;
 
-  const visibleSurveys = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    const matching = surveys.filter(
-      (s) =>
-        (status === ALL || s.status === status) &&
-        (needle === "" || `${s.surveyor} ${s.summary ?? ""}`.toLowerCase().includes(needle)),
-    );
-    return matching.sort((a, b) => {
-      const diff = new Date(b.survey_date).getTime() - new Date(a.survey_date).getTime();
-      return sortKey === "newest" ? diff : -diff;
-    });
-  }, [surveys, q, status, sortKey]);
+  // Read at click time by the row menus, so the columns needn't rebuild.
+  const rowActions = {
+    edit: (s: Survey) => setEditSurvey(s),
+    setStatus: (s: Survey, status: "draft" | "completed") => updateSurvey.mutate({ id: s.id, body: { status } }),
+    remove: (s: Survey) => setRemoveSurvey(s),
+  };
+  const actions = useRef(rowActions);
+  actions.current = rowActions;
 
-  if (surveysQuery.isPending) {
-    return (
-      <div className="space-y-3">
-        <Skeleton className="h-9 w-full max-w-md" />
-        <Skeleton className="h-32 rounded-lg" />
-        <Skeleton className="h-32 rounded-lg" />
-      </div>
-    );
-  }
-  if (surveysQuery.isError) {
-    return <LoadError error={surveysQuery.error} what="surveys" />;
-  }
+  const columns = useMemo<ColumnDef<Survey, unknown>[]>(
+    () => [
+      {
+        id: "survey_date",
+        accessorKey: "survey_date",
+        header: "Date",
+        cell: ({ row }) => (
+          <Link
+            to={`/surveys/${row.original.id}`}
+            className="tnum text-foreground hover:text-primary hover:underline tap-area"
+          >
+            {formatDate(row.original.survey_date)}
+          </Link>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: "Status",
+        cell: (info) => (
+          <StatusBadge value={info.getValue<string>()} kind="survey" label={vocabularyLabel(info.getValue<string>())} />
+        ),
+      },
+      { id: "surveyor", accessorKey: "surveyor", header: "Surveyor" },
+      {
+        id: "summary",
+        accessorFn: (s) => s.summary ?? "",
+        header: "Summary",
+        meta: { maxWidth: "24rem" },
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.summary || NO_VALUE}</span>,
+      },
+      {
+        id: "created_at",
+        accessorKey: "created_at",
+        header: "Added",
+        cell: (info) => <span className="tnum text-muted-foreground">{formatDateTime(info.getValue<string>())}</span>,
+      },
+      {
+        id: "updated_at",
+        accessorKey: "updated_at",
+        header: "Updated",
+        cell: (info) => <span className="tnum text-muted-foreground">{formatDateTime(info.getValue<string>())}</span>,
+      },
+      ...(can.edit
+        ? [
+            {
+              id: "actions",
+              header: "",
+              enableSorting: false,
+              meta: { width: "shrink", align: "right" },
+              cell: ({ row }) => {
+                const s = row.original;
+                return (
+                  <RowActions>
+                    <RowActionsMenu
+                      label={`Actions for the survey of ${formatDate(s.survey_date)}`}
+                      items={[
+                        { label: "Edit survey", icon: <Pencil />, onSelect: () => actions.current.edit(s) },
+                        s.status === "draft"
+                          ? {
+                              label: "Mark completed",
+                              icon: <ClipboardList />,
+                              onSelect: () => actions.current.setStatus(s, "completed"),
+                            }
+                          : {
+                              label: "Reopen as draft",
+                              icon: <ClipboardList />,
+                              onSelect: () => actions.current.setStatus(s, "draft"),
+                            },
+                        ...(can.remove
+                          ? [
+                              {
+                                label: "Delete survey",
+                                icon: <Trash2 />,
+                                tone: "destructive" as const,
+                                separated: true,
+                                onSelect: () => actions.current.remove(s),
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
+                  </RowActions>
+                );
+              },
+            } satisfies ColumnDef<Survey, unknown>,
+          ]
+        : []),
+    ],
+    [can.edit, can.remove],
+  );
+
+  if (surveysQuery.isPending) return <TableSkeleton rows={3} />;
+  if (surveysQuery.isError) return <LoadError error={surveysQuery.error} what="surveys" />;
 
   if (surveys.length === 0) {
     return (
@@ -103,106 +182,36 @@ export function SiteSurveysPanel({ site, onAddSurvey }: SiteSurveysPanelProps) {
 
   return (
     <div className="space-y-4">
-      {/* One card holds the toolbar and the rows, like Comments, Attachments and History. */}
-      <div className="rounded-lg border border-border bg-card p-3">
-      {/* The same toolbar as Comments, Attachments and History: icons, then the count. */}
-      <div className="mb-2 flex flex-wrap items-center gap-2">
-        {can.edit && (
-          <IconButton label="Add survey" variant="default" onClick={onAddSurvey}>
-            <Plus />
-          </IconButton>
+      {/* Scrolls inside the page past min(34rem, 70vh), header in view (lib/tablePanel.ts). */}
+      <div className={TABLE_PANEL}>
+      <ManagedDataTable
+        data={surveys}
+        columns={columns}
+        exportName={`surveys-${site.name}`}
+        layoutKey="site-surveys"
+        initialVisibility={HIDDEN_BY_DEFAULT}
+        filterableColumns={FILTERS}
+        rememberedFilterFields={REMEMBERED_FILTERS}
+        defaultSorting={[{ id: "survey_date", desc: true }]}
+        totalRows={surveysQuery.data?.total}
+        emptyMessage="No surveys match these filters."
+        primaryAction={can.edit ? { label: "Add survey", onClick: onAddSurvey } : undefined}
+        // On a phone, cards as on the Surveys page (the table's filters stay in its toolbar menu).
+        renderMobileCard={(s) => (
+          <div className="flex items-start gap-2 rounded-lg border border-border bg-card p-[var(--card-p)]">
+            <Link to={`/surveys/${s.id}`} className="flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-1">
+              <span className="flex items-center gap-2">
+                <span className="truncate font-medium text-foreground">{formatDate(s.survey_date)}</span>
+                <StatusBadge value={s.status} kind="survey" label={vocabularyLabel(s.status)} />
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {s.surveyor}
+                {s.summary ? ` · ${s.summary}` : ""}
+              </span>
+            </Link>
+          </div>
         )}
-        <SearchToggle value={q} onChange={setQ} label="Search surveys" placeholder="Search surveys…" />
-        <IconSelect
-          icon={<ListFilter />}
-          label="Filter by status"
-          highlighted={status !== ALL}
-          value={status}
-          onChange={setStatus}
-          options={[{ value: ALL, label: "All statuses" }, ...SURVEY_STATUSES.map((st) => ({ value: st, label: vocabularyLabel(st) }))]}
-        />
-        <IconSelect
-          icon={<ArrowUpDown />}
-          label="Sort surveys"
-          value={sortKey}
-          onChange={(v) => setSortKey(v as "newest" | "oldest")}
-          options={[
-            { value: "newest", label: "Newest first" },
-            { value: "oldest", label: "Oldest first" },
-          ]}
-        />
-        <span className="ml-auto shrink-0 whitespace-nowrap text-xs text-muted-foreground tnum">
-          {filtering ? `${visibleSurveys.length} / ${surveys.length}` : surveys.length}
-        </span>
-      </div>
-
-      <PageCapBanner loaded={surveys.length} total={surveysQuery.data?.total ?? 0} noun="surveys" />
-
-      {visibleSurveys.length === 0 ? (
-        <EmptyState
-          icon={<Search className="size-8" />}
-          title="Nothing matches"
-          description="No surveys match these filters."
-        />
-      ) : (
-        <ul className="divide-y divide-border">
-        {visibleSurveys.map((s) => (
-          <li key={s.id} className="space-y-2 py-3 first:pt-1 last:pb-1">
-              <div className="flex items-start gap-2">
-                <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <Link
-                    to={`/surveys/${s.id}`}
-                    className="text-sm font-semibold text-foreground hover:text-primary hover:underline tap-area"
-                  >
-                    Survey {formatDate(s.survey_date)}
-                  </Link>
-                  <StatusBadge value={s.status} kind="survey" label={vocabularyLabel(s.status)} />
-                  <span className="text-xs text-muted-foreground">by {s.surveyor}</span>
-                </div>
-                {can.edit && (
-                  <RowActions>
-                    <RowActionsMenu
-                      label="Survey actions"
-                      items={[
-                        {
-                          label: "Edit survey",
-                          icon: <Pencil />,
-                          onSelect: () => setEditSurvey(s),
-                        },
-                        s.status === "draft"
-                          ? {
-                              label: "Mark completed",
-                              icon: <ClipboardList />,
-                              onSelect: () =>
-                                updateSurvey.mutate({ id: s.id, body: { status: "completed" } }),
-                            }
-                          : {
-                              label: "Reopen as draft",
-                              icon: <ClipboardList />,
-                              onSelect: () =>
-                                updateSurvey.mutate({ id: s.id, body: { status: "draft" } }),
-                            },
-                        ...(can.remove
-                          ? [
-                              {
-                                label: "Delete survey",
-                                icon: <Trash2 />,
-                                tone: "destructive" as const,
-                                separated: true,
-                                onSelect: () => setRemoveSurvey(s),
-                              },
-                            ]
-                          : []),
-                      ]}
-                    />
-                  </RowActions>
-                )}
-              </div>
-              {s.summary && <p className="text-sm text-muted-foreground">{s.summary}</p>}
-          </li>
-        ))}
-        </ul>
-      )}
+      />
       </div>
 
       <SurveyFormDialog

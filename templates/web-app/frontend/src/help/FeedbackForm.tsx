@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Bug, ImageOff, Lightbulb, Loader2, MessageSquare, RefreshCw, Send } from "lucide-react";
 import { toast } from "sonner";
 
 import { api, expectData } from "../api/client";
+import type { components } from "../types/openapi";
 import { useAuth } from "../hooks/useAuth";
 import { collectDiagnostics, diagnosticsRows } from "../lib/diagnostics";
 import { isQueued } from "../lib/outbox";
@@ -52,12 +54,33 @@ const KINDS: {
 
 const SUMMARY_MAX = 150;
 
+type TypeConfig = components["schemas"]["FeedbackTypeConfig"];
+
+/** Where this type goes, in the words of "What's sent with it". Addresses come back for admins only. */
+function destinationText(label: string, type: TypeConfig | undefined): string {
+  if (!type) return "It goes to the team.";
+  if (type.destination === "email") {
+    return type.address ? `${label}s are emailed to ${type.address}.` : `${label}s are emailed to the team.`;
+  }
+  return `${label}s are kept in the app for the admins to read.`;
+}
+
 /** Help & feedback: a problem, a suggestion or a question, sent to
  *  the team with a screenshot of the page and the diagnostics listed under
  *  "What's sent with it". Offline, it waits in the outbox. */
 export function FeedbackForm({ onSent }: { onSent?: () => void }) {
   const { email, role, multiUser } = useAuth();
-  const [kind, setKind] = useState<Kind>("bug");
+  const [chosen, setChosen] = useState<Kind>("bug");
+  // Which types are on and where each goes. Until it answers (or offline) every type is offered:
+  // a report for a type that's off is refused by the server with a message.
+  const config = useQuery({
+    queryKey: ["feedback-config"],
+    queryFn: () => expectData(() => api.GET("/api/feedback/config", {})),
+    staleTime: 5 * 60_000,
+  });
+  const types = config.data?.types;
+  const kinds = types ? KINDS.filter((k) => types.some((t) => t.kind === k.value)) : KINDS;
+  const kind = kinds.some((k) => k.value === chosen) ? chosen : (kinds[0]?.value ?? chosen);
   const [summary, setSummary] = useState("");
   const [details, setDetails] = useState("");
   const [shot, setShot] = useState<string | null>(null);
@@ -85,6 +108,7 @@ export function FeedbackForm({ onSent }: { onSent?: () => void }) {
     [email, role, multiUser],
   );
   const current = KINDS.find((k) => k.value === kind)!;
+  const destination = destinationText(current.label, types?.find((t) => t.kind === kind));
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -120,20 +144,32 @@ export function FeedbackForm({ onSent }: { onSent?: () => void }) {
     }
   }
 
+  if (kinds.length === 0) {
+    return (
+      <p className="p-4 text-sm text-muted-foreground">
+        Feedback is turned off for this app. Ask an admin if you need to reach the team.
+      </p>
+    );
+  }
+
   return (
     <form onSubmit={send} className="flex flex-col gap-(--card-gap) p-4">
       <p className="text-sm text-muted-foreground">
         Report a problem, suggest an improvement or ask a question. It goes straight to the team.
       </p>
 
-      <div role="radiogroup" aria-label="What's this about?" className="grid grid-cols-3 gap-2">
-        {KINDS.map(({ value, label, icon: Icon }) => (
+      <div
+        role="radiogroup"
+        aria-label="What's this about?"
+        className={cn("grid gap-2", ["grid-cols-1", "grid-cols-2", "grid-cols-3"][kinds.length - 1])}
+      >
+        {kinds.map(({ value, label, icon: Icon }) => (
           <button
             key={value}
             type="button"
             role="radio"
             aria-checked={kind === value}
-            onClick={() => setKind(value)}
+            onClick={() => setChosen(value)}
             className={cn(
               "flex flex-col items-center gap-1 rounded-md border px-1 py-2 text-xs font-medium transition-colors",
               kind === value ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground/80 hover:bg-muted",
@@ -203,6 +239,7 @@ export function FeedbackForm({ onSent }: { onSent?: () => void }) {
           What's sent with it
         </CollapsibleTrigger>
         <CollapsibleContent>
+          <p className="border-t border-border px-3 py-2 text-xs text-foreground">{destination}</p>
           <dl className="max-h-56 overflow-y-auto border-t border-border px-3 py-2 text-xs">
             {diagnosticsRows(diagnostics).map(([k, v]) => (
               <div key={k} className="grid grid-cols-[8.5rem_1fr] gap-2 py-0.5">

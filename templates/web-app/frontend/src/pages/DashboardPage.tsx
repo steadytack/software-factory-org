@@ -37,8 +37,6 @@ const SurveysTrendChart = lazy(() =>
 const SurveysStatusChart = lazy(() =>
   import("../components/dashboard-charts").then((m) => ({ default: m.SurveysStatusChart })),
 );
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { DASHBOARD_HELP_TOPICS } from "../help/pageTopics";
 import { formatDate, formatDelta, formatWeekday } from "../lib/format";
 import { vocabularyLabel } from "../lib/vocabularies";
 import { Card } from "../components/ui/card";
@@ -97,7 +95,6 @@ function useTick(ms: number) {
 }
 
 export function DashboardPage() {
-  useRegisterHelpTopics(DASHBOARD_HELP_TOPICS);
   useTick(30_000);
   const statsQuery = useDashboardStats(7);
   const sitesQuery = useSites(0, 50);

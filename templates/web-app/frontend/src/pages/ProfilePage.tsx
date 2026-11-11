@@ -17,8 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { PROFILE_HELP_TOPICS } from "../help/pageTopics";
 import { loadPrefs, savePrefs, type Density } from "../lib/prefs";
 import { TableDisplaySettings } from "../components/TableDisplaySettings";
 import { vocabularyLabel } from "../lib/vocabularies";
@@ -56,7 +54,6 @@ function initialsFor(name: string, email: string | null | undefined): string {
  *  preferences and how the app looks on this device (right). Two columns on a wide screen, one on a phone. */
 export function ProfilePage() {
   const { email, role, multiUser, logout } = useAuth();
-  useRegisterHelpTopics(PROFILE_HELP_TOPICS);
   const [displayName, setDisplayName] = useState("");
   const [defaultPage, setDefaultPage] = useState("/");
   const [density, setDensity] = useState<Density>(() => loadPrefs().density);

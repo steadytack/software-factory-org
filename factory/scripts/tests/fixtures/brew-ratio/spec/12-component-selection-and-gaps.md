@@ -10,7 +10,7 @@
 ## Required capabilities
 | CAP | Capability | Requirements | Candidates | Selected | Decision | Rationale | Compatibility and licence | Adaptation | Evidence | Remaining work | Reuse scope |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| CAP-001 | One offline page with safe local storage and file export | FR-001, FR-002, FR-003, FR-004, NFR-001 | CAT-006 | CAT-006 1.3.0 | reuse | Has storage and export helpers with tests; no server | Browser only; owner's own work | Replace the example content | Its 13 tests passed (catalogue evidence) | The calculator itself (EPIC-001) | project |
+| CAP-001 | One offline page with safe local storage and file export | FR-001, FR-002, FR-003, FR-004, NFR-001 | CAT-006 | CAT-006 1.4.0 | reuse | Has storage and export helpers with tests; no server | Browser only; owner's own work | Replace the example content | Its 13 tests passed (catalogue evidence) | The calculator itself (EPIC-001) | project |
 
 ## Rejected candidates
 None: CAT-006 is the only candidate.

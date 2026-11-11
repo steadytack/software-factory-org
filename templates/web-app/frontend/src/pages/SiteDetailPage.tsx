@@ -19,8 +19,6 @@ import { ChangelogTab } from "../components/ChangelogTab";
 import { CommentsTab } from "../components/CommentsTab";
 import { AttachmentsTab } from "../components/AttachmentsTab";
 import { DeleteConfirmDialog } from "../components/DeleteConfirmDialog";
-import { useRegisterHelpTopics } from "../help/useRegisterHelpTopics";
-import { SITE_DETAIL_HELP_TOPICS } from "../help/pageTopics";
 import { LoadError } from "../components/LoadError";
 import { Alert } from "../components/ui/alert";
 import { Input } from "../components/ui/input";
@@ -69,7 +67,6 @@ export function SiteDetailPage() {
   const location = useLocation();
   // Back to the exact Sites view the user came from (filters, sort, page).
   const sitesHref = sitesListHref(location.state);
-  useRegisterHelpTopics(SITE_DETAIL_HELP_TOPICS);
   const can = useCan();
   const { data: site, isPending, refetch } = useSite(siteId ?? "");
   const updateSite = useUpdateSite();
