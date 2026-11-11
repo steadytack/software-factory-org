@@ -56,6 +56,7 @@ The rules in `standards/PRINCIPLES.md` 2 and 3 are checked by the template's own
 - **SBOM** (protection C and D, `security.md`): `cyclonedx-py requirements backend/requirements-dev.txt -o sbom-backend.cdx.json` (the `cyclonedx-bom` package; the file lists the runtime packages first, then the dev tools) and `npx @cyclonedx/cyclonedx-npm --output-file sbom-frontend.cdx.json` in `frontend/`; commit both before the Publish dry run.
 - **Not linted:** React component length (most pages and panels are long JSX). The refactor and hardening audit looks at it instead.
 
+## Security
 
 Security still matters even when you're the only user — the app may sit on the open internet.
 

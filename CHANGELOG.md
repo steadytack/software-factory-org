@@ -3,6 +3,7 @@
 Changes to Organisation A's factory (stages, standards, scripts, schemas, the `factory` skill). Versions follow `factory/standards/versioning.md`.
 
 ## Unreleased
+- **`factory/standards/stacks/web-app.md` has its `## Security` heading again.** It was lost in 0.10.0, which left the security rules under Architecture checks.
 
 ## 0.22.0 (2026-11-11)
 Wave 3 of bringing across work proven in the personal `software-factory` repository: larger template and tooling work. Applied by hand in this factory's vocabulary (spike card, three tiers, `develop-assess.md`); the spec-pack parts were left out, since Spec is dormant, and only the web-app template is changed. Provenance in comments reads "proven in an app built from this template".
