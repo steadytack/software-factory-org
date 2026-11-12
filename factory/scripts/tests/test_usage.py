@@ -90,11 +90,11 @@ def test_idea_rows_and_cli(tmp_path, capsys):
 
 
 def test_counts_only_this_repository_not_a_folder_it_is_named_after(tmp_path):
-    root = tmp_path / "software-factory-org"
+    root = tmp_path / "acme-factory-org"
     (root / "ideas").mkdir(parents=True)
     projects = tmp_path / "projects"
     (projects / "p").mkdir(parents=True)
-    other = str(tmp_path / "software-factory")
+    other = str(tmp_path / "acme-factory")
     (projects / "p" / "x.jsonl").write_text(
         "\n".join([line("own", str(root), "q", u(1)), line("other", other, "q", u(1)),
                    line("child", other + "/ideas/alpha", "q", u(1))]) + "\n",

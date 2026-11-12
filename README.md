@@ -20,7 +20,8 @@ Most ideas start as a **spike**: one question, a one-page card, a small build. A
 ## Start here
 - **Have an idea?** [docs/for-staff.md](docs/for-staff.md): what to send and what happens next.
 - **Leading, sponsoring or assessing it?** [docs/for-leaders.md](docs/for-leaders.md): what it is, how it stays safe, where it is now.
-- **Running it?** [factory/README.md](factory/README.md) (how it works, who does what) and [SETUP.md](SETUP.md) (first time here).
+- **A developer joining?** [SETUP.md](SETUP.md), "A developer joining": what to install, the checks to run, how a change is made.
+- **Running it?** [factory/README.md](factory/README.md) (how it works, who does what) and [SETUP.md](SETUP.md) (setting up the organisation).
 - **Where are the ideas up to?** [ideas/pipeline.md](ideas/pipeline.md).
 - **A word you don't know?** [docs/glossary.md](docs/glossary.md).
 

@@ -44,7 +44,7 @@ Each idea feeds back what it taught: whether the assessment held (`outcome.md` a
 `status.py` and the dashboard report cycle times from dates the factory already records: capture to Gate 1, Gate 1 to Gate 3, and spikes within their time box. `usage.py` measures the AI side of the cost per idea: tokens per session and per idea, and the sessions that grew too long (DEF-25). People's time at each gate is not measured yet; the first ideas measure it.
 
 ## Where it is now
-- **The first idea is a spike** (`plan-cost-calculator`), approved on 2026-11-01. Its first test is whether the people it needs give it two sessions; if they are not booked by 2026-11-08, it stops, as its card says.
+- **The first idea is a spike** (`plan-cost-calculator`), approved at Gate 1 on 2026-11-01. [ideas/pipeline.md](../ideas/pipeline.md) shows where it is.
 - **One template.** `web-app` is heavy for a short spike, though optional features (Share, Theme, Help, Feedback, a heartbeat) can now be switched off at Gate 1. It does not cover solvers, data pipelines or agents. Other templates come with the ideas that need them.
 - **People are the limit.** Gates need human review, so at most 3 ideas are in flight per operator (DEF-23).
 - **The agent can be wrong.** The challenge, the checks and the gates exist so its errors are visible before anything is relied on.

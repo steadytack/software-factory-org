@@ -27,7 +27,7 @@ def test_view_lists_ideas_with_four_gates(root):
     assert [g["n"] for g in idea["gates"]] == [1, 2, 3, 4]
     assert idea["app"] is None
     assert "factory/README.md" in data["docs"]["factory"]
-    spec = "docs/personal-software-factory-spec-v0.1.md"
+    spec = "docs/missing-spec-v0.1.md"
     assert (spec in data["docs"]["factory"]) == (root / spec).exists()
 
 

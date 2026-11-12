@@ -23,7 +23,7 @@
     "revision": "v3-archive d52e2be (copied 2026-10-19)"
   },
   "runtime": "python+node",
-  "licence": "MIT, contributed to Organisation A by tpd2111 from the personal factory, under the MIT licence (2026-10-30)",
+  "licence": "MIT, contributed to Organisation A by tpd2111 under the MIT licence (2026-10-30)",
   "maintainer": "tpd2111",
   "dependencies": [],
   "compatibility": [
@@ -72,7 +72,7 @@
       "date": "2026-11-11",
       "check": "factory/scripts/verify.py --template web-app (clean containers)",
       "result": "passed",
-      "detail": "1.3.0 (ported from the personal software-factory: nginx re-resolves the backend, checked and clock-run backups, Compose secret files and a database role per use, smoke and port checks, no any in useMapDraw); backend ruff clean and 256 passed after four long lines were wrapped; frontend tsc, eslint and 233 vitest tests passed"
+      "detail": "1.3.0 (nginx re-resolves the backend, checked and clock-run backups, Compose secret files and a database role per use, smoke and port checks, no any in useMapDraw); backend ruff clean and 256 passed after four long lines were wrapped; frontend tsc, eslint and 233 vitest tests passed"
     },
     {
       "date": "2026-11-11",
@@ -84,7 +84,7 @@
       "date": "2026-11-11",
       "check": "factory/scripts/verify.py --template web-app (clean containers)",
       "result": "passed",
-      "detail": "1.4.0 (ported from the personal software-factory: managed tables with header filters, a saved view, every field a column and server mode; collapsible cards and segmented keys; template features chosen at Gate 1 with feature markers and Markdown guides; the outbound heartbeat option); backend ruff clean and 279 passed after table_query.py was split for the complexity and boolean-argument rules; frontend tsc, eslint and 271 vitest tests passed"
+      "detail": "1.4.0 (managed tables with header filters, a saved view, every field a column and server mode; collapsible cards and segmented keys; template features chosen at Gate 1 with feature markers and Markdown guides; the outbound heartbeat option); backend ruff clean and 279 passed after table_query.py was split for the complexity and boolean-argument rules; frontend tsc, eslint and 271 vitest tests passed"
     },
     {
       "date": "2026-11-11",
@@ -128,7 +128,7 @@
       "date": "2026-10-30",
       "status": "approved",
       "by": "tpd2111",
-      "note": "contributed to Organisation A by tpd2111 from the personal factory, under the MIT licence"
+      "note": "contributed to Organisation A by tpd2111 under the MIT licence"
     }
   ]
 }

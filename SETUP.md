@@ -1,5 +1,31 @@
 # Setting up Organisation A's factory
 
+## A developer joining
+The factory is plain files (Markdown, JSON schemas) and Python scripts, driven by Claude Code. Every app it builds comes from a template in `templates/`.
+
+**You need:** Python 3.12 or later, git, Docker (for the template checks and running apps), Node 20 or later (for the web-app frontend; CI uses 20), and Claude Code with access to this repository.
+
+**First run:**
+```bash
+git clone <this repository> && cd software-factory-org
+python -m pip install -r factory/requirements-dev.txt
+python factory/scripts/check_factory.py        # the factory's files agree: prints check_factory: OK
+python -m pytest factory/scripts/tests         # the factory's own tests, no Docker
+python factory/scripts/verify.py --template web-app   # the template's checks in clean containers (Docker)
+```
+Then copy `factory/context/environment.example.md` to `factory/context/environment.md` (git-ignored) and fill it in, and add yourself to `factory/context/group/team.md`.
+
+**Where to read next:** `CLAUDE.md` (the rules every session follows), `factory/README.md` (how the factory works and who does what), `factory/standards/PRINCIPLES.md` (how code is written) and `templates/web-app/README.md` (the template).
+
+**Changing the factory:**
+- Each change is a line under `## Unreleased` in `CHANGELOG.md`.
+- `check_factory.py` and the tests must pass before you commit; CI (`.github/workflows/`) runs them again on every push.
+- A change to the web-app template also runs `verify.py --template web-app`, and a new template version needs its evidence row in `catalogue/assets/CAT-006.json`.
+- Ideas for the factory that you are not building now go in `factory/parked.md`.
+
+**Trying it:** in Claude Code at the repository root, `/factory <an idea in plain words>`; `python factory/scripts/status.py` shows where the ideas are.
+
+## Setting up the organisation (once)
 Work through this list once, in order. Each step is done when `python factory/scripts/check_factory.py` stops reporting it. Commit when it is clean (nothing here is pushed until you choose to).
 
 1. **Name the organisation and its GitHub organisation.** In `factory/context/scopes.json`, replace every `{{...}}`: the group approver (their `git config user.name`), the GitHub organisation apps are published under (`publish.owner`) and the legal entity that holds copyright. Keep `visibility` private unless the organisation says otherwise.

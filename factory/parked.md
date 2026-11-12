@@ -4,5 +4,5 @@ Ideas for changing the factory that are not being built now are parked here. Eac
 
 Format: `date | the idea for the factory | where it came from | which part of the factory it touches`.
 
-- 2026-11-11 | Catalogue relations and lifecycle (owner, lifecycle, `dependsOn`, a `dependents` command) | the personal `software-factory` repository, adapted from Backstage's descriptor format | `catalogue/`, `factory/scripts/catalogue.py`, the catalogue schema
+- 2026-11-11 | Catalogue relations and lifecycle (owner, lifecycle, `dependsOn`, a `dependents` command) | Backstage's descriptor format | `catalogue/`, `factory/scripts/catalogue.py`, the catalogue schema
 
